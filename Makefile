@@ -1,9 +1,10 @@
 # adjust this
 LIBNL = /home/johannes/Projects/libnl/
 
-CFLAGS += -Wall -lnl -I$(LIBNL)/include/ -L$(LIBNL)/lib/
+CFLAGS += -Wall -I$(LIBNL)/include/
+LDFLAGS += -lnl -L$(LIBNL)/lib/
 
-iw:	iw.c iw.h interface.c
+iw:	iw.o interface.o
 
 clean:
 	rm -f iw *.o *~

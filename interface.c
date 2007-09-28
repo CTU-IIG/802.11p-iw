@@ -106,6 +106,43 @@ static int handle_interface_add(struct nl80211_state *state,
 	return 0;
 }
 
+static int handle_interface_del(struct nl80211_state *state,
+				char *phy, char *dev, int argc, char **argv)
+{
+	int err;
+	struct nl_msg *msg;
+
+	if (argc) {
+		fprintf(stderr, "too many arguments\n");
+		return -1;
+	}
+
+        msg = nlmsg_alloc();
+	if (!msg)
+        	return -1;
+
+	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
+		    0, NL80211_CMD_DEL_INTERFACE, 0);
+	if (!dev) {
+		fprintf(stderr, "need device\n");
+		nlmsg_free(msg);
+		return -1;
+	}
+	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
+
+	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0 ||
+	    (err = nl_wait_for_ack(state->nl_handle)) < 0) {
+ nla_put_failure:
+		fprintf(stderr, "failed to remove interface: %d\n", err);
+		nlmsg_free(msg);
+		return -1;
+	}
+
+	nlmsg_free(msg);
+
+	return 0;
+}
+
 int handle_interface(struct nl80211_state *state,
 		     char *phy, char *dev, int argc, char **argv)
 {
@@ -119,6 +156,8 @@ int handle_interface(struct nl80211_state *state,
 
 	if (strcmp(cmd, "add") == 0)
 		return handle_interface_add(state, phy, dev, argc, argv);
+	else if (strcmp(cmd, "del") == 0)
+		return handle_interface_del(state, phy, dev, argc, argv);
 
 	printf("invalid interface command %s\n", cmd);
 	return -1;

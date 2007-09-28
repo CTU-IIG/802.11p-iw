@@ -11,4 +11,8 @@ struct nl80211_state {
 	struct genl_family *nl80211;
 };
 
+
+int handle_interface(struct nl80211_state *state,
+		     char *phy, char *dev, int argc, char **argv);
+
 #endif /* __IW_H */

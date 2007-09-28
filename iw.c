@@ -64,17 +64,75 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_handle_destroy(state->nl_handle);
 }
 
+/*
+ * return
+ *	0 - error
+ *	1 - phy
+ *	2 - dev
+ */
+static int get_phy_or_dev(int *argc, char ***argv, char **name)
+{
+	char *type = (*argv)[0];
+
+	if (*argc < 2)
+		return 0;
+
+	*name = (*argv)[1];
+
+	*argc -= 2;
+	*argv += 2;
+
+	if (strcmp(type, "phy") == 0)
+		return 1;
+	if (strcmp(type, "dev") == 0)
+		return 2;
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	struct nl80211_state nlstate;
-	int err;
+	int err = 0, pod;
+	char *ifname, *phyname, *type;
 
 	err = nl80211_init(&nlstate);
 	if (err)
 		return 1;
 
+	/* strip off self */
+	argc--;
+	argv++;
 
+	pod = get_phy_or_dev(&argc, &argv, &ifname);
+	if (pod == 0) {
+		err = 1;
+		goto out;
+	}
+
+	if (pod == 1) {
+		phyname = ifname;
+		ifname = NULL;
+	}
+
+	if (argc <= 0) {
+		err = 1;
+		goto out;
+	}
+
+	type = argv[0];
+	argc--;
+	argv++;
+
+	if (strcmp(type, "interface") == 0)
+		err = handle_interface(&nlstate, phyname, ifname, argc, argv);
+	else {
+		fprintf(stderr, "No such object type %s\n", type);
+		err = 1;
+	}
+
+ out:
 	nl80211_cleanup(&nlstate);
 
-	return 0;
+	return err;
 }

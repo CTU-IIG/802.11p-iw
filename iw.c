@@ -90,11 +90,17 @@ static int get_phy_or_dev(int *argc, char ***argv, char **name)
 	return 0;
 }
 
+void usage(char *argv0)
+{
+	fprintf(stderr, "Usage: %s [options] {dev <phydev>} {interface <interface> } {COMMAND}\n"
+			"where COMMAND := { add | del }\n", argv0);
+}
+
 int main(int argc, char **argv)
 {
 	struct nl80211_state nlstate;
 	int err = 0, pod;
-	char *ifname, *phyname, *type;
+	char *ifname = NULL, *phyname = NULL, *type, *argv0;
 
 	err = nl80211_init(&nlstate);
 	if (err)
@@ -102,7 +108,12 @@ int main(int argc, char **argv)
 
 	/* strip off self */
 	argc--;
-	argv++;
+	argv0 = *argv++;
+
+	if (argc == 0 || (argc == 1 && strcmp(*argv, "help") == 0)) {
+		usage(argv0);
+		goto out;
+	}
 
 	pod = get_phy_or_dev(&argc, &argv, &ifname);
 	if (pod == 0) {

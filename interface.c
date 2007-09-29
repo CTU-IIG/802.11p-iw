@@ -33,7 +33,7 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 	} else if (strcmp(tpstr, "monitor") == 0) {
 		*type = NL80211_IFTYPE_MONITOR;
 		return 1;
-	} else if (strcmp(tpstr, "ap") == 0) {
+	} else if (strcmp(tpstr, "ap") == 0 || strcmp(tpstr, "master") == 0) {
 		*type = NL80211_IFTYPE_AP;
 		return 1;
 	} else if (strcmp(tpstr, "ap_vlan") == 0) {
@@ -79,9 +79,11 @@ static int handle_interface_add(struct nl80211_state *state,
 		return -1;
 	}
 
-        msg = nlmsg_alloc();
-	if (!msg)
-        	return -1;
+	msg = nlmsg_alloc();
+	if (!msg) {
+		fprintf(stderr, "failed to allocate netlink msg\n");
+		return -1;
+	}
 
 	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
 		    0, NL80211_CMD_NEW_INTERFACE, 0);

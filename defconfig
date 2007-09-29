@@ -1,0 +1,21 @@
+# Example iw build time configuration
+#
+# This file lists the configuration options that are used when building the
+# iw binary. All lines starting with # are ignored. Configuration option
+# lines must be commented out complete, if they are not to be included, i.e.,
+# just setting VARIABLE=n is not disabling that variable.
+#
+# This file is included in Makefile, so variables like CFLAGS and LIBS can also
+# be modified from here. In most cases, these lines should use += in order not
+# to override previous values of the variables.
+
+# Kernel location for GIT NL80211 kernel code (assumed to be running,
+# by default)
+CONFIG_KERNEL_LOC = /lib/modules/`uname -r`/build/
+CFLAGS += -I$(CONFIG_KENREL_LOC)/include
+
+# LibNL location (if not installed)
+# CONFIG_LIBNL_LOC = /home/johannes/Projects/libnl/
+# CFLAGS += -I$(CONFIG_LIBNL_LOC)/include
+# LDFLAGS += -L$(CONFIG_LIBNL_LOC)/lib
+

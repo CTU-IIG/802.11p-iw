@@ -14,7 +14,11 @@
 CONFIG_KERNEL_LOC = /lib/modules/`uname -r`/build/
 CFLAGS += -I$(CONFIG_KERNEL_LOC)/include
 
-# LibNL location (if not installed)
-# CONFIG_LIBNL_LOC = /home/johannes/Projects/libnl/
+# LibNL location
+# (if not installed in a way that makes the compiler/linker find it)
+# by default, libnl's 'make install' installs to /usr/local/ so you may
+# need this
+#
+# CONFIG_LIBNL_LOC = /usr/local/
 # CFLAGS += -I$(CONFIG_LIBNL_LOC)/include
 # LDFLAGS += -L$(CONFIG_LIBNL_LOC)/lib

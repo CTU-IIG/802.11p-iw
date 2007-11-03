@@ -18,8 +18,6 @@ clean:
 verify_config:
 	@if [ ! -r .config ]; then \
 		echo 'Building iw requires a configuration file'; \
-		echo '(.config). See README for more instructions. You can'; \
-		echo 'run "cp defconfig .config" to create an example'; \
-		echo 'configuration.'; \
+		echo '(.config). cp defconfig .config and edit.'; \
 		exit 1; \
 	fi

@@ -92,8 +92,11 @@ static int get_phy_or_dev(int *argc, char ***argv, char **name)
 
 void usage(char *argv0)
 {
-	fprintf(stderr, "Usage: %s [options] {dev <phydev>} {interface <interface> } {COMMAND}\n"
-			"where COMMAND := { add | del }\n", argv0);
+	fprintf(stderr, "Usage: %s dev <phydev> interface <COMMAND> [OPTIONS]\n"
+			"where COMMAND := { add | del }\n"
+			"\n"
+			"For add, OPTIONS := <name> type <type>\n"
+			"For del, OPTIONS should be blank and phydev is the interface to delete.\n", argv0);
 }
 
 int main(int argc, char **argv)

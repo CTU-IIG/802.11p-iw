@@ -55,7 +55,7 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 static int handle_interface_add(struct nl80211_state *state,
 				char *phy, char *dev, int argc, char **argv)
 {
-	char *name = argv[0];
+	char *name;
 	enum nl80211_iftype type;
 	int tpset, err;
 	struct nl_msg *msg;
@@ -65,14 +65,15 @@ static int handle_interface_add(struct nl80211_state *state,
 		return -1;
 	}
 
+	name = argv[0];
 	argc--;
 	argv++;
 
-	if (argc) {
-		tpset = get_if_type(&argc, &argv, &type);
-		if (tpset < 0)
-			return -1;
-	}
+	tpset = get_if_type(&argc, &argv, &type);
+	if (tpset == 0)
+		fprintf(stderr, "you must specify an interface type\n");
+	if (tpset <= 0)
+		return -1;
 
 	if (argc) {
 		fprintf(stderr, "too many arguments\n");
@@ -150,8 +151,10 @@ int handle_interface(struct nl80211_state *state,
 {
 	char *cmd = argv[0];
 
-	if (argc < 1)
+	if (argc < 1) {
+		fprintf(stderr, "you must specify an interface command\n");
 		return -1;
+	}
 
 	argc--;
 	argv++;

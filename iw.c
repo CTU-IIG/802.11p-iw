@@ -92,7 +92,9 @@ static int get_phy_or_dev(int *argc, char ***argv, char **name)
 
 void usage(char *argv0)
 {
-	fprintf(stderr, "Usage: %s dev <phydev> interface <COMMAND> [OPTIONS]\n"
+	fprintf(stderr, "Usage:	%1$s dev <phydev> interface <COMMAND> [OPTIONS]\n"
+			"	%1$s dev <phydev> info\n"
+			"\n"
 			"where COMMAND := { add | del }\n"
 			"\n"
 			"For add, OPTIONS := <name> type <type>\n"
@@ -140,6 +142,8 @@ int main(int argc, char **argv)
 
 	if (strcmp(type, "interface") == 0)
 		err = handle_interface(&nlstate, phyname, ifname, argc, argv);
+	if (strcmp(type, "info") == 0)
+		err = handle_info(&nlstate, phyname, ifname);
 	else {
 		fprintf(stderr, "No such object type %s\n", type);
 		err = 1;

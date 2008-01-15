@@ -4,7 +4,7 @@ CC ?= "gcc"
 CFLAGS += -Wall -I/lib/modules/`uname -r`/build/include -g
 LDFLAGS += -lnl
 
-OBJS = iw.o interface.o
+OBJS = iw.o interface.o info.o
 ALL = iw
 
 all: verify_config $(ALL)

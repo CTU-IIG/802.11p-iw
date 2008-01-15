@@ -15,4 +15,6 @@ struct nl80211_state {
 int handle_interface(struct nl80211_state *state,
 		     char *phy, char *dev, int argc, char **argv);
 
+int handle_info(struct nl80211_state *state, char *phy, char *dev);
+
 #endif /* __IW_H */

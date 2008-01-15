@@ -1,9 +1,7 @@
 /*
  * nl80211 userspace tool
  *
- * Copyright 2007	Johannes Berg <johannes@sipsolutions.net>
- *
- * GPLv2
+ * Copyright 2007, 2008	Johannes Berg <johannes@sipsolutions.net>
  */
 
 #include <errno.h>

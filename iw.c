@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 
 	if (strcmp(type, "interface") == 0)
 		err = handle_interface(&nlstate, phyname, ifname, argc, argv);
-	if (strcmp(type, "info") == 0)
+	else if (strcmp(type, "info") == 0)
 		err = handle_info(&nlstate, phyname, ifname);
 	else {
 		fprintf(stderr, "No such object type %s\n", type);

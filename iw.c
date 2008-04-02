@@ -88,7 +88,7 @@ static int get_phy_or_dev(int *argc, char ***argv, char **name)
 	return 0;
 }
 
-void usage(char *argv0)
+static void usage(char *argv0)
 {
 	fprintf(stderr, "Usage:	%1$s dev <phydev> <OBJECT> <COMMAND> [OPTIONS]"
 			"\n	%1$s dev <phydev> info\n"

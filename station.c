@@ -79,22 +79,22 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 
 	mac_addr_n2a(mac_addr, nla_data(tb[NL80211_ATTR_MAC]));
 	if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
-	printf("%s %s", mac_addr, dev);
+	printf("Station %s (on %s)", mac_addr, dev);
 
 	if (sinfo[NL80211_STA_INFO_INACTIVE_TIME])
-		printf("\t%d",
+		printf("\n\tinactive time:\t%d ms",
 			nla_get_u32(sinfo[NL80211_STA_INFO_INACTIVE_TIME]));
 	if (sinfo[NL80211_STA_INFO_RX_BYTES])
-		printf("\t%d",
+		printf("\n\trx bytes:\t%d",
 			nla_get_u32(sinfo[NL80211_STA_INFO_RX_BYTES]));
 	if (sinfo[NL80211_STA_INFO_TX_BYTES])
-		printf("\t%d",
+		printf("\n\ttx bytes:\t%d",
 			nla_get_u32(sinfo[NL80211_STA_INFO_TX_BYTES]));
 	if (sinfo[NL80211_STA_INFO_LLID])
-		printf("\t%d",
+		printf("\n\tmesh llid:\t%d",
 			nla_get_u16(sinfo[NL80211_STA_INFO_LLID]));
 	if (sinfo[NL80211_STA_INFO_PLID])
-		printf("\t%d",
+		printf("\n\tmesh plid:\t%d",
 			nla_get_u16(sinfo[NL80211_STA_INFO_PLID]));
 	if (sinfo[NL80211_STA_INFO_PLINK_STATE]) {
 		switch (nla_get_u16(sinfo[NL80211_STA_INFO_PLINK_STATE])) {
@@ -123,7 +123,7 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 			strcpy(state_name, "UNKNOWN");
 			break;
 		}
-		printf("\t%s", state_name);
+		printf("\n\tmesh plink:\t%s", state_name);
 	}
 
 	printf("\n");

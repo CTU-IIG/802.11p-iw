@@ -16,21 +16,34 @@ else
 DEF := all
 endif
 
+ifeq ($(V),1)
+Q=
+NQ=true
+else
+Q=@
+NQ=echo
+endif
+
 default: $(DEF)
 
 all: verify_config $(ALL)
 
+%.o: %.c
+	@$(NQ) ' CC  ' $@
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
+
 iw:	$(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o iw $(LDFLAGS)
+	@$(NQ) ' CC  ' iw
+	$(Q)$(CC) $(LDFLAGS) $(OBJS) -o iw
 
 check:
-	@$(MAKE) all CC="REAL_CC=$(CC) CHECK=\"sparse -Wall\" cgcc"
+	$(Q)$(MAKE) all CC="REAL_CC=$(CC) CHECK=\"sparse -Wall\" cgcc"
 
 clean:
-	@rm -f iw *.o *~
+	$(Q)rm -f iw *.o *~
 
 verify_config:
-	@if [ ! -r .config ]; then \
+	$(Q)if [ ! -r .config ]; then \
 		echo 'Building iw requires a configuration file'; \
 		echo '(.config). cp defconfig .config and edit.'; \
 		exit 1; \

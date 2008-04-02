@@ -2,15 +2,15 @@
 
 int mac_addr_n2a(char *mac_addr, unsigned char *arg)
 {
-	int i, l, blen;
+	int i, l;
 
 	l = 0;
 	for (i = 0; i < ETH_ALEN ; i++) {
 		if (i == 0) {
-			snprintf(mac_addr+l, blen, "%02x", arg[i]);
+			sprintf(mac_addr+l, "%02x", arg[i]);
 			l += 2;
 		} else {
-			snprintf(mac_addr+l, blen, ":%02x", arg[i]);
+			sprintf(mac_addr+l, ":%02x", arg[i]);
 			l += 3;
 		}
 	}

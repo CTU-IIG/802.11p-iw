@@ -1,7 +1,9 @@
 -include .config
 
 CC ?= "gcc"
-CFLAGS += -Wall -I/lib/modules/`uname -r`/build/include -g
+CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration
+CFLAGS += -I/lib/modules/`uname -r`/build/include
+CFLAGS += -O2 -g
 LDFLAGS += -lnl
 
 OBJS = iw.o interface.o info.o station.o util.o mpath.o

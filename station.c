@@ -1,6 +1,7 @@
 #include <linux/nl80211.h>
 #include <net/if.h>
 #include <errno.h>
+#include <string.h>
 
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>

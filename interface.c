@@ -62,7 +62,7 @@ static int handle_interface_add(struct nl80211_state *state,
 	char *name;
 	char *mesh_id = NULL;
 	enum nl80211_iftype type;
-	int tpset, err;
+	int tpset, err = -ENOBUFS;
 	struct nl_msg *msg;
 
 	if (argc < 1) {
@@ -136,7 +136,7 @@ static int handle_interface_add(struct nl80211_state *state,
 static int handle_interface_del(struct nl80211_state *state,
 				char *phy, char *dev, int argc, char **argv)
 {
-	int err;
+	int err = -ENOBUFS;
 	struct nl_msg *msg;
 
 	if (argc) {

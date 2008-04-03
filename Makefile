@@ -10,11 +10,6 @@ LDFLAGS += -lnl
 
 OBJS = iw.o interface.o info.o station.o util.o mpath.o
 ALL = iw
-ifneq ($(shell which cgcc),"")
-DEF := check
-else
-DEF := all
-endif
 
 ifeq ($(V),1)
 Q=
@@ -23,8 +18,6 @@ else
 Q=@
 NQ=echo
 endif
-
-default: $(DEF)
 
 all: verify_config $(ALL)
 

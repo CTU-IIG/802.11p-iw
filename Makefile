@@ -23,7 +23,7 @@ all: verify_config $(ALL)
 
 %.o: %.c
 	@$(NQ) ' CC  ' $@
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
+	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
 iw:	$(OBJS)
 	@$(NQ) ' CC  ' iw

@@ -33,10 +33,10 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 	} else if (strcmp(tpstr, "monitor") == 0) {
 		*type = NL80211_IFTYPE_MONITOR;
 		return 1;
-	} else if (strcmp(tpstr, "ap") == 0 || strcmp(tpstr, "master") == 0) {
+	} else if (strcmp(tpstr, "__ap") == 0) {
 		*type = NL80211_IFTYPE_AP;
 		return 1;
-	} else if (strcmp(tpstr, "ap_vlan") == 0) {
+	} else if (strcmp(tpstr, "__ap_vlan") == 0) {
 		*type = NL80211_IFTYPE_AP_VLAN;
 		return 1;
 	} else if (strcmp(tpstr, "wds") == 0) {

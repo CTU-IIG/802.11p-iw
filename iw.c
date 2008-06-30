@@ -95,7 +95,7 @@ static void usage(char *argv0)
 	fprintf(stderr, "Usage:	%1$s dev <phydev> <OBJECT> <COMMAND> [OPTIONS]"
 			"\n	%1$s dev <phydev> info\n"
 			"\n"
-			"where OBJECT := { interface | station | mpath }\n"
+			"where OBJECT := { interface | station | mpath | info }\n"
 			"and COMMAND := { add | del | set | get | dump }\n",
 			argv0);
 }

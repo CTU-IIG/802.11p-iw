@@ -42,23 +42,11 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		[NL80211_BITRATE_ATTR_2GHZ_SHORTPREAMBLE] = { .type = NLA_FLAG },
 	};
 
-	static const char *ifmodes[NL80211_IFTYPE_MAX + 1] = {
-		"unspecified",
-		"IBSS",
-		"Station",
-		"AP",
-		"AP(VLAN)",
-		"WDS",
-		"Monitor",
-		"mesh point"
-	};
-
 	struct nlattr *nl_band;
 	struct nlattr *nl_freq;
 	struct nlattr *nl_rate;
-	struct nlattr *nl_mode;
 	int bandidx = 1;
-	int rem_band, rem_freq, rem_rate, rem_mode;
+	int rem_band, rem_freq, rem_rate;
 	int open;
 
 	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -111,17 +99,6 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 				printf(")");
 			printf("\n");
 		}
-	}
-
-	if (!tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES])
-		return NL_SKIP;
-
-	printf("Supported interface modes:\n");
-	nla_for_each_nested(nl_mode, tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES], rem_mode) {
-		if (nl_mode->nla_type > NL80211_IFTYPE_MAX)
-			printf("\t * Unknown mode (%d)\n", nl_mode->nla_type);
-		else
-			printf("\t * %s\n", ifmodes[nl_mode->nla_type]);
 	}
 
 	return NL_SKIP;

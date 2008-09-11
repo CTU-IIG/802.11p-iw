@@ -93,7 +93,8 @@ static int get_phy_or_dev(int *argc, char ***argv, char **name)
 static void usage(char *argv0)
 {
 	fprintf(stderr, "Usage:	%1$s dev <phydev> <OBJECT> <COMMAND> [OPTIONS]"
-			"\n	%1$s dev <phydev> info\n"
+			"\n	%1$s dev <phydev> info"
+			"\n	%1$s reg set <ISO/IEC 3166-1 alpha2>\n"
 			"\n"
 			"where OBJECT := { interface | station | mpath | info }\n"
 			"and COMMAND := { add | del | set | get | dump }\n",
@@ -116,6 +117,13 @@ int main(int argc, char **argv)
 
 	if (argc == 0 || (argc == 1 && strcmp(*argv, "help") == 0)) {
 		usage(argv0);
+		goto out;
+	}
+
+	if (strcmp(argv[0], "reg") == 0) {
+		argc--;
+		argv++;
+		err = handle_reg(&nlstate, argc, argv);
 		goto out;
 	}
 

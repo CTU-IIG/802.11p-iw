@@ -8,7 +8,7 @@ CFLAGS += -I/lib/modules/`uname -r`/build/include
 CFLAGS += -O2 -g
 LDFLAGS += -lnl
 
-OBJS = iw.o interface.o info.o station.o util.o mpath.o
+OBJS = iw.o interface.o info.o station.o util.o mpath.o reg.o
 ALL = iw
 
 ifeq ($(V),1)

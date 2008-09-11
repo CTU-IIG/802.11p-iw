@@ -25,6 +25,9 @@ int handle_station(struct nl80211_state *state,
 int handle_mpath(struct nl80211_state *state,
 		   char *dev, int argc, char **argv);
 
+int handle_reg(struct nl80211_state *state,
+		   int argc, char **argv);
+
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);
 int mac_addr_n2a(char *mac_addr, unsigned char *arg);
 

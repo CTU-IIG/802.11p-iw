@@ -57,18 +57,16 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 }
 
 static int handle_interface_add(struct nl80211_state *state,
-				char *phy, char *dev, int argc, char **argv)
+				struct nl_msg *msg,
+				int argc, char **argv)
 {
 	char *name;
 	char *mesh_id = NULL;
 	enum nl80211_iftype type;
 	int tpset, err = -ENOBUFS;
-	struct nl_msg *msg;
 
-	if (argc < 1) {
-		fprintf(stderr, "not enough arguments\n");
+	if (argc < 1)
 		return -1;
-	}
 
 	name = argv[0];
 	argc--;
@@ -102,18 +100,6 @@ static int handle_interface_add(struct nl80211_state *state,
 		return -1;
 	}
 
-	msg = nlmsg_alloc();
-	if (!msg) {
-		fprintf(stderr, "failed to allocate netlink msg\n");
-		return -1;
-	}
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    0, NL80211_CMD_NEW_INTERFACE, 0);
-	if (dev)
-		NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
-	if (phy)
-		return -1; /* XXX TODO */
 	NLA_PUT_STRING(msg, NL80211_ATTR_IFNAME, name);
 	if (tpset)
 		NLA_PUT_U32(msg, NL80211_ATTR_IFTYPE, type);
@@ -124,51 +110,30 @@ static int handle_interface_add(struct nl80211_state *state,
 	    (err = nl_wait_for_ack(state->nl_handle)) < 0) {
  nla_put_failure:
 		fprintf(stderr, "failed to create interface: %d\n", err);
-		nlmsg_free(msg);
-		return -1;
+		return 1;
 	}
-
-	nlmsg_free(msg);
 
 	return 0;
 }
+COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>]",
+	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add);
 
 static int handle_interface_del(struct nl80211_state *state,
-				char *phy, char *dev, int argc, char **argv)
+				struct nl_msg *msg,
+				int argc, char **argv)
 {
 	int err = -ENOBUFS;
-	struct nl_msg *msg;
-
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
-		return -1;
-	}
-
-        msg = nlmsg_alloc();
-	if (!msg)
-        	return -1;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    0, NL80211_CMD_DEL_INTERFACE, 0);
-	if (!dev) {
-		fprintf(stderr, "need device\n");
-		nlmsg_free(msg);
-		return -1;
-	}
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
 
 	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0 ||
 	    (err = nl_wait_for_ack(state->nl_handle)) < 0) {
- nla_put_failure:
 		fprintf(stderr, "failed to remove interface: %d\n", err);
 		nlmsg_free(msg);
-		return -1;
+		return 1;
 	}
-
-	nlmsg_free(msg);
 
 	return 0;
 }
+TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
 
 static int print_iface_handler(struct nl_msg *msg, void *arg)
 {
@@ -197,31 +162,12 @@ static int ack_wait_handler(struct nl_msg *msg, void *arg)
 }
 
 static int handle_interface_info(struct nl80211_state *state,
-				 char *phy, char *dev,
-				 int argc, char **argv, int flags)
+				 struct nl_msg *msg,
+				 int argc, char **argv)
 {
 	int err = -ENOBUFS;
-	struct nl_msg *msg;
 	struct nl_cb *cb = NULL;
 	int finished = 0;
-
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
-		return -1;
-	}
-
-        msg = nlmsg_alloc();
-	if (!msg)
-        	return -1;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    flags, NL80211_CMD_GET_INTERFACE, 0);
-	if (!dev) {
-		fprintf(stderr, "need device\n");
-		nlmsg_free(msg);
-		return -1;
-	}
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
 	if (!cb)
@@ -242,34 +188,7 @@ static int handle_interface_info(struct nl80211_state *state,
 		fprintf(stderr, "failed to get information: %d\n", err);
 
  out:
- nla_put_failure:
-	nlmsg_free(msg);
 	nl_cb_put(cb);
 	return 0;
 }
-
-int handle_interface(struct nl80211_state *state,
-		     char *phy, char *dev, int argc, char **argv)
-{
-	char *cmd = argv[0];
-
-	if (argc < 1) {
-		fprintf(stderr, "you must specify an interface command\n");
-		return -1;
-	}
-
-	argc--;
-	argv++;
-
-	if (strcmp(cmd, "add") == 0)
-		return handle_interface_add(state, phy, dev, argc, argv);
-	else if (strcmp(cmd, "del") == 0)
-		return handle_interface_del(state, phy, dev, argc, argv);
-	else if (strcmp(cmd, "get") == 0)
-		return handle_interface_info(state, phy, dev, argc, argv, 0);
-	else if (strcmp(cmd, "dump") == 0)
-		return handle_interface_info(state, phy, dev, argc, argv, NLM_F_DUMP);
-
-	printf("invalid interface command %s\n", cmd);
-	return -1;
-}
+TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info);

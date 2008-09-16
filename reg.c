@@ -128,28 +128,3 @@ static int handle_reg_set(struct nl80211_state *state,
 	nlmsg_free(msg);
 	return ret;
 }
-
-int handle_reg(struct nl80211_state *state,
-		   int argc, char **argv)
-{
-	char *cmd = argv[0];
-
-	if (argc < 1) {
-		fprintf(stderr, "you must specify an station command\n");
-		return -1;
-	}
-
-	argc--;
-	argv++;
-
-	/* XXX: write support for getting the currently set regdomain
-	if (strcmp(cmd, "get") == 0)
-		return handle_reg_get(state, argc, argv);
-	*/
-
-	if (strcmp(cmd, "set") == 0)
-		return handle_reg_set(state, argc, argv);
-
-	printf("invalid regulatory command %s\n", cmd);
-	return -1;
-}

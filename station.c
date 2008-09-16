@@ -386,29 +386,3 @@ static int handle_station_del(struct nl80211_state *state,
 	nlmsg_free(msg);
 	return ret;
 }
-
-int handle_station(struct nl80211_state *state,
-		   char *dev, int argc, char **argv)
-{
-	char *cmd = argv[0];
-
-	if (argc < 1) {
-		fprintf(stderr, "you must specify an station command\n");
-		return -1;
-	}
-
-	argc--;
-	argv++;
-
-	if (strcmp(cmd, "del") == 0)
-		return handle_station_del(state, dev, argc, argv);
-	if (strcmp(cmd, "get") == 0)
-		return handle_station_get(state, dev, argc, argv);
-	if (strcmp(cmd, "set") == 0)
-		return handle_station_set(state, dev, argc, argv);
-	if (strcmp(cmd, "dump") == 0)
-		return handle_station_dump(state, dev, argc, argv);
-
-	printf("invalid interface command %s\n", cmd);
-	return -1;
-}

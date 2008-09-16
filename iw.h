@@ -14,20 +14,34 @@ struct nl80211_state {
 	struct genl_family *nl80211;
 };
 
+enum command_identify_by {
+	CIB_NONE,
+	CIB_PHY,
+	CIB_NETDEV,
+};
 
-int handle_interface(struct nl80211_state *state,
-		     char *phy, char *dev, int argc, char **argv);
+struct cmd {
+	const char *section;
+	const char *name;
+	const char *args;
+	const enum nl80211_commands cmd;
+	int nl_msg_flags;
+	const enum command_identify_by idby;
+	int (*handler)(struct nl80211_state *state,
+		       struct nl_msg *msg,
+		       int argc, char **argv);
+};
 
-int handle_info(struct nl80211_state *state, char *phy, char *dev);
-
-int handle_station(struct nl80211_state *state,
-		   char *dev, int argc, char **argv);
-
-int handle_mpath(struct nl80211_state *state,
-		   char *dev, int argc, char **argv);
-
-int handle_reg(struct nl80211_state *state,
-		   int argc, char **argv);
+#define __COMMAND(sect, name, args, nlcmd, flags, idby, handler)\
+	static const struct cmd __cmd_ ## handler ## idby	\
+	__attribute__((used)) __attribute__((section("__cmd")))	\
+	= { sect, name, args, nlcmd, flags, idby, handler }
+#define COMMAND(section, name, args, cmd, flags, idby, handler)	\
+	__COMMAND(#section, #name, args, cmd, flags, idby, handler)
+#define TOPLEVEL(name, args, cmd, flags, idby, handler)		\
+	__COMMAND(NULL, #name, args, cmd, flags, idby, handler)
+extern struct cmd __start___cmd;
+extern struct cmd __stop___cmd;
 
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);
 int mac_addr_n2a(char *mac_addr, unsigned char *arg);

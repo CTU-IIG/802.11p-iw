@@ -7,7 +7,12 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <net/if.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+                     
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
 #include <netlink/genl/ctrl.h>  
@@ -64,48 +69,142 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_handle_destroy(state->nl_handle);
 }
 
-/*
- * return
- *	0 - error
- *	1 - phy
- *	2 - dev
- */
-static int get_phy_or_dev(int *argc, char ***argv, char **name)
+static void usage(const char *argv0)
 {
-	char *type = (*argv)[0];
+	struct cmd *cmd;
 
-	if (*argc < 2)
-		return 0;
-
-	*name = (*argv)[1];
-
-	*argc -= 2;
-	*argv += 2;
-
-	if (strcmp(type, "phy") == 0)
-		return 1;
-	if (strcmp(type, "dev") == 0)
-		return 2;
-
-	return 0;
+	fprintf(stderr, "Usage:\t%s help\n", argv0);
+	for (cmd = &__start___cmd; cmd < &__stop___cmd; cmd++) {
+		switch (cmd->idby) {
+		case CIB_NONE:
+			fprintf(stderr, "\t%s %s %s\n", argv0, cmd->section, cmd->name);
+			break;
+		case CIB_PHY:
+			fprintf(stderr, "\t%s phy <phyname> ", argv0);
+			/* fall through */
+		case CIB_NETDEV:
+			if (cmd->idby == CIB_NETDEV)
+				fprintf(stderr, "\t%s dev <devname> ", argv0);
+			if (cmd->section)
+				fprintf(stderr, "%s ", cmd->section);
+			fprintf(stderr, "%s", cmd->name);
+			if (cmd->args)
+				fprintf(stderr, " %s", cmd->args);
+			fprintf(stderr, "\n");
+			break;
+		}
+	}
 }
 
-static void usage(char *argv0)
+static int phy_lookup(char *name)
 {
-	fprintf(stderr, "Usage:	%1$s dev <phydev> <OBJECT> <COMMAND> [OPTIONS]"
-			"\n	%1$s dev <phydev> info"
-			"\n	%1$s reg set <ISO/IEC 3166-1 alpha2>\n"
-			"\n"
-			"where OBJECT := { interface | station | mpath | info }\n"
-			"and COMMAND := { add | del | set | get | dump }\n",
-			argv0);
+	char buf[200];
+	int fd, pos;
+
+	snprintf(buf, sizeof(buf), "/sys/class/ieee80211/%s/index", name);
+
+	fd = open(buf, O_RDONLY);
+	pos = read(fd, buf, sizeof(buf) - 1);
+	if (pos < 0)
+		return -1;
+	buf[pos] = '\0';
+	return atoi(buf);
+}
+
+static int handle_phydev_cmd(struct nl80211_state *state,
+			     enum command_identify_by idby,
+			     int argc, char **argv)
+{
+	struct cmd *cmd;
+	struct nl_msg *msg;
+	int devidx = 0;
+	const char *command, *section;
+
+	if (argc <= 1)
+		return -1;
+
+	switch (idby) {
+	case CIB_PHY:
+		devidx = phy_lookup(*argv);
+		argc--;
+		argv++;
+		break;
+	case CIB_NETDEV:
+		devidx = if_nametoindex(*argv);
+		argc--;
+		argv++;
+		break;
+	default:
+		break;
+	}
+
+	section = command = *argv;
+	argc--;
+	argv++;
+
+	for (cmd = &__start___cmd; cmd < &__stop___cmd; cmd++) {
+		if (cmd->idby != idby)
+			continue;
+		if (cmd->section) {
+			if (strcmp(cmd->section, section))
+				continue;
+			/* this is a bit icky ... */
+			if (command == section) {
+				if (argc <= 0)
+					return -1;
+				command = *argv;
+				argc--;
+				argv++;
+			}
+		} else if (section != command)
+			continue;
+		if (strcmp(cmd->name, command))
+			continue;
+		if (argc && !cmd->args)
+			continue;
+		break;
+	}
+
+	/* XXX: handle dev for phy */
+	if (cmd == &__stop___cmd)
+		return -1;
+
+	msg = nlmsg_alloc();
+	if (!msg) {
+		fprintf(stderr, "out of memory\n");
+		return 1;
+	}
+
+	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
+		    cmd->nl_msg_flags, cmd->cmd, 0);
+
+	switch (idby) {
+	case CIB_PHY:
+		NLA_PUT_U32(msg, NL80211_ATTR_WIPHY, devidx);
+		break;
+	case CIB_NETDEV:
+		NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, devidx);
+		break;
+	default:
+		break;
+	}
+
+	return cmd->handler(state, msg, argc, argv);
+ nla_put_failure:
+	fprintf(stderr, "building message failed\n");
+	return 1;
+}
+
+static int handle_other_cmd(struct nl80211_state *state, int argc, char **argv)
+{
+	return -1;
 }
 
 int main(int argc, char **argv)
 {
 	struct nl80211_state nlstate;
-	int err = 0, pod;
-	char *ifname = NULL, *phyname = NULL, *type, *argv0;
+	int err;
+	const char *argv0;
 
 	err = nl80211_init(&nlstate);
 	if (err)
@@ -115,50 +214,24 @@ int main(int argc, char **argv)
 	argc--;
 	argv0 = *argv++;
 
-	if (argc == 0 || (argc == 1 && strcmp(*argv, "help") == 0)) {
+	if (argc == 0 || strcmp(*argv, "help") == 0) {
 		usage(argv0);
 		goto out;
 	}
 
-	if (strcmp(argv[0], "reg") == 0) {
+	if (strcmp(*argv, "dev") == 0) {
 		argc--;
 		argv++;
-		err = handle_reg(&nlstate, argc, argv);
-		goto out;
-	}
+		err = handle_phydev_cmd(&nlstate, CIB_NETDEV, argc, argv);
+	} else if (strcmp(*argv, "phy") == 0) {
+		argc--;
+		argv++;
+		err = handle_phydev_cmd(&nlstate, CIB_PHY, argc, argv);
+	} else
+		err = handle_other_cmd(&nlstate, argc, argv);
 
-	pod = get_phy_or_dev(&argc, &argv, &ifname);
-	if (pod == 0) {
-		err = 1;
-		goto out;
-	}
-
-	if (pod == 1) {
-		phyname = ifname;
-		ifname = NULL;
-	}
-
-	if (argc <= 0) {
-		err = 1;
-		goto out;
-	}
-
-	type = argv[0];
-	argc--;
-	argv++;
-
-	if (strcmp(type, "interface") == 0)
-		err = handle_interface(&nlstate, phyname, ifname, argc, argv);
-	else if (strcmp(type, "info") == 0)
-		err = handle_info(&nlstate, phyname, ifname);
-	else if (strcmp(type, "station") == 0)
-		err = handle_station(&nlstate, ifname, argc, argv);
-	else if (strcmp(type, "mpath") == 0)
-		err = handle_mpath(&nlstate, ifname, argc, argv);
-	else {
-		fprintf(stderr, "No such object type %s\n", type);
-		err = 1;
-	}
+	if (err < 0)
+		usage(argv0);
 
  out:
 	nl80211_cleanup(&nlstate);

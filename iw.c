@@ -77,10 +77,11 @@ static void usage(const char *argv0)
 	for (cmd = &__start___cmd; cmd < &__stop___cmd; cmd++) {
 		switch (cmd->idby) {
 		case CIB_NONE:
-			fprintf(stderr, "\t%s %s %s\n", argv0, cmd->section, cmd->name);
-			break;
+			fprintf(stderr, "\t%s ", argv0);
+			/* fall through */
 		case CIB_PHY:
-			fprintf(stderr, "\t%s phy <phyname> ", argv0);
+			if (cmd->idby == CIB_PHY)
+				fprintf(stderr, "\t%s phy <phyname> ", argv0);
 			/* fall through */
 		case CIB_NETDEV:
 			if (cmd->idby == CIB_NETDEV)
@@ -111,16 +112,16 @@ static int phy_lookup(char *name)
 	return atoi(buf);
 }
 
-static int handle_phydev_cmd(struct nl80211_state *state,
-			     enum command_identify_by idby,
-			     int argc, char **argv)
+static int handle_cmd(struct nl80211_state *state,
+		      enum command_identify_by idby,
+		      int argc, char **argv)
 {
 	struct cmd *cmd;
 	struct nl_msg *msg;
 	int devidx = 0;
 	const char *command, *section;
 
-	if (argc <= 1)
+	if (argc <= 1 && idby != CIB_NONE)
 		return -1;
 
 	switch (idby) {
@@ -195,11 +196,6 @@ static int handle_phydev_cmd(struct nl80211_state *state,
 	return 1;
 }
 
-static int handle_other_cmd(struct nl80211_state *state, int argc, char **argv)
-{
-	return -1;
-}
-
 int main(int argc, char **argv)
 {
 	struct nl80211_state nlstate;
@@ -222,13 +218,13 @@ int main(int argc, char **argv)
 	if (strcmp(*argv, "dev") == 0) {
 		argc--;
 		argv++;
-		err = handle_phydev_cmd(&nlstate, CIB_NETDEV, argc, argv);
+		err = handle_cmd(&nlstate, CIB_NETDEV, argc, argv);
 	} else if (strcmp(*argv, "phy") == 0) {
 		argc--;
 		argv++;
-		err = handle_phydev_cmd(&nlstate, CIB_PHY, argc, argv);
+		err = handle_cmd(&nlstate, CIB_PHY, argc, argv);
 	} else
-		err = handle_other_cmd(&nlstate, argc, argv);
+		err = handle_cmd(&nlstate, CIB_NONE, argc, argv);
 
 	if (err < 0)
 		usage(argv0);

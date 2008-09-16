@@ -56,21 +56,24 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	if (!tb_msg[NL80211_ATTR_WIPHY_BANDS])
 		return NL_SKIP;
 
+	if (tb_msg[NL80211_ATTR_WIPHY_NAME])
+		printf("Wiphy %s\n", nla_get_string(tb_msg[NL80211_ATTR_WIPHY_NAME]));
+
 	nla_for_each_nested(nl_band, tb_msg[NL80211_ATTR_WIPHY_BANDS], rem_band) {
-		printf("Band %d:\n", bandidx);
+		printf("\tBand %d:\n", bandidx);
 		bandidx++;
 
 		nla_parse(tb_band, NL80211_BAND_ATTR_MAX, nla_data(nl_band),
 			  nla_len(nl_band), NULL);
 
-		printf("\tFrequencies:\n");
+		printf("\t\tFrequencies:\n");
 
 		nla_for_each_nested(nl_freq, tb_band[NL80211_BAND_ATTR_FREQS], rem_freq) {
 			nla_parse(tb_freq, NL80211_FREQUENCY_ATTR_MAX, nla_data(nl_freq),
 				  nla_len(nl_freq), freq_policy);
 			if (!tb_freq[NL80211_FREQUENCY_ATTR_FREQ])
 				continue;
-			printf("\t\t* %d MHz", nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_FREQ]));
+			printf("\t\t\t* %d MHz", nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_FREQ]));
 			open = 0;
 			if (tb_freq[NL80211_FREQUENCY_ATTR_DISABLED])
 				print_flag("disabled", &open);
@@ -85,14 +88,14 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			printf("\n");
 		}
 
-		printf("\tBitrates:\n");
+		printf("\t\tBitrates:\n");
 
 		nla_for_each_nested(nl_rate, tb_band[NL80211_BAND_ATTR_RATES], rem_rate) {
 			nla_parse(tb_rate, NL80211_BITRATE_ATTR_MAX, nla_data(nl_rate),
 				  nla_len(nl_rate), rate_policy);
 			if (!tb_rate[NL80211_BITRATE_ATTR_RATE])
 				continue;
-			printf("\t\t* %2.1f Mbps", 0.1 * nla_get_u32(tb_rate[NL80211_BITRATE_ATTR_RATE]));
+			printf("\t\t\t* %2.1f Mbps", 0.1 * nla_get_u32(tb_rate[NL80211_BITRATE_ATTR_RATE]));
 			open = 0;
 			if (tb_rate[NL80211_BITRATE_ATTR_2GHZ_SHORTPREAMBLE])
 				print_flag("short preamble supported", &open);
@@ -105,9 +108,9 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	if (!tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES])
 		return NL_SKIP;
 
-	printf("Supported interface modes:\n");
+	printf("\tSupported interface modes:\n");
 	nla_for_each_nested(nl_mode, tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES], rem_mode)
-		printf("\t * %s\n", iftype_name(nl_mode->nla_type));
+		printf("\t\t * %s\n", iftype_name(nl_mode->nla_type));
 
 	return NL_SKIP;
 }
@@ -122,25 +125,13 @@ static int ack_wait_handler(struct nl_msg *msg, void *arg)
 	return NL_STOP;
 }
 
-int handle_info(struct nl80211_state *state, char *phy, char *dev)
+static int handle_info(struct nl80211_state *state,
+		       struct nl_msg *msg,
+		       int argc, char **argv)
 {
-	struct nl_msg *msg;
 	int err = -1;
 	struct nl_cb *cb;
 	int finished;
-
-	msg = nlmsg_alloc();
-	if (!msg) {
-		fprintf(stderr, "failed to allocate netlink msg\n");
-		return -1;
-	}
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    0, NL80211_CMD_GET_WIPHY, 0);
-	if (dev)
-		NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
-	if (phy)
-		return -1;	/* XXX TODO */
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
 	if (!cb)
@@ -163,9 +154,9 @@ int handle_info(struct nl80211_state *state, char *phy, char *dev)
 
  out:
 	nl_cb_put(cb);
- nla_put_failure:
 	if (err)
 		fprintf(stderr, "failed to get information: %d\n", err);
-	nlmsg_free(msg);
 	return err;
 }
+TOPLEVEL(info, NULL, NL80211_CMD_GET_WIPHY, 0, CIB_PHY, handle_info);
+TOPLEVEL(list, NULL, NL80211_CMD_GET_WIPHY, NLM_F_DUMP, CIB_NONE, handle_info);

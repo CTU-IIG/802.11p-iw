@@ -132,42 +132,30 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 }
 
 static int handle_station_get(struct nl80211_state *state,
-				char *dev, int argc, char **argv)
+			      struct nl_msg *msg,
+			      int argc, char **argv)
 {
-	struct nl_msg *msg;
 	struct nl_cb *cb = NULL;
-	int ret = -1;
+	int ret = 1;
 	int err;
 	int finished = 0;
 	unsigned char mac_addr[ETH_ALEN];
 
-	if (argc < 1) {
-		fprintf(stderr, "not enough arguments\n");
+	if (argc < 1)
 		return -1;
-	}
 
 	if (mac_addr_a2n(mac_addr, argv[0])) {
 		fprintf(stderr, "invalid mac address\n");
-		return -1;
+		return 1;
 	}
 
 	argc--;
 	argv++;
 
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
+	if (argc)
 		return -1;
-	}
-
-	msg = nlmsg_alloc();
-	if (!msg)
-		goto out;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    0, NL80211_CMD_GET_STATION, 0);
 
 	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, mac_addr);
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
 	if (!cb)
@@ -193,37 +181,36 @@ static int handle_station_get(struct nl80211_state *state,
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	nlmsg_free(msg);
 	return ret;
 }
+COMMAND(station, get, "<MAC address>",
+	NL80211_CMD_GET_STATION, 0, CIB_NETDEV, handle_station_get);
+COMMAND(station, del, "<MAC address>",
+	NL80211_CMD_DEL_STATION, 0, CIB_NETDEV, handle_station_get);
 
 static int handle_station_set(struct nl80211_state *state,
-				char *dev, int argc, char **argv)
+			      struct nl_msg *msg,
+			      int argc, char **argv)
 {
-	struct nl_msg *msg;
 	struct nl_cb *cb = NULL;
-	int ret = -1;
+	int ret = 1;
 	int err;
 	int finished = 0;
 	unsigned char plink_action;
 	unsigned char mac_addr[ETH_ALEN];
 
-	if (argc < 3) {
-		fprintf(stderr, "not enough arguments\n");
+	if (argc < 3)
 		return -1;
-	}
 
 	if (mac_addr_a2n(mac_addr, argv[0])) {
 		fprintf(stderr, "invalid mac address\n");
-		return -1;
+		return 1;
 	}
 	argc--;
 	argv++;
 
-	if (strcmp("plink_action", argv[0]) != 0) {
-		fprintf(stderr, "parameter not supported\n");
-		return -1;
-	}
+	if (strcmp("plink_action", argv[0]) != 0)
+		return 1;
 	argc--;
 	argv++;
 
@@ -233,25 +220,15 @@ static int handle_station_set(struct nl80211_state *state,
 		plink_action = PLINK_ACTION_BLOCK;
 	else {
 		fprintf(stderr, "plink action not supported\n");
-		return -1;
+		return 1;
 	}
 	argc--;
 	argv++;
 
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
+	if (argc)
 		return -1;
-	}
-
-	msg = nlmsg_alloc();
-	if (!msg)
-		goto out;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    0, NL80211_CMD_SET_STATION, 0);
 
 	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, mac_addr);
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
 	NLA_PUT_U8(msg, NL80211_ATTR_STA_PLINK_ACTION, plink_action);
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
@@ -278,31 +255,22 @@ static int handle_station_set(struct nl80211_state *state,
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	nlmsg_free(msg);
 	return ret;
 }
+COMMAND(station, set, "<MAC address> plink_action <open|block>",
+	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set);
+
 static int handle_station_dump(struct nl80211_state *state,
-				char *dev, int argc, char **argv)
+			       struct nl_msg *msg,
+			       int argc, char **argv)
 {
-	struct nl_msg *msg;
 	struct nl_cb *cb = NULL;
-	int ret = -1;
+	int ret = 1;
 	int err;
 	int finished = 0;
 
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
+	if (argc)
 		return -1;
-	}
-
-	msg = nlmsg_alloc();
-	if (!msg)
-		goto out;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);
-
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
 	if (!cb)
@@ -323,66 +291,7 @@ static int handle_station_dump(struct nl80211_state *state,
 
  out:
 	nl_cb_put(cb);
- nla_put_failure:
-	nlmsg_free(msg);
 	return ret;
 }
-
-static int handle_station_del(struct nl80211_state *state,
-				char *dev, int argc, char **argv)
-{
-	struct nl_msg *msg;
-	struct nl_cb *cb = NULL;
-	int ret = -1;
-	int err;
-	int finished = 0;
-	unsigned char mac[ETH_ALEN];
-
-	if (argc > 1) {
-		fprintf(stderr, "too many arguments\n");
-		return -1;
-	}
-
-	if (argc && mac_addr_a2n(mac, argv[0])) {
-		fprintf(stderr, "invalid mac address\n");
-		return -1;
-	}
-
-	msg = nlmsg_alloc();
-	if (!msg)
-		goto out;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0, 0,
-		    NL80211_CMD_DEL_STATION, 0);
-
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
-	if (argc)
-		NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, mac);
-
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
-	if (!cb)
-		goto out;
-
-	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
-		goto out;
-
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);
-	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, wait_handler, &finished);
-	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
-
-	err = nl_recvmsgs(state->nl_handle, cb);
-
-	if (!finished)
-		err = nl_wait_for_ack(state->nl_handle);
-
-	if (err < 0)
-		goto out;
-
-	ret = 0;
-
- out:
-	nl_cb_put(cb);
- nla_put_failure:
-	nlmsg_free(msg);
-	return ret;
-}
+COMMAND(station, dump, NULL,
+	NL80211_CMD_SET_STATION, NLM_F_DUMP, CIB_NETDEV, handle_station_dump);

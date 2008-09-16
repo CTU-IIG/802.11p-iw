@@ -44,7 +44,7 @@ static int handle_reg_set(struct nl_cb *cb,
 
 	if (!is_alpha2(argv[0]) && !is_world_regdom(argv[0])) {
 		fprintf(stderr, "not a valid ISO/IEC 3166-1 alpha2\n");
-		fprintf(stderr, "Special non-alph2 usable entries:\n");
+		fprintf(stderr, "Special non-alpha2 usable entries:\n");
 		fprintf(stderr, "\t00\tWorld Regulatory domain\n");
 		return 2;
 	}

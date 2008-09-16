@@ -2,6 +2,8 @@
 
 MAKEFLAGS += --no-print-directory
 
+INSTALL ?= install
+PREFIX ?= /usr
 CC ?= "gcc"
 CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration
 CFLAGS += -I/lib/modules/`uname -r`/build/include
@@ -32,5 +34,15 @@ iw:	$(OBJS)
 check:
 	$(Q)$(MAKE) all CC="REAL_CC=$(CC) CHECK=\"sparse -Wall\" cgcc"
 
+%.gz: %
+	@$(NQ) ' GZIP' $<
+	$(Q)gzip < $< > $@
+
+install: iw iw.8.gz
+	@$(NQ) ' INST iw'
+	$(Q)$(INSTALL) -o root -g root -t $(PREFIX)/bin iw
+	@$(NQ) ' INST iw.8'
+	$(Q)$(INSTALL) -o root -g root -t $(PREFIX)/share/man/man8/ iw.8.gz
+
 clean:
-	$(Q)rm -f iw *.o *~
+	$(Q)rm -f iw *.o *~ *.gz

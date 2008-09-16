@@ -120,7 +120,12 @@ static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
 	return NL_STOP;
 }
 
-static int wait_handler(struct nl_msg *msg, void *arg)
+static int finish_handler(struct nl_msg *msg, void *arg)
+{
+	return NL_SKIP;
+}
+
+static int ack_handler(struct nl_msg *msg, void *arg)
 {
 	int *ret = arg;
 	*ret = 0;
@@ -192,7 +197,7 @@ static int handle_cmd(struct nl80211_state *state,
 		return 2;
 	}
 
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
+	cb = nl_cb_alloc(NL_CB_DEFAULT);
 	if (!cb) {
 		fprintf(stderr, "failed to allocate netlink callbacks\n");
 		err = 2;
@@ -222,13 +227,10 @@ static int handle_cmd(struct nl80211_state *state,
 		goto out;
 
 	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
-	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, wait_handler, &err);
+	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, NULL);
+	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
 
-	err = 1;
 	nl_recvmsgs(state->nl_handle, cb);
-
-	if (err == 1)
-		err = nl_wait_for_ack(state->nl_handle);
  out:
 	nl_cb_put(cb);
  out_free_msg:

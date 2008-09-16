@@ -105,7 +105,7 @@ static void usage(const char *argv0)
 
 static void version(void)
 {
-	printf("iw version " VERSION IW_GIT_VERSION "\n");
+	printf("iw version " IW_VERSION "\n");
 }
 
 static int phy_lookup(char *name)

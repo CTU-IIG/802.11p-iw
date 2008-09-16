@@ -1,17 +1,23 @@
-#!/bin/sh
+#!/bin/bash
 
 VERSION="0.9"
 
 (
-echo "#define VERSION \"$VERSION\""
 if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	git update-index --refresh --unmerged > /dev/null
-	printf "#define IW_GIT_VERSION \"-g%.8s" "$head"
+	descr=$(git describe)
+
+	# on git builds check that the version number above
+	# is correct...
+	[ "${descr/-*/}" == "v$VERSION" ] || exit 2
+	
+	echo -n '#define IW_VERSION "'
+	echo -n "${descr:1}"
 	if git diff-index --name-only HEAD | read dummy ; then
-		printf -- "-dirty"
+		echo -n "-dirty"
 	fi
 	echo '"'
 else
-	echo '#define IW_GIT_VERSION ""'
+echo "#define IW_VERSION \"$VERSION\""
 fi
 ) > version.h

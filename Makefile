@@ -49,4 +49,4 @@ install: iw iw.8.gz
 	$(Q)$(INSTALL) -o root -g root -t $(PREFIX)/share/man/man8/ iw.8.gz
 
 clean:
-	$(Q)rm -f iw *.o *~ *.gz
+	$(Q)rm -f iw *.o *~ *.gz version.h

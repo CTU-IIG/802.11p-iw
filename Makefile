@@ -21,7 +21,7 @@ endif
 
 all: verify_config $(ALL)
 
-%.o: %.c
+%.o: %.c iw.h
 	@$(NQ) ' CC  ' $@
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 

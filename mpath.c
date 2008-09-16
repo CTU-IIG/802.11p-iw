@@ -110,41 +110,29 @@ static int print_mpath_handler(struct nl_msg *msg, void *arg)
 }
 
 static int handle_mpath_get(struct nl80211_state *state,
-				char *dev, int argc, char **argv)
+			    struct nl_msg *msg,
+			    int argc, char **argv)
 {
-	struct nl_msg *msg;
 	struct nl_cb *cb = NULL;
 	int ret = -1;
 	int err;
 	int finished = 0;
 	unsigned char dst[ETH_ALEN];
 
-	if (argc < 1) {
-		fprintf(stderr, "not enough arguments\n");
+	if (argc < 1)
 		return -1;
-	}
 
 	if (mac_addr_a2n(dst, argv[0])) {
 		fprintf(stderr, "invalid mac address\n");
-		return -1;
+		return 1;
 	}
 	argc--;
 	argv++;
 
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
+	if (argc)
 		return -1;
-	}
-
-	msg = nlmsg_alloc();
-	if (!msg)
-		goto out;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    0, NL80211_CMD_GET_MPATH, 0);
 
 	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, dst);
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
 	if (!cb)
@@ -170,62 +158,54 @@ static int handle_mpath_get(struct nl80211_state *state,
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	nlmsg_free(msg);
 	return ret;
 }
+COMMAND(mpath, get, "<MAC address>",
+	NL80211_CMD_GET_MPATH, 0, CIB_NETDEV, handle_mpath_get);
+COMMAND(mpath, del, "<MAC address>",
+	NL80211_CMD_DEL_MPATH, 0, CIB_NETDEV, handle_mpath_get);
 
-static int handle_mpath_set(struct nl80211_state *state, int new,
-				char *dev, int argc, char **argv)
+static int handle_mpath_set(struct nl80211_state *state,
+			    struct nl_msg *msg,
+			    int argc, char **argv)
 {
-	struct nl_msg *msg;
 	struct nl_cb *cb = NULL;
 	int ret = -1;
-	int err, command;
+	int err;
 	int finished = 0;
 	unsigned char dst[ETH_ALEN];
 	unsigned char next_hop[ETH_ALEN];
 
-	if (argc < 3) {
-		fprintf(stderr, "not enough arguments\n");
+	if (argc < 3)
 		return -1;
-	}
 
 	if (mac_addr_a2n(dst, argv[0])) {
 		fprintf(stderr, "invalid destination mac address\n");
-		return -1;
+		return 1;
 	}
 	argc--;
 	argv++;
 
-	if (strcmp("next_hop", argv[0]) != 0) {
-		fprintf(stderr, "parameter not supported\n");
+	if (strcmp("next_hop", argv[0]) != 0)
 		return -1;
-	}
 	argc--;
 	argv++;
 
 	if (mac_addr_a2n(next_hop, argv[0])) {
 		fprintf(stderr, "invalid next hop mac address\n");
-		return -1;
+		return 1;
 	}
 	argc--;
 	argv++;
 
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
+	if (argc)
 		return -1;
-	}
 
 	msg = nlmsg_alloc();
 	if (!msg)
 		goto out;
 
-	command = new ? NL80211_CMD_NEW_MPATH : NL80211_CMD_SET_MPATH;
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0, 0,
-		    command, 0);
-
 	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, dst);
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
 	NLA_PUT(msg, NL80211_ATTR_MPATH_NEXT_HOP, ETH_ALEN, next_hop);
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
@@ -252,91 +232,21 @@ static int handle_mpath_set(struct nl80211_state *state, int new,
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	nlmsg_free(msg);
 	return ret;
 }
-
-static int handle_mpath_del(struct nl80211_state *state,
-				char *dev, int argc, char **argv)
-{
-	struct nl_msg *msg;
-	struct nl_cb *cb = NULL;
-	int ret = -1;
-	int err;
-	int finished = 0;
-	unsigned char dst[ETH_ALEN];
-
-	if (argc > 1) {
-		fprintf(stderr, "too many arguments\n");
-		return -1;
-	}
-
-	if (argc && mac_addr_a2n(dst, argv[0])) {
-		fprintf(stderr, "invalid mac address\n");
-		return -1;
-	}
-
-	msg = nlmsg_alloc();
-	if (!msg)
-		goto out;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0, 0,
-		    NL80211_CMD_DEL_MPATH, 0);
-
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
-	if (argc)
-		NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, dst);
-
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
-	if (!cb)
-		goto out;
-
-	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
-		goto out;
-
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_mpath_handler, NULL);
-	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, wait_handler, &finished);
-	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
-
-	err = nl_recvmsgs(state->nl_handle, cb);
-
-	if (!finished)
-		err = nl_wait_for_ack(state->nl_handle);
-
-	if (err < 0)
-		goto out;
-
-	ret = 0;
-
- out:
-	nl_cb_put(cb);
- nla_put_failure:
-	nlmsg_free(msg);
-	return ret;
-}
+COMMAND(mpath, new, "<destination MAC address> next_hop <next hop MAC address>",
+	NL80211_CMD_NEW_MPATH, 0, CIB_NETDEV, handle_mpath_set);
+COMMAND(mpath, set, "<destination MAC address> next_hop <next hop MAC address>",
+	NL80211_CMD_SET_MPATH, 0, CIB_NETDEV, handle_mpath_set);
 
 static int handle_mpath_dump(struct nl80211_state *state,
-				char *dev, int argc, char **argv)
+			     struct nl_msg *msg,
+			     int argc, char **argv)
 {
-	struct nl_msg *msg;
 	struct nl_cb *cb = NULL;
-	int ret = -1;
+	int ret = 1;
 	int err;
 	int finished = 0;
-
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
-		return -1;
-	}
-
-	msg = nlmsg_alloc();
-	if (!msg)
-		goto out;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    NLM_F_DUMP, NL80211_CMD_GET_MPATH, 0);
-
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
 	if (!cb)
@@ -357,35 +267,7 @@ static int handle_mpath_dump(struct nl80211_state *state,
 
  out:
 	nl_cb_put(cb);
- nla_put_failure:
-	nlmsg_free(msg);
 	return ret;
 }
-
-int handle_mpath(struct nl80211_state *state,
-		   char *dev, int argc, char **argv)
-{
-	char *cmd = argv[0];
-
-	if (argc < 1) {
-		fprintf(stderr, "you must specify an mpath command\n");
-		return -1;
-	}
-
-	argc--;
-	argv++;
-
-	if (strcmp(cmd, "new") == 0)
-		return handle_mpath_set(state, 1, dev, argc, argv);
-	if (strcmp(cmd, "del") == 0)
-		return handle_mpath_del(state, dev, argc, argv);
-	if (strcmp(cmd, "get") == 0)
-		return handle_mpath_get(state, dev, argc, argv);
-	if (strcmp(cmd, "set") == 0)
-		return handle_mpath_set(state, 0, dev, argc, argv);
-	if (strcmp(cmd, "dump") == 0)
-		return handle_mpath_dump(state, dev, argc, argv);
-
-	printf("invalid interface command %s\n", cmd);
-	return -1;
-}
+COMMAND(mpath, dump, NULL,
+	NL80211_CMD_GET_MPATH, NLM_F_DUMP, CIB_NETDEV, handle_mpath_dump);

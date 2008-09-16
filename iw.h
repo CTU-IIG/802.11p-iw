@@ -32,9 +32,9 @@ struct cmd {
 		       int argc, char **argv);
 };
 
-#define __COMMAND(sect, name, args, nlcmd, flags, idby, handler)\
-	static const struct cmd __cmd_ ## handler ## idby	\
-	__attribute__((used)) __attribute__((section("__cmd")))	\
+#define __COMMAND(sect, name, args, nlcmd, flags, idby, handler)	\
+	static const struct cmd __cmd_ ## handler ## nlcmd ## idby	\
+	__attribute__((used)) __attribute__((section("__cmd")))		\
 	= { sect, name, args, nlcmd, flags, idby, handler }
 #define COMMAND(section, name, args, cmd, flags, idby, handler)	\
 	__COMMAND(#section, #name, args, cmd, flags, idby, handler)

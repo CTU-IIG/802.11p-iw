@@ -71,6 +71,11 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_handle_destroy(state->nl_handle);
 }
 
+__COMMAND(NULL, NULL, NULL, 0, 0, CIB_NONE, NULL);
+__COMMAND(NULL, NULL, NULL, 1, 0, CIB_NONE, NULL);
+
+static int cmd_size;
+
 static void usage(const char *argv0)
 {
 	struct cmd *cmd;
@@ -80,7 +85,10 @@ static void usage(const char *argv0)
 	fprintf(stderr, "\t--debug\t\tenable netlink debugging\n");
 	fprintf(stderr, "\t--version\tshow version\n");
 	fprintf(stderr, "Commands:\n");
-	for (cmd = &__start___cmd; cmd < &__stop___cmd; cmd++) {
+	for (cmd = &__start___cmd; cmd < &__stop___cmd;
+	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
+		if (!cmd->handler)
+			continue;
 		switch (cmd->idby) {
 		case CIB_NONE:
 			fprintf(stderr, "\t");
@@ -176,7 +184,10 @@ static int handle_cmd(struct nl80211_state *state,
 	argc--;
 	argv++;
 
-	for (cmd = &__start___cmd; cmd < &__stop___cmd; cmd++) {
+	for (cmd = &__start___cmd; cmd < &__stop___cmd;
+	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
+		if (!cmd->handler)
+			continue;
 		if (cmd->idby != idby)
 			continue;
 		if (cmd->section) {
@@ -258,6 +269,7 @@ int main(int argc, char **argv)
 	int err;
 	const char *argv0;
 
+	cmd_size = abs((long)&__cmd_NULL1CIB_NONE - (long)&__cmd_NULL0CIB_NONE);
 	/* strip off self */
 	argc--;
 	argv0 = *argv++;

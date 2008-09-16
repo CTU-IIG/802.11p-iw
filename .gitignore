@@ -3,3 +3,4 @@ iw
 *.o
 .config
 version.h
+iw.8.gz

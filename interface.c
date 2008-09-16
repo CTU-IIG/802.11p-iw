@@ -66,39 +66,31 @@ static int handle_interface_add(struct nl80211_state *state,
 	int tpset, err = -ENOBUFS;
 
 	if (argc < 1)
-		return -1;
+		return 1;
 
 	name = argv[0];
 	argc--;
 	argv++;
 
 	tpset = get_if_type(&argc, &argv, &type);
-	if (tpset == 0)
-		fprintf(stderr, "you must specify an interface type\n");
 	if (tpset <= 0)
-		return -1;
+		return 1;
 
 	if (argc) {
-		if (strcmp(argv[0], "mesh_id") != 0) {
-			fprintf(stderr, "option %s not supported\n", argv[0]);
-			return -1;
-		}
+		if (strcmp(argv[0], "mesh_id") != 0)
+			return 1;
 		argc--;
 		argv++;
 
-		if (!argc) {
-			fprintf(stderr, "not enough arguments\n");
-			return -1;
-		}
+		if (!argc)
+			return 1;
 		mesh_id = argv[0];
 		argc--;
 		argv++;
 	}
 
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
-		return -1;
-	}
+	if (argc)
+		return 1;
 
 	NLA_PUT_STRING(msg, NL80211_ATTR_IFNAME, name);
 	if (tpset)
@@ -106,14 +98,12 @@ static int handle_interface_add(struct nl80211_state *state,
 	if (mesh_id)
 		NLA_PUT(msg, NL80211_ATTR_MESH_ID, strlen(mesh_id), mesh_id);
 
-	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0 ||
-	    (err = nl_wait_for_ack(state->nl_handle)) < 0) {
- nla_put_failure:
-		fprintf(stderr, "failed to create interface: %d\n", err);
-		return 1;
-	}
+	err = nl_send_auto_complete(state->nl_handle, msg);
+	if (err > 0)
+		err = nl_wait_for_ack(state->nl_handle);
 
-	return 0;
+ nla_put_failure:
+	return err;
 }
 COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add);
@@ -124,16 +114,13 @@ static int handle_interface_del(struct nl80211_state *state,
 				struct nl_msg *msg,
 				int argc, char **argv)
 {
-	int err = -ENOBUFS;
+	int err;
 
-	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0 ||
-	    (err = nl_wait_for_ack(state->nl_handle)) < 0) {
-		fprintf(stderr, "failed to remove interface: %d\n", err);
-		nlmsg_free(msg);
-		return 1;
-	}
+	err = nl_send_auto_complete(state->nl_handle, msg);
+	if (err > 0)
+		err = nl_wait_for_ack(state->nl_handle);
 
-	return 0;
+	return err;
 }
 TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
 
@@ -175,22 +162,21 @@ static int handle_interface_info(struct nl80211_state *state,
 	if (!cb)
 		goto out;
 
-	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
+	err = nl_send_auto_complete(state->nl_handle, msg);
+	if (err)
 		goto out;
 
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, NULL);
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_wait_handler, &finished);
 
-	err = nl_recvmsgs(state->nl_handle, cb);
+	nl_recvmsgs(state->nl_handle, cb);
+	err = 0;
 
 	if (!finished)
 		err = nl_wait_for_ack(state->nl_handle);
 
-	if (err)
-		fprintf(stderr, "failed to get information: %d\n", err);
-
  out:
 	nl_cb_put(cb);
-	return 0;
+	return err;
 }
 TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info);

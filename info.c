@@ -129,7 +129,7 @@ static int handle_info(struct nl80211_state *state,
 		       struct nl_msg *msg,
 		       int argc, char **argv)
 {
-	int err = -1;
+	int err = -ENOMEM;
 	struct nl_cb *cb;
 	int finished;
 
@@ -143,19 +143,14 @@ static int handle_info(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_phy_handler, NULL);
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_wait_handler, &finished);
 
-	err = nl_recvmsgs(state->nl_handle, cb);
+	nl_recvmsgs(state->nl_handle, cb);
+	err = 0;
 
 	if (!finished)
 		err = nl_wait_for_ack(state->nl_handle);
 
-	if (err < 0)
-		goto out;
-	err = 0;
-
  out:
 	nl_cb_put(cb);
-	if (err)
-		fprintf(stderr, "failed to get information: %d\n", err);
 	return err;
 }
 TOPLEVEL(info, NULL, NL80211_CMD_GET_WIPHY, 0, CIB_PHY, handle_info);

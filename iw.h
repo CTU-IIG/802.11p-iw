@@ -27,6 +27,11 @@ struct cmd {
 	const enum nl80211_commands cmd;
 	int nl_msg_flags;
 	const enum command_identify_by idby;
+	/*
+	 * The handler should return a negative error code,
+	 * zero on success, 1 if the arguments were wrong
+	 * and the usage message should and 2 otherwise.
+	 */
 	int (*handler)(struct nl80211_state *state,
 		       struct nl_msg *msg,
 		       int argc, char **argv);

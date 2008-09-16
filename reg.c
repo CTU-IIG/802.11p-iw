@@ -11,26 +11,6 @@
 
 #include "iw.h"
 
-static int wait_handler(struct nl_msg *msg, void *arg)
-{
-	int *finished = arg;
-
-	*finished = 1;
-	return NL_STOP;
-}
-
-static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
-			 void *arg)
-{
-	fprintf(stderr, "nl80211 error %d\n", err->error);
-	exit(err->error);
-}
-
-static int reg_handler(struct nl_msg *msg, void *arg)
-{
-        return NL_SKIP;
-}
-
 int isalpha_upper(char letter)
 {
 	if (letter >= 65 && letter <= 90)
@@ -58,19 +38,17 @@ static int handle_reg_set(struct nl80211_state *state,
 			  int argc, char **argv)
 {
 	struct nl_cb *cb = NULL;
-	int ret = 1;
-	int err;
-	int finished = 0;
+	int err = -ENOMEM;
 	char alpha2[3];
 
 	if (argc < 1)
-		return -1;
+		return 1;
 
 	if (!is_alpha2(argv[0]) && !is_world_regdom(argv[0])) {
 		fprintf(stderr, "not a valid ISO/IEC 3166-1 alpha2\n");
 		fprintf(stderr, "Special non-alph2 usable entries:\n");
 		fprintf(stderr, "\t00\tWorld Regulatory domain\n");
-		return 1;
+		return 2;
 	}
 
 	alpha2[0] = argv[0][0];
@@ -81,7 +59,7 @@ static int handle_reg_set(struct nl80211_state *state,
 	argv++;
 
 	if (argc)
-		return -1;
+		return 1;
 
 	NLA_PUT_STRING(msg, NL80211_ATTR_REG_ALPHA2, alpha2);
 
@@ -91,29 +69,15 @@ static int handle_reg_set(struct nl80211_state *state,
 
 	err = nl_send_auto_complete(state->nl_handle, msg);
 
-	if (err < 0) {
-		fprintf(stderr, "failed to send reg set command\n");
-		goto out;
-	}
-
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, reg_handler, NULL);
-	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, wait_handler, &finished);
-	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
-
-	err = nl_recvmsgs(state->nl_handle, cb);
-
-	if (!finished)
-		err = nl_wait_for_ack(state->nl_handle);
-
 	if (err < 0)
 		goto out;
 
-	ret = 0;
+	err = nl_wait_for_ack(state->nl_handle);
 
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	return ret;
+	return err;
 }
 COMMAND(reg, set, "<ISO/IEC 3166-1 alpha2>",
 	NL80211_CMD_REQ_SET_REG, 0, CIB_NONE, handle_reg_set);

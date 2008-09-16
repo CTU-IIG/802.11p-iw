@@ -122,7 +122,7 @@ static int handle_cmd(struct nl80211_state *state,
 	const char *command, *section;
 
 	if (argc <= 1 && idby != CIB_NONE)
-		return -1;
+		return 1;
 
 	switch (idby) {
 	case CIB_PHY:
@@ -152,7 +152,7 @@ static int handle_cmd(struct nl80211_state *state,
 			/* this is a bit icky ... */
 			if (command == section) {
 				if (argc <= 0)
-					return -1;
+					return 1;
 				command = *argv;
 				argc--;
 				argv++;
@@ -167,12 +167,12 @@ static int handle_cmd(struct nl80211_state *state,
 	}
 
 	if (cmd == &__stop___cmd)
-		return -1;
+		return 1;
 
 	msg = nlmsg_alloc();
 	if (!msg) {
 		fprintf(stderr, "out of memory\n");
-		return 1;
+		return -ENOMEM;
 	}
 
 	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
@@ -192,7 +192,7 @@ static int handle_cmd(struct nl80211_state *state,
 	return cmd->handler(state, msg, argc, argv);
  nla_put_failure:
 	fprintf(stderr, "building message failed\n");
-	return 1;
+	return -ENOMEM;
 }
 
 int main(int argc, char **argv)
@@ -225,8 +225,10 @@ int main(int argc, char **argv)
 	} else
 		err = handle_cmd(&nlstate, CIB_NONE, argc, argv);
 
-	if (err < 0)
+	if (err == 1)
 		usage(argv0);
+	if (err < 0)
+		fprintf(stderr, "command failed: %s", strerror(err));
 
  out:
 	nl80211_cleanup(&nlstate);

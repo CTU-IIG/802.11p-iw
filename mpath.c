@@ -114,23 +114,22 @@ static int handle_mpath_get(struct nl80211_state *state,
 			    int argc, char **argv)
 {
 	struct nl_cb *cb = NULL;
-	int ret = -1;
-	int err;
+	int err = -ENOMEM;
 	int finished = 0;
 	unsigned char dst[ETH_ALEN];
 
 	if (argc < 1)
-		return -1;
+		return 1;
 
 	if (mac_addr_a2n(dst, argv[0])) {
 		fprintf(stderr, "invalid mac address\n");
-		return 1;
+		return 2;
 	}
 	argc--;
 	argv++;
 
 	if (argc)
-		return -1;
+		return 1;
 
 	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, dst);
 
@@ -145,20 +144,16 @@ static int handle_mpath_get(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, wait_handler, &finished);
 	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
 
-	err = nl_recvmsgs(state->nl_handle, cb);
+	nl_recvmsgs(state->nl_handle, cb);
+	err = 0;
 
 	if (!finished)
 		err = nl_wait_for_ack(state->nl_handle);
 
-	if (err < 0)
-		goto out;
-
-	ret = 0;
-
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	return ret;
+	return err;
 }
 COMMAND(mpath, get, "<MAC address>",
 	NL80211_CMD_GET_MPATH, 0, CIB_NETDEV, handle_mpath_get);
@@ -170,36 +165,35 @@ static int handle_mpath_set(struct nl80211_state *state,
 			    int argc, char **argv)
 {
 	struct nl_cb *cb = NULL;
-	int ret = -1;
-	int err;
+	int err = -ENOMEM;
 	int finished = 0;
 	unsigned char dst[ETH_ALEN];
 	unsigned char next_hop[ETH_ALEN];
 
 	if (argc < 3)
-		return -1;
+		return 1;
 
 	if (mac_addr_a2n(dst, argv[0])) {
 		fprintf(stderr, "invalid destination mac address\n");
-		return 1;
+		return 2;
 	}
 	argc--;
 	argv++;
 
 	if (strcmp("next_hop", argv[0]) != 0)
-		return -1;
+		return 1;
 	argc--;
 	argv++;
 
 	if (mac_addr_a2n(next_hop, argv[0])) {
 		fprintf(stderr, "invalid next hop mac address\n");
-		return 1;
+		return 2;
 	}
 	argc--;
 	argv++;
 
 	if (argc)
-		return -1;
+		return 1;
 
 	msg = nlmsg_alloc();
 	if (!msg)
@@ -212,27 +206,23 @@ static int handle_mpath_set(struct nl80211_state *state,
 	if (!cb)
 		goto out;
 
-	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
+	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0)
 		goto out;
 
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_mpath_handler, NULL);
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, wait_handler, &finished);
 	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
 
-	err = nl_recvmsgs(state->nl_handle, cb);
+	nl_recvmsgs(state->nl_handle, cb);
+	err = 0;
 
 	if (!finished)
 		err = nl_wait_for_ack(state->nl_handle);
 
-	if (err < 0)
-		goto out;
-
-	ret = 0;
-
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	return ret;
+	return err;
 }
 COMMAND(mpath, new, "<destination MAC address> next_hop <next hop MAC address>",
 	NL80211_CMD_NEW_MPATH, 0, CIB_NETDEV, handle_mpath_set);
@@ -244,30 +234,28 @@ static int handle_mpath_dump(struct nl80211_state *state,
 			     int argc, char **argv)
 {
 	struct nl_cb *cb = NULL;
-	int ret = 1;
-	int err;
+	int err = -ENOMEM;
 	int finished = 0;
 
 	cb = nl_cb_alloc(NL_CB_CUSTOM);
 	if (!cb)
 		goto out;
 
-	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
+	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0)
 		goto out;
 
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_mpath_handler, NULL);
 	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, wait_handler, &finished);
 
-	err = nl_recvmsgs(state->nl_handle, cb);
+	nl_recvmsgs(state->nl_handle, cb);
+	err = 0;
 
-	if (err < 0)
-		goto out;
-
-	ret = 0;
+	if (!finished)
+		err = nl_wait_for_ack(state->nl_handle);
 
  out:
 	nl_cb_put(cb);
-	return ret;
+	return err;
 }
 COMMAND(mpath, dump, NULL,
 	NL80211_CMD_GET_MPATH, NLM_F_DUMP, CIB_NETDEV, handle_mpath_dump);

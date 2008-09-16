@@ -14,11 +14,11 @@ static int handle_name(struct nl80211_state *state,
 		       struct nl_msg *msg,
 		       int argc, char **argv)
 {
-	int err = 1;
+	int err = -ENOMEM;
 	struct nl_cb *cb;
 
 	if (argc != 1)
-		return -1;
+		return 1;
 
 	NLA_PUT_STRING(msg, NL80211_ATTR_WIPHY_NAME, *argv);
 
@@ -26,7 +26,7 @@ static int handle_name(struct nl80211_state *state,
 	if (!cb)
 		goto out;
 
-	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
+	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0)
 		goto out;
 
 	err = nl_wait_for_ack(state->nl_handle);
@@ -34,10 +34,6 @@ static int handle_name(struct nl80211_state *state,
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	if (err) {
-		fprintf(stderr, "failed set name: %d\n", err);
-		return 1;
-	}
 	return err;
 }
 COMMAND(set, name, "<new name>", NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_name);

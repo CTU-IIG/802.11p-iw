@@ -1,0 +1,87 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+#
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+#
+# Modified to make a template file for a multi-binary package with separated
+# build-arch and build-indep targets  by Bill Allombert 2001
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+PREFIX=$(CURDIR)/debian/iw/usr/
+
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+	cat defconfig | grep -v PLUGINNAME > .config
+
+	touch configure-stamp
+
+
+#Architecture 
+build: build-arch
+
+build-arch: build-arch-stamp
+build-arch-stamp: configure-stamp  
+	$(MAKE)
+
+clean: 
+	dh_testdir
+	dh_testroot
+	rm -f build-arch-stamp configure-stamp
+
+	rm -f .config
+
+	$(MAKE) clean
+
+	dh_clean 
+
+install: install-arch
+install-arch:
+	dh_testdir
+	dh_testroot
+	dh_clean -k -s 
+	dh_installdirs -s
+
+	mkdir -p $(PREFIX)/bin
+	mkdir -p $(PREFIX)/share/man/man8
+	$(MAKE) install PREFIX=$(PREFIX)
+
+	dh_install -s
+
+# Must not depend on anything. This is to be called by
+# binary-arch
+# in another 'make' thread.
+binary-common:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installexamples
+	dh_installman
+	dh_link
+	dh_strip
+	dh_compress 
+	dh_fixperms
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary-arch: build-arch install-arch
+	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
+
+binary-indep:
+
+binary: binary-arch
+.PHONY: build clean binary-arch binary install install-arch configure

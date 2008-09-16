@@ -1,0 +1,18 @@
+Source: iw
+Section: net
+Priority: optional
+Maintainer: Johannes Berg <johannes@sipsolutions.net>
+Build-Depends: debhelper (>= 6), libnl-dev (>= 1.1), pkg-config (>= 0.22)
+Standards-Version: 3.8.0
+Homepage: http://wireless.kernel.org/en/users/Documentation/iw
+
+Package: iw
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Tools for configuring Linux wireless devices
+ This package contains the `iw' tool which allows you to
+ configure and show information about wireless networking.
+ The tool is currently mainly used for drivers based on
+ the mac80211 stack but work is under way to make it useful
+ for other drivers as well.
+Tag: admin::kernel, implemented-in::c, interface::commandline, network::configuration, role::program, scope::utility, use::configuring

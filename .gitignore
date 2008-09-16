@@ -4,3 +4,4 @@ iw
 .config
 version.h
 iw.8.gz
+configure-stamp

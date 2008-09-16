@@ -65,10 +65,3 @@ const char *iftype_name(enum nl80211_iftype iftype)
 	sprintf(modebuf, "Unknown mode (%d)", iftype);
 	return modebuf;
 }
-
-int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg)
-{
-	int *ret = arg;
-	*ret = err->error;
-	return NL_STOP;
-}

@@ -23,9 +23,9 @@ endif
 
 all: $(ALL)
 
-version.h: git-version.sh
+version.h: version.sh
 	@$(NQ) ' GEN  version.h'
-	$(Q)./git-version.sh
+	$(Q)./version.sh
 
 %.o: %.c iw.h version.h
 	@$(NQ) ' CC  ' $@

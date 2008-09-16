@@ -6,8 +6,6 @@
 #include <netlink/genl/family.h>
 #include <netlink/genl/ctrl.h>
 
-#define VERSION "1.0"
-
 #define ETH_ALEN 6
 
 struct nl80211_state {

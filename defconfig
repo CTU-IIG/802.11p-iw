@@ -11,7 +11,7 @@
 
 # Kernel location for GIT NL80211 kernel code (assumed to be running,
 # by default); only required if your installed nl80211.h is out of date.
-CONFIG_KERNEL_LOC = /lib/modules/`uname -r`/build/
+CONFIG_KERNEL_LOC = /lib/modules/`uname -r`/source/
 CFLAGS += -I$(CONFIG_KERNEL_LOC)/include
 
 # LibNL location

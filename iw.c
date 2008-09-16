@@ -166,7 +166,6 @@ static int handle_cmd(struct nl80211_state *state,
 		break;
 	}
 
-	/* XXX: handle dev for phy */
 	if (cmd == &__stop___cmd)
 		return -1;
 

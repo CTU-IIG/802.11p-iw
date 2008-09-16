@@ -275,7 +275,7 @@ int main(int argc, char **argv)
 
 	if (argc == 0 || strcmp(*argv, "help") == 0) {
 		usage(argv0);
-		goto out;
+		return 0;
 	}
 
 	err = nl80211_init(&nlstate);
@@ -298,7 +298,6 @@ int main(int argc, char **argv)
 	if (err < 0)
 		fprintf(stderr, "command failed: %s (%d)\n", strerror(-err), err);
 
- out:
 	nl80211_cleanup(&nlstate);
 
 	return err;

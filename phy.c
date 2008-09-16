@@ -29,11 +29,7 @@ static int handle_name(struct nl80211_state *state,
 	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
 		goto out;
 
-	err = nl_recvmsgs(state->nl_handle, cb);
-
-	if (err < 0)
-		goto out;
-	err = 0;
+	err = nl_wait_for_ack(state->nl_handle);
 
  out:
 	nl_cb_put(cb);

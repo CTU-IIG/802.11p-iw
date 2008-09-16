@@ -6,7 +6,6 @@ INSTALL ?= install
 PREFIX ?= /usr
 CC ?= "gcc"
 CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration
-CFLAGS += -I/lib/modules/`uname -r`/source/include
 CFLAGS += -O2 -g
 LDFLAGS += -lnl
 

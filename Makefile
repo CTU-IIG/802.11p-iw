@@ -19,7 +19,7 @@ Q=@
 NQ=echo
 endif
 
-all: verify_config $(ALL)
+all: $(ALL)
 
 %.o: %.c iw.h
 	@$(NQ) ' CC  ' $@
@@ -34,10 +34,3 @@ check:
 
 clean:
 	$(Q)rm -f iw *.o *~
-
-verify_config:
-	$(Q)if [ ! -r .config ]; then \
-		echo 'Building iw requires a configuration file'; \
-		echo '(.config). cp defconfig .config and edit.'; \
-		exit 1; \
-	fi

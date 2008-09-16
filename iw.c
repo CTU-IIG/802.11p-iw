@@ -272,7 +272,7 @@ int main(int argc, char **argv)
 	if (err == 1)
 		usage(argv0);
 	if (err < 0)
-		fprintf(stderr, "command failed: %s\n", strerror(-err));
+		fprintf(stderr, "command failed: %s (%d)\n", strerror(-err), err);
 
  out:
 	nl80211_cleanup(&nlstate);

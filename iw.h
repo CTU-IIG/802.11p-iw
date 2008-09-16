@@ -51,6 +51,8 @@ extern struct cmd __stop___cmd;
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);
 int mac_addr_n2a(char *mac_addr, unsigned char *arg);
 
+int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg);
+
 const char *iftype_name(enum nl80211_iftype iftype);
 
 #endif /* __IW_H */

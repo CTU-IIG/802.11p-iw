@@ -36,13 +36,6 @@ static int wait_handler(struct nl_msg *msg, void *arg)
 	return NL_STOP;
 }
 
-static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
-			 void *arg)
-{
-	fprintf(stderr, "nl80211 error %d\n", err->error);
-	exit(err->error);
-}
-
 static int print_mpath_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
@@ -248,7 +241,7 @@ static int handle_mpath_dump(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, wait_handler, &finished);
 
 	nl_recvmsgs(state->nl_handle, cb);
-	err = 0;
+	err = finished;
 
 	if (!finished)
 		err = nl_wait_for_ack(state->nl_handle);

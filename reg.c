@@ -54,25 +54,23 @@ static int is_world_regdom(char *alpha2)
 }
 
 static int handle_reg_set(struct nl80211_state *state,
-			int argc, char **argv)
+			  struct nl_msg *msg,
+			  int argc, char **argv)
 {
-	struct nl_msg *msg;
 	struct nl_cb *cb = NULL;
-	int ret = -1;
+	int ret = 1;
 	int err;
 	int finished = 0;
 	char alpha2[3];
 
-	if (argc < 1) {
-		fprintf(stderr, "not enough arguments\n");
+	if (argc < 1)
 		return -1;
-	}
 
 	if (!is_alpha2(argv[0]) && !is_world_regdom(argv[0])) {
 		fprintf(stderr, "not a valid ISO/IEC 3166-1 alpha2\n");
 		fprintf(stderr, "Special non-alph2 usable entries:\n");
 		fprintf(stderr, "\t00\tWorld Regulatory domain\n");
-		return -1;
+		return 1;
 	}
 
 	alpha2[0] = argv[0][0];
@@ -82,17 +80,8 @@ static int handle_reg_set(struct nl80211_state *state,
 	argc--;
 	argv++;
 
-	if (argc) {
-		fprintf(stderr, "too many arguments\n");
+	if (argc)
 		return -1;
-	}
-
-	msg = nlmsg_alloc();
-	if (!msg)
-		goto out;
-
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
-		    0, NL80211_CMD_REQ_SET_REG, 0);
 
 	NLA_PUT_STRING(msg, NL80211_ATTR_REG_ALPHA2, alpha2);
 
@@ -113,9 +102,8 @@ static int handle_reg_set(struct nl80211_state *state,
 
 	err = nl_recvmsgs(state->nl_handle, cb);
 
-	if (!finished) {
+	if (!finished)
 		err = nl_wait_for_ack(state->nl_handle);
-	}
 
 	if (err < 0)
 		goto out;
@@ -125,6 +113,7 @@ static int handle_reg_set(struct nl80211_state *state,
  out:
 	nl_cb_put(cb);
  nla_put_failure:
-	nlmsg_free(msg);
 	return ret;
 }
+COMMAND(reg, set, "<ISO/IEC 3166-1 alpha2>",
+	NL80211_CMD_REQ_SET_REG, 0, CIB_NONE, handle_reg_set);

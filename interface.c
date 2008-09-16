@@ -11,6 +11,15 @@
 
 #include "iw.h"
 
+static char *mntr_flags[NL80211_MNTR_FLAG_MAX + 1] = {
+	NULL,
+	"fcsfail",
+	"plcpfail",
+	"control",
+	"otherbss",
+	"cook",
+};
+
 /* return 0 if not found, 1 if ok, -1 on error */
 static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 {
@@ -141,3 +150,54 @@ static int handle_interface_info(struct nl_cb *cb,
 	return 0;
 }
 TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info);
+
+static int handle_interface_set(struct nl_cb *cb,
+				struct nl_msg *msg,
+				int argc, char **argv)
+{
+	enum nl80211_mntr_flags flag;
+	struct nl_msg *flags;
+	int err;
+
+	if (!argc)
+		return 1;
+
+	flags = nlmsg_alloc();
+	if (!flags) {
+		fprintf(stderr, "failed to allocate flags\n");
+		return 2;
+	}
+
+	NLA_PUT_U32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
+
+	while (argc) {
+		int ok = 0;
+		for (flag = __NL80211_MNTR_FLAG_INVALID + 1;
+		     flag < NL80211_MNTR_FLAG_MAX; flag++) {
+			if (strcmp(*argv, mntr_flags[flag]) == 0) {
+				ok = 1;
+				NLA_PUT_FLAG(flags, flag);
+				break;
+			}
+		}
+		if (!ok) {
+			fprintf(stderr, "unknown flag %s\n", *argv);
+			err = 2;
+			goto out;
+		}
+		argc--;
+		argv++;
+	}
+
+	nla_put_nested(msg, NL80211_ATTR_MNTR_FLAGS, flags);
+
+	err = 0;
+	goto out;
+ nla_put_failure:
+	err = -ENOBUFS;
+ out:
+	nlmsg_free(flags);
+	return err;
+}
+COMMAND(set, monitor, "<flag> [...]",
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_set);

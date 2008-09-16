@@ -1,3 +1,9 @@
+iw (0.9.2) unstable; urgency=low
+
+  * try to work around x86_64 problem
+
+ -- Johannes Berg <johannes@sipsolutions.net>  Wed, 17 Sep 2008 00:20:45 +0200
+
 iw (0.9.1) unstable; urgency=low
 
   * Initial release.

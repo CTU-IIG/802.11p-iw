@@ -203,4 +203,4 @@ static int handle_station_dump(struct nl_cb *cb,
 	return 0;
 }
 COMMAND(station, dump, NULL,
-	NL80211_CMD_SET_STATION, NLM_F_DUMP, CIB_NETDEV, handle_station_dump);
+	NL80211_CMD_GET_STATION, NLM_F_DUMP, CIB_NETDEV, handle_station_dump);

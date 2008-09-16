@@ -201,3 +201,23 @@ static int handle_interface_set(struct nl_cb *cb,
 }
 COMMAND(set, monitor, "<flag> [...]",
 	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_set);
+
+static int handle_interface_meshid(struct nl_cb *cb,
+				   struct nl_msg *msg,
+				   int argc, char **argv)
+{
+	char *mesh_id = NULL;
+
+	if (argc != 1)
+		return 1;
+
+	mesh_id = argv[0];
+
+	NLA_PUT(msg, NL80211_ATTR_MESH_ID, strlen(mesh_id), mesh_id);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, meshid, "<meshid>",
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_meshid);

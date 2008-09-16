@@ -5,3 +5,5 @@ iw
 version.h
 iw.8.gz
 configure-stamp
+debian/iw.debhelper.log
+debian/iw.substvars

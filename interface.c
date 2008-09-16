@@ -117,6 +117,8 @@ static int handle_interface_add(struct nl80211_state *state,
 }
 COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add);
+COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>]",
+	NL80211_CMD_NEW_INTERFACE, 0, CIB_NETDEV, handle_interface_add);
 
 static int handle_interface_del(struct nl80211_state *state,
 				struct nl_msg *msg,

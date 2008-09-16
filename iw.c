@@ -258,10 +258,6 @@ int main(int argc, char **argv)
 	int err;
 	const char *argv0;
 
-	err = nl80211_init(&nlstate);
-	if (err)
-		return 1;
-
 	/* strip off self */
 	argc--;
 	argv0 = *argv++;
@@ -281,6 +277,10 @@ int main(int argc, char **argv)
 		usage(argv0);
 		goto out;
 	}
+
+	err = nl80211_init(&nlstate);
+	if (err)
+		return 1;
 
 	if (strcmp(*argv, "dev") == 0) {
 		argc--;

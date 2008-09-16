@@ -170,6 +170,84 @@ static int handle_interface_del(struct nl80211_state *state,
 	return 0;
 }
 
+static int print_iface_handler(struct nl_msg *msg, void *arg)
+{
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
+
+	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
+		  genlmsg_attrlen(gnlh, 0), NULL);
+
+	if (tb_msg[NL80211_ATTR_IFNAME])
+		printf("Interface %s\n", nla_get_string(tb_msg[NL80211_ATTR_IFNAME]));
+	if (tb_msg[NL80211_ATTR_IFINDEX])
+		printf("\tifindex %d\n", nla_get_u32(tb_msg[NL80211_ATTR_IFINDEX]));
+	if (tb_msg[NL80211_ATTR_IFTYPE])
+		printf("\ttype %s\n", iftype_name(nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE])));
+
+	return NL_SKIP;
+}
+
+static int ack_wait_handler(struct nl_msg *msg, void *arg)
+{
+	int *finished = arg;
+
+	*finished = 1;
+	return NL_STOP;
+}
+
+static int handle_interface_info(struct nl80211_state *state,
+				 char *phy, char *dev,
+				 int argc, char **argv, int flags)
+{
+	int err = -ENOBUFS;
+	struct nl_msg *msg;
+	struct nl_cb *cb = NULL;
+	int finished = 0;
+
+	if (argc) {
+		fprintf(stderr, "too many arguments\n");
+		return -1;
+	}
+
+        msg = nlmsg_alloc();
+	if (!msg)
+        	return -1;
+
+	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
+		    flags, NL80211_CMD_GET_INTERFACE, 0);
+	if (!dev) {
+		fprintf(stderr, "need device\n");
+		nlmsg_free(msg);
+		return -1;
+	}
+	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_nametoindex(dev));
+
+	cb = nl_cb_alloc(NL_CB_CUSTOM);
+	if (!cb)
+		goto out;
+
+	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
+		goto out;
+
+	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, NULL);
+	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_wait_handler, &finished);
+
+	err = nl_recvmsgs(state->nl_handle, cb);
+
+	if (!finished)
+		err = nl_wait_for_ack(state->nl_handle);
+
+	if (err)
+		fprintf(stderr, "failed to get information: %d\n", err);
+
+ out:
+ nla_put_failure:
+	nlmsg_free(msg);
+	nl_cb_put(cb);
+	return 0;
+}
+
 int handle_interface(struct nl80211_state *state,
 		     char *phy, char *dev, int argc, char **argv)
 {
@@ -187,6 +265,10 @@ int handle_interface(struct nl80211_state *state,
 		return handle_interface_add(state, phy, dev, argc, argv);
 	else if (strcmp(cmd, "del") == 0)
 		return handle_interface_del(state, phy, dev, argc, argv);
+	else if (strcmp(cmd, "get") == 0)
+		return handle_interface_info(state, phy, dev, argc, argv, 0);
+	else if (strcmp(cmd, "dump") == 0)
+		return handle_interface_info(state, phy, dev, argc, argv, NLM_F_DUMP);
 
 	printf("invalid interface command %s\n", cmd);
 	return -1;

@@ -115,43 +115,13 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-
-
-static int ack_wait_handler(struct nl_msg *msg, void *arg)
-{
-	int *finished = arg;
-
-	*finished = 1;
-	return NL_STOP;
-}
-
-static int handle_info(struct nl80211_state *state,
+static int handle_info(struct nl_cb *cb,
 		       struct nl_msg *msg,
 		       int argc, char **argv)
 {
-	int err = -ENOMEM;
-	struct nl_cb *cb;
-	int finished;
-
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
-	if (!cb)
-		goto out;
-
-	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
-		goto out;
-
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_phy_handler, NULL);
-	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_wait_handler, &finished);
 
-	nl_recvmsgs(state->nl_handle, cb);
-	err = 0;
-
-	if (!finished)
-		err = nl_wait_for_ack(state->nl_handle);
-
- out:
-	nl_cb_put(cb);
-	return err;
+	return 0;
 }
 TOPLEVEL(info, NULL, NL80211_CMD_GET_WIPHY, 0, CIB_PHY, handle_info);
 TOPLEVEL(list, NULL, NL80211_CMD_GET_WIPHY, NLM_F_DUMP, CIB_NONE, handle_info);

@@ -33,12 +33,10 @@ static int is_world_regdom(char *alpha2)
 	return 0;
 }
 
-static int handle_reg_set(struct nl80211_state *state,
+static int handle_reg_set(struct nl_cb *cb,
 			  struct nl_msg *msg,
 			  int argc, char **argv)
 {
-	struct nl_cb *cb = NULL;
-	int err = -ENOMEM;
 	char alpha2[3];
 
 	if (argc < 1)
@@ -63,21 +61,9 @@ static int handle_reg_set(struct nl80211_state *state,
 
 	NLA_PUT_STRING(msg, NL80211_ATTR_REG_ALPHA2, alpha2);
 
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
-	if (!cb)
-		goto out;
-
-	err = nl_send_auto_complete(state->nl_handle, msg);
-
-	if (err < 0)
-		goto out;
-
-	err = nl_wait_for_ack(state->nl_handle);
-
- out:
-	nl_cb_put(cb);
+	return 0;
  nla_put_failure:
-	return err;
+	return -ENOBUFS;
 }
 COMMAND(reg, set, "<ISO/IEC 3166-1 alpha2>",
 	NL80211_CMD_REQ_SET_REG, 0, CIB_NONE, handle_reg_set);

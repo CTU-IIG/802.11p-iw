@@ -56,14 +56,14 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 	return -1;
 }
 
-static int handle_interface_add(struct nl80211_state *state,
+static int handle_interface_add(struct nl_cb *cb,
 				struct nl_msg *msg,
 				int argc, char **argv)
 {
 	char *name;
 	char *mesh_id = NULL;
 	enum nl80211_iftype type;
-	int tpset, err = -ENOBUFS;
+	int tpset;
 
 	if (argc < 1)
 		return 1;
@@ -98,29 +98,20 @@ static int handle_interface_add(struct nl80211_state *state,
 	if (mesh_id)
 		NLA_PUT(msg, NL80211_ATTR_MESH_ID, strlen(mesh_id), mesh_id);
 
-	err = nl_send_auto_complete(state->nl_handle, msg);
-	if (err > 0)
-		err = nl_wait_for_ack(state->nl_handle);
-
+	return 0;
  nla_put_failure:
-	return err;
+	return -ENOBUFS;
 }
 COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add);
 COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_NETDEV, handle_interface_add);
 
-static int handle_interface_del(struct nl80211_state *state,
+static int handle_interface_del(struct nl_cb *cb,
 				struct nl_msg *msg,
 				int argc, char **argv)
 {
-	int err;
-
-	err = nl_send_auto_complete(state->nl_handle, msg);
-	if (err > 0)
-		err = nl_wait_for_ack(state->nl_handle);
-
-	return err;
+	return 0;
 }
 TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
 
@@ -142,41 +133,11 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int ack_wait_handler(struct nl_msg *msg, void *arg)
-{
-	int *finished = arg;
-
-	*finished = 1;
-	return NL_STOP;
-}
-
-static int handle_interface_info(struct nl80211_state *state,
+static int handle_interface_info(struct nl_cb *cb,
 				 struct nl_msg *msg,
 				 int argc, char **argv)
 {
-	int err = -ENOBUFS;
-	struct nl_cb *cb = NULL;
-	int finished = 0;
-
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
-	if (!cb)
-		goto out;
-
-	err = nl_send_auto_complete(state->nl_handle, msg);
-	if (err)
-		goto out;
-
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, NULL);
-	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_wait_handler, &finished);
-
-	nl_recvmsgs(state->nl_handle, cb);
-	err = 0;
-
-	if (!finished)
-		err = nl_wait_for_ack(state->nl_handle);
-
- out:
-	nl_cb_put(cb);
-	return err;
+	return 0;
 }
 TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info);

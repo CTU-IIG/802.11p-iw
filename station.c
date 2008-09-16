@@ -28,14 +28,6 @@ enum plink_actions {
 };
 
 
-static int wait_handler(struct nl_msg *msg, void *arg)
-{
-	int *finished = arg;
-
-	*finished = 1;
-	return NL_STOP;
-}
-
 static int print_sta_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
@@ -124,13 +116,10 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int handle_station_get(struct nl80211_state *state,
+static int handle_station_get(struct nl_cb *cb,
 			      struct nl_msg *msg,
 			      int argc, char **argv)
 {
-	struct nl_cb *cb = NULL;
-	int err = -ENOMEM;
-	int finished = 0;
 	unsigned char mac_addr[ETH_ALEN];
 
 	if (argc < 1)
@@ -149,40 +138,21 @@ static int handle_station_get(struct nl80211_state *state,
 
 	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, mac_addr);
 
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
-	if (!cb)
-		goto out;
-
-	if (nl_send_auto_complete(state->nl_handle, msg) < 0)
-		goto out;
-
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);
-	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, wait_handler, &finished);
-	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
 
-	nl_recvmsgs(state->nl_handle, cb);
-	err = 0;
-
-	if (!finished)
-		err = nl_wait_for_ack(state->nl_handle);
-
- out:
-	nl_cb_put(cb);
+	return 0;
  nla_put_failure:
-	return err;
+	return -ENOBUFS;
 }
 COMMAND(station, get, "<MAC address>",
 	NL80211_CMD_GET_STATION, 0, CIB_NETDEV, handle_station_get);
 COMMAND(station, del, "<MAC address>",
 	NL80211_CMD_DEL_STATION, 0, CIB_NETDEV, handle_station_get);
 
-static int handle_station_set(struct nl80211_state *state,
+static int handle_station_set(struct nl_cb *cb,
 			      struct nl_msg *msg,
 			      int argc, char **argv)
 {
-	struct nl_cb *cb = NULL;
-	int err = -ENOMEM;
-	int finished = 0;
 	unsigned char plink_action;
 	unsigned char mac_addr[ETH_ALEN];
 
@@ -218,62 +188,19 @@ static int handle_station_set(struct nl80211_state *state,
 	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, mac_addr);
 	NLA_PUT_U8(msg, NL80211_ATTR_STA_PLINK_ACTION, plink_action);
 
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
-	if (!cb)
-		goto out;
-
-	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0)
-		goto out;
-
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);
-	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, wait_handler, &finished);
-	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, NULL);
-
-	nl_recvmsgs(state->nl_handle, cb);
-	err = 0;
-
-	if (!finished)
-		err = nl_wait_for_ack(state->nl_handle);
-
- out:
-	nl_cb_put(cb);
+	return 0;
  nla_put_failure:
-	return err;
+	return -ENOBUFS;
 }
 COMMAND(station, set, "<MAC address> plink_action <open|block>",
 	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set);
 
-static int handle_station_dump(struct nl80211_state *state,
+static int handle_station_dump(struct nl_cb *cb,
 			       struct nl_msg *msg,
 			       int argc, char **argv)
 {
-	struct nl_cb *cb = NULL;
-	int err = -ENOMEM;
-	int finished = 0;
-
-	if (argc)
-		return 1;
-
-	cb = nl_cb_alloc(NL_CB_CUSTOM);
-	if (!cb)
-		goto out;
-
-	if ((err = nl_send_auto_complete(state->nl_handle, msg)) < 0)
-		goto out;
-
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);
-	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &finished);
-	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, wait_handler, &finished);
-
-	nl_recvmsgs(state->nl_handle, cb);
-	err = finished;
-
-	if (!finished)
-		err = nl_wait_for_ack(state->nl_handle);
-
- out:
-	nl_cb_put(cb);
-	return err;
+	return 0;
 }
 COMMAND(station, dump, NULL,
 	NL80211_CMD_SET_STATION, NLM_F_DUMP, CIB_NETDEV, handle_station_dump);

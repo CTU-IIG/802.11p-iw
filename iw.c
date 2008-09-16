@@ -112,13 +112,30 @@ static int phy_lookup(char *name)
 	return atoi(buf);
 }
 
+static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
+			 void *arg)
+{
+	int *ret = arg;
+	*ret = err->error;
+	return NL_STOP;
+}
+
+static int wait_handler(struct nl_msg *msg, void *arg)
+{
+	int *ret = arg;
+	*ret = 0;
+	return NL_STOP;
+}
+
 static int handle_cmd(struct nl80211_state *state,
 		      enum command_identify_by idby,
 		      int argc, char **argv)
 {
 	struct cmd *cmd;
+	struct nl_cb *cb = NULL;
 	struct nl_msg *msg;
 	int devidx = 0;
+	int err;
 	const char *command, *section;
 
 	if (argc <= 1 && idby != CIB_NONE)
@@ -171,8 +188,15 @@ static int handle_cmd(struct nl80211_state *state,
 
 	msg = nlmsg_alloc();
 	if (!msg) {
-		fprintf(stderr, "out of memory\n");
-		return -ENOMEM;
+		fprintf(stderr, "failed to allocate netlink message\n");
+		return 2;
+	}
+
+	cb = nl_cb_alloc(NL_CB_CUSTOM);
+	if (!cb) {
+		fprintf(stderr, "failed to allocate netlink callbacks\n");
+		err = 2;
+		goto out_free_msg;
 	}
 
 	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
@@ -189,10 +213,30 @@ static int handle_cmd(struct nl80211_state *state,
 		break;
 	}
 
-	return cmd->handler(state, msg, argc, argv);
+	err = cmd->handler(cb, msg, argc, argv);
+	if (err)
+		goto out;
+
+	err = nl_send_auto_complete(state->nl_handle, msg);
+	if (err < 0)
+		goto out;
+
+	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
+	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, wait_handler, &err);
+
+	err = 1;
+	nl_recvmsgs(state->nl_handle, cb);
+
+	if (err == 1)
+		err = nl_wait_for_ack(state->nl_handle);
+ out:
+	nl_cb_put(cb);
+ out_free_msg:
+	nlmsg_free(msg);
+	return err;
  nla_put_failure:
 	fprintf(stderr, "building message failed\n");
-	return -ENOMEM;
+	return 2;
 }
 
 int main(int argc, char **argv)

@@ -22,6 +22,7 @@
 
 #include "iw.h"
 
+int debug = 0;
 
 static int nl80211_init(struct nl80211_state *state)
 {
@@ -73,19 +74,22 @@ static void usage(const char *argv0)
 {
 	struct cmd *cmd;
 
-	fprintf(stderr, "Usage:\t%s help\n", argv0);
+	fprintf(stderr, "Usage:\t%s [options] command\n", argv0);
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "\t--debug\tenable netlink debugging\n");
+	fprintf(stderr, "Commands:\n");
 	for (cmd = &__start___cmd; cmd < &__stop___cmd; cmd++) {
 		switch (cmd->idby) {
 		case CIB_NONE:
-			fprintf(stderr, "\t%s ", argv0);
+			fprintf(stderr, "\t");
 			/* fall through */
 		case CIB_PHY:
 			if (cmd->idby == CIB_PHY)
-				fprintf(stderr, "\t%s phy <phyname> ", argv0);
+				fprintf(stderr, "\tphy <phyname> ");
 			/* fall through */
 		case CIB_NETDEV:
 			if (cmd->idby == CIB_NETDEV)
-				fprintf(stderr, "\t%s dev <devname> ", argv0);
+				fprintf(stderr, "\tdev <devname> ");
 			if (cmd->section)
 				fprintf(stderr, "%s ", cmd->section);
 			fprintf(stderr, "%s", cmd->name);
@@ -197,7 +201,7 @@ static int handle_cmd(struct nl80211_state *state,
 		return 2;
 	}
 
-	cb = nl_cb_alloc(NL_CB_DEFAULT);
+	cb = nl_cb_alloc(debug ? NL_CB_DEBUG : NL_CB_DEFAULT);
 	if (!cb) {
 		fprintf(stderr, "failed to allocate netlink callbacks\n");
 		err = 2;
@@ -254,6 +258,12 @@ int main(int argc, char **argv)
 	/* strip off self */
 	argc--;
 	argv0 = *argv++;
+
+	if (argc > 0 && strcmp(*argv, "--debug") == 0) {
+		debug = 1;
+		argc--;
+		argv++;
+	}
 
 	if (argc == 0 || strcmp(*argv, "help") == 0) {
 		usage(argv0);

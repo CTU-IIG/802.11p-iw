@@ -21,6 +21,7 @@
 #include <linux/nl80211.h>
 
 #include "iw.h"
+#include "version.h"
 
 int debug = 0;
 
@@ -76,7 +77,8 @@ static void usage(const char *argv0)
 
 	fprintf(stderr, "Usage:\t%s [options] command\n", argv0);
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "\t--debug\tenable netlink debugging\n");
+	fprintf(stderr, "\t--debug\t\tenable netlink debugging\n");
+	fprintf(stderr, "\t--version\tshow version\n");
 	fprintf(stderr, "Commands:\n");
 	for (cmd = &__start___cmd; cmd < &__stop___cmd; cmd++) {
 		switch (cmd->idby) {
@@ -99,6 +101,11 @@ static void usage(const char *argv0)
 			break;
 		}
 	}
+}
+
+static void version(void)
+{
+	printf("iw version " VERSION IW_GIT_VERSION "\n");
 }
 
 static int phy_lookup(char *name)
@@ -263,6 +270,11 @@ int main(int argc, char **argv)
 		debug = 1;
 		argc--;
 		argv++;
+	}
+
+	if (argc > 0 && strcmp(*argv, "--version") == 0) {
+		version();
+		return 0;
 	}
 
 	if (argc == 0 || strcmp(*argv, "help") == 0) {

@@ -23,7 +23,11 @@ endif
 
 all: $(ALL)
 
-%.o: %.c iw.h
+version.h: git-version.sh
+	@$(NQ) ' GEN  version.h'
+	$(Q)./git-version.sh
+
+%.o: %.c iw.h version.h
 	@$(NQ) ' CC  ' $@
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 

@@ -2,3 +2,4 @@ iw
 *~
 *.o
 .config
+version.h

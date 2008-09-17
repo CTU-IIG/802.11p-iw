@@ -123,6 +123,7 @@ static int handle_interface_del(struct nl_cb *cb,
 	return 0;
 }
 TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
+HIDDEN(interface, del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
 
 static int print_iface_handler(struct nl_msg *msg, void *arg)
 {

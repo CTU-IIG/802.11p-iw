@@ -26,6 +26,7 @@ struct cmd {
 	const char *args;
 	const enum nl80211_commands cmd;
 	int nl_msg_flags;
+	int hidden;
 	const enum command_identify_by idby;
 	/*
 	 * The handler should return a negative error code,
@@ -37,14 +38,17 @@ struct cmd {
 		       int argc, char **argv);
 };
 
-#define __COMMAND(sect, name, args, nlcmd, flags, idby, handler)	\
-	static const struct cmd __cmd_ ## handler ## nlcmd ## idby	\
+#define __COMMAND(sect, name, args, nlcmd, flags, hidden, idby, handler)\
+	static const struct cmd						\
+	__cmd_ ## handler ## _ ## nlcmd ## _ ## idby ## _ ## hidden	\
 	__attribute__((used)) __attribute__((section("__cmd")))		\
-	= { sect, name, args, nlcmd, flags, idby, handler }
+	= { sect, name, args, nlcmd, flags, hidden, idby, handler }
 #define COMMAND(section, name, args, cmd, flags, idby, handler)	\
-	__COMMAND(#section, #name, args, cmd, flags, idby, handler)
+	__COMMAND(#section, #name, args, cmd, flags, 0, idby, handler)
+#define HIDDEN(section, name, args, cmd, flags, idby, handler)	\
+	__COMMAND(#section, #name, args, cmd, flags, 1, idby, handler)
 #define TOPLEVEL(name, args, cmd, flags, idby, handler)		\
-	__COMMAND(NULL, #name, args, cmd, flags, idby, handler)
+	__COMMAND(NULL, #name, args, cmd, flags, 0, idby, handler)
 extern struct cmd __start___cmd;
 extern struct cmd __stop___cmd;
 

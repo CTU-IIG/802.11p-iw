@@ -71,8 +71,8 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_handle_destroy(state->nl_handle);
 }
 
-__COMMAND(NULL, NULL, NULL, 0, 0, CIB_NONE, NULL);
-__COMMAND(NULL, NULL, NULL, 1, 0, CIB_NONE, NULL);
+__COMMAND(NULL, NULL, NULL, 0, 0, 0, CIB_NONE, NULL);
+__COMMAND(NULL, NULL, NULL, 1, 0, 0, CIB_NONE, NULL);
 
 static int cmd_size;
 
@@ -87,7 +87,7 @@ static void usage(const char *argv0)
 	fprintf(stderr, "Commands:\n");
 	for (cmd = &__start___cmd; cmd < &__stop___cmd;
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
-		if (!cmd->handler)
+		if (!cmd->handler || cmd->hidden)
 			continue;
 		switch (cmd->idby) {
 		case CIB_NONE:
@@ -269,7 +269,8 @@ int main(int argc, char **argv)
 	int err;
 	const char *argv0;
 
-	cmd_size = abs((long)&__cmd_NULL1CIB_NONE - (long)&__cmd_NULL0CIB_NONE);
+	cmd_size = abs((long)&__cmd_NULL_1_CIB_NONE_0
+	             - (long)&__cmd_NULL_0_CIB_NONE_0);
 	/* strip off self */
 	argc--;
 	argv0 = *argv++;

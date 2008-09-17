@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 VERSION="0.9.2"
 
@@ -9,10 +9,10 @@ if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 
 	# on git builds check that the version number above
 	# is correct...
-	[ "${descr/-*/}" == "v$VERSION" ] || exit 2
+	[ "${descr%%-*}" = "v$VERSION" ] || exit 2
 	
 	echo -n '#define IW_VERSION "'
-	echo -n "${descr:1}"
+	echo -n "${descr#v}"
 	if git diff-index --name-only HEAD | read dummy ; then
 		echo -n "-dirty"
 	fi

@@ -18,6 +18,6 @@ if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	fi
 	echo '"'
 else
-echo "#define IW_VERSION \"$VERSION\""
+echo "#define IW_VERSION \"$VERSION-nogit\""
 fi
 ) > version.h

@@ -2,6 +2,7 @@
 
 MAKEFLAGS += --no-print-directory
 
+MKDIR ?= mkdir -p
 INSTALL ?= install
 PREFIX ?= /usr
 CC ?= "gcc"
@@ -48,9 +49,11 @@ check:
 
 install: iw iw.8.gz
 	@$(NQ) ' INST iw'
-	$(Q)$(INSTALL) -o root -g root -t $(PREFIX)/bin iw
+	$(Q)$(MKDIR) $(DESTDIR)$(PREFIX)/bin/
+	$(Q)$(INSTALL) -m 755 -o root -g root -t $(DESTDIR)$(PREFIX)/bin/ iw
 	@$(NQ) ' INST iw.8'
-	$(Q)$(INSTALL) -o root -g root -t $(PREFIX)/share/man/man8/ iw.8.gz
+	$(Q)$(MKDIR) $(DESTDIR)$(PREFIX)/share/man/man8/
+	$(Q)$(INSTALL) -m 644 -o root -g root -t $(DESTDIR)$(PREFIX)/share/man/man8/ iw.8.gz
 
 clean:
 	$(Q)rm -f iw *.o *~ *.gz version.h

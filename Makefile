@@ -56,4 +56,4 @@ install: iw iw.8.gz
 	$(Q)$(INSTALL) -m 644 -o root -g root -t $(DESTDIR)$(PREFIX)/share/man/man8/ iw.8.gz
 
 clean:
-	$(Q)rm -f iw *.o *~ *.gz version.h
+	$(Q)rm -f iw *.o *~ *.gz version.h *-stamp

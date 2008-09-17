@@ -2,9 +2,7 @@
 
 build: build-stamp
 build-stamp:
-	dh build --before configure
-	grep -v PLUGINNAME < defconfig > .config
-	dh build --after  configure
+	dh build
 	touch build-stamp
 
 clean:

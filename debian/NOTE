@@ -1,4 +1,0 @@
-Note to prospective debian packagers: I know this will conflict
-with your work. Feel free to build on this and then let me know
-you're doing proper packaging at which time I'll release a new
-version of iw without the debian packaging.

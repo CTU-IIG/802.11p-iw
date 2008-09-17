@@ -210,7 +210,7 @@ static int handle_cmd(struct nl80211_state *state,
 		break;
 	}
 
-	if (cmd == &__stop___cmd)
+	if (cmd >= &__stop___cmd)
 		return 1;
 
 	msg = nlmsg_alloc();

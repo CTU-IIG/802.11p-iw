@@ -18,8 +18,8 @@
 #include <netlink/genl/ctrl.h>  
 #include <netlink/msg.h>
 #include <netlink/attr.h>
-#include <linux/nl80211.h>
 
+#include "nl80211.h"
 #include "iw.h"
 #include "version.h"
 
@@ -269,6 +269,7 @@ int main(int argc, char **argv)
 	int err;
 	const char *argv0;
 
+	/* calculate command size including padding */
 	cmd_size = abs((long)&__cmd_NULL_1_CIB_NONE_0
 	             - (long)&__cmd_NULL_0_CIB_NONE_0);
 	/* strip off self */

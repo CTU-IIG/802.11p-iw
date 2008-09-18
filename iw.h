@@ -1,10 +1,11 @@
 #ifndef __IW_H
 #define __IW_H
 
-#include <linux/nl80211.h>
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
 #include <netlink/genl/ctrl.h>
+
+#include "nl80211.h"
 
 #define ETH_ALEN 6
 

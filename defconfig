@@ -9,11 +9,6 @@
 # be modified from here. In most cases, these lines should use += in order not
 # to override previous values of the variables.
 
-# Kernel location for GIT NL80211 kernel code (assumed to be running,
-# by default); only required if your installed nl80211.h is out of date.
-CONFIG_KERNEL_LOC = /lib/modules/`uname -r`/source/
-CFLAGS += -I$(CONFIG_KERNEL_LOC)/include
-
 # LibNL location
 # (if not installed in a way that makes the compiler/linker find it)
 # by default, libnl's 'make install' installs to /usr/local/ so you may

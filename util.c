@@ -1,4 +1,4 @@
-#include <linux/nl80211.h>
+#include "nl80211.h"
 #include "iw.h"
 
 int mac_addr_n2a(char *mac_addr, unsigned char *arg)

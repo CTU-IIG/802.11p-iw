@@ -1,5 +1,4 @@
 #include <errno.h>
-#include <linux/nl80211.h>
 #include <net/if.h>
 
 #include <netlink/genl/genl.h>
@@ -8,6 +7,7 @@
 #include <netlink/msg.h>
 #include <netlink/attr.h>
 
+#include "nl80211.h"
 #include "iw.h"
 
 static void print_flag(const char *name, int *open)

@@ -106,6 +106,11 @@
  * 	to the the specified ISO/IEC 3166-1 alpha2 country code. The core will
  * 	store this as a valid request and then query userspace for it.
  *
+ * @NL80211_CMD_GET_SCAN: get scan results
+ * @NL80211_CMD_TRIGGER_SCAN: trigger a new scan with the given parameters
+ * @NL80211_CMD_NEW_SCAN: scan notification (as a reply to NL80211_CMD_GET_SCAN
+ *	and on the "scan" multicast group)
+ *
  * @NL80211_CMD_MAX: highest used command number
  * @__NL80211_CMD_AFTER_LAST: internal use
  */
@@ -147,6 +152,10 @@ enum nl80211_commands {
 
 	NL80211_CMD_SET_REG,
 	NL80211_CMD_REQ_SET_REG,
+
+	NL80211_CMD_GET_SCAN,
+	NL80211_CMD_TRIGGER_SCAN,
+	NL80211_CMD_NEW_SCAN,
 
 	/* add new commands above here */
 
@@ -242,6 +251,11 @@ enum nl80211_commands {
  *	supported interface types, each a flag attribute with the number
  *	of the interface mode.
  *
+ * @NL80211_ATTR_SCAN_PASSIVE: flag indicating passive scan
+ * @NL80211_ATTR_SCAN_FREQUENCIES: nested attribute with frequencies
+ * @NL80211_ATTR_SCAN_SSIDS: nested attribute with SSIDs
+ * @NL80211_ATTR_BSS: scan result BSS
+ *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
@@ -295,6 +309,14 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_REG_ALPHA2,
 	NL80211_ATTR_REG_RULES,
+
+	NL80211_ATTR_INFORMATION_ELEMENT,
+
+	NL80211_ATTR_SCAN_PASSIVE,
+	NL80211_ATTR_SCAN_FREQUENCIES,
+	NL80211_ATTR_SCAN_SSIDS,
+	NL80211_ATTR_SCAN_GENERATION,
+	NL80211_ATTR_BSS,
 
 	/* add attributes here, update the policy in nl80211.c */
 
@@ -592,6 +614,20 @@ enum nl80211_mntr_flags {
 	/* keep last */
 	__NL80211_MNTR_FLAG_AFTER_LAST,
 	NL80211_MNTR_FLAG_MAX = __NL80211_MNTR_FLAG_AFTER_LAST - 1
+};
+
+enum nl80211_bss {
+	__NL80211_BSS_INVALID,
+	NL80211_BSS_BSSID,
+	NL80211_BSS_FREQUENCY,
+	NL80211_BSS_TSF,
+	NL80211_BSS_BEACON_INTERVAL,
+	NL80211_BSS_CAPABILITY,
+	NL80211_BSS_INFORMATION_ELEMENTS,
+
+	/* keep last */
+	__NL80211_BSS_AFTER_LAST,
+	NL80211_BSS_MAX = __NL80211_BSS_AFTER_LAST - 1
 };
 
 #endif /* __LINUX_NL80211_H */

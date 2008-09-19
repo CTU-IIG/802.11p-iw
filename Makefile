@@ -11,7 +11,7 @@ CFLAGS += -O2 -g
 LDFLAGS += `pkg-config --libs libnl-1`
 NLVERSION = 1.0
 
-OBJS = iw.o info.o phy.o interface.o station.o util.o mpath.o reg.o
+OBJS = iw.o info.o phy.o interface.o station.o util.o mpath.o reg.o scan.o
 ALL = iw
 
 ifeq ($(V),1)

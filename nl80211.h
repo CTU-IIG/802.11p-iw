@@ -251,7 +251,6 @@ enum nl80211_commands {
  *	supported interface types, each a flag attribute with the number
  *	of the interface mode.
  *
- * @NL80211_ATTR_SCAN_PASSIVE: flag indicating passive scan
  * @NL80211_ATTR_SCAN_FREQUENCIES: nested attribute with frequencies
  * @NL80211_ATTR_SCAN_SSIDS: nested attribute with SSIDs
  * @NL80211_ATTR_BSS: scan result BSS
@@ -312,7 +311,6 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_INFORMATION_ELEMENT,
 
-	NL80211_ATTR_SCAN_PASSIVE,
 	NL80211_ATTR_SCAN_FREQUENCIES,
 	NL80211_ATTR_SCAN_SSIDS,
 	NL80211_ATTR_SCAN_GENERATION,

@@ -1,3 +1,0 @@
-[submodule "debian"]
-	path = debian
-	url = http://git.sipsolutions.net/iw-debian.git/

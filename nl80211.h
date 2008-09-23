@@ -251,6 +251,9 @@ enum nl80211_commands {
  *	supported interface types, each a flag attribute with the number
  *	of the interface mode.
  *
+ * @NL80211_ATTR_MAX_NUM_SCAN_SSIDS: number of SSIDs you can scan with
+ *	a single scan request, a wiphy attribute.
+ *
  * @NL80211_ATTR_SCAN_FREQUENCIES: nested attribute with frequencies
  * @NL80211_ATTR_SCAN_SSIDS: nested attribute with SSIDs
  * @NL80211_ATTR_BSS: scan result BSS
@@ -308,8 +311,6 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_REG_ALPHA2,
 	NL80211_ATTR_REG_RULES,
-
-	NL80211_ATTR_INFORMATION_ELEMENT,
 
 	NL80211_ATTR_MAX_NUM_SCAN_SSIDS,
 

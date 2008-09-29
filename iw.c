@@ -248,11 +248,14 @@ static int handle_cmd(struct nl80211_state *state,
 	if (err < 0)
 		goto out;
 
+	err = 1;
+
 	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
 	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, NULL);
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
 
-	nl_recvmsgs(state->nl_handle, cb);
+	while (err > 0)
+		nl_recvmsgs(state->nl_handle, cb);
  out:
 	nl_cb_put(cb);
  out_free_msg:

@@ -12,13 +12,56 @@
 #include "iw.h"
 
 static char *mntr_flags[NL80211_MNTR_FLAG_MAX + 1] = {
-	NULL,
+	"none",
 	"fcsfail",
 	"plcpfail",
 	"control",
 	"otherbss",
 	"cook",
 };
+
+static int parse_mntr_flags(int *_argc, char ***_argv,
+			    struct nl_msg *msg)
+{
+	struct nl_msg *flags;
+	int err = -ENOBUFS;
+	enum nl80211_mntr_flags flag;
+	int argc = *_argc;
+	char **argv = *_argv;
+
+	flags = nlmsg_alloc();
+	if (!flags)
+		return -ENOMEM;
+
+	while (argc) {
+		int ok = 0;
+		for (flag = __NL80211_MNTR_FLAG_INVALID;
+		     flag < NL80211_MNTR_FLAG_MAX; flag++) {
+			if (strcmp(*argv, mntr_flags[flag]) == 0) {
+				ok = 1;
+				NLA_PUT_FLAG(flags, flag);
+				break;
+			}
+		}
+		if (!ok) {
+			err = -EINVAL;
+			goto out;
+		}
+		argc--;
+		argv++;
+	}
+
+	nla_put_nested(msg, NL80211_ATTR_MNTR_FLAGS, flags);
+	err = 0;
+ nla_put_failure:
+ out:
+	nlmsg_free(flags);
+
+	*_argc = argc;
+	*_argv = argv;
+
+	return err;
+}
 
 /* return 0 if not found, 1 if ok, -1 on error */
 static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
@@ -86,16 +129,25 @@ static int handle_interface_add(struct nl_cb *cb,
 		return 1;
 
 	if (argc) {
-		if (strcmp(argv[0], "mesh_id") != 0)
-			return 1;
-		argc--;
-		argv++;
+		if (strcmp(argv[0], "mesh_id") == 0) {
+			argc--;
+			argv++;
 
-		if (!argc)
+			if (!argc)
+				return 1;
+			mesh_id = argv[0];
+			argc--;
+			argv++;
+		} else if (strcmp(argv[0], "flags") == 0) {
+			argc--;
+			argv++;
+			if (parse_mntr_flags(&argc, &argv, msg)) {
+				fprintf(stderr, "flags error\n");
+				return 2;
+			}
+		} else {
 			return 1;
-		mesh_id = argv[0];
-		argc--;
-		argv++;
+		}
 	}
 
 	if (argc)
@@ -111,9 +163,9 @@ static int handle_interface_add(struct nl_cb *cb,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>]",
+COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags ...]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add);
-COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>]",
+COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags ...]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_NETDEV, handle_interface_add);
 
 static int handle_interface_del(struct nl_cb *cb,
@@ -156,49 +208,25 @@ static int handle_interface_set(struct nl_cb *cb,
 				struct nl_msg *msg,
 				int argc, char **argv)
 {
-	enum nl80211_mntr_flags flag;
-	struct nl_msg *flags;
-	int err;
-
 	if (!argc)
 		return 1;
 
-	flags = nlmsg_alloc();
-	if (!flags) {
-		fprintf(stderr, "failed to allocate flags\n");
-		return 2;
-	}
-
 	NLA_PUT_U32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
 
-	while (argc) {
-		int ok = 0;
-		for (flag = __NL80211_MNTR_FLAG_INVALID + 1;
-		     flag < NL80211_MNTR_FLAG_MAX; flag++) {
-			if (strcmp(*argv, mntr_flags[flag]) == 0) {
-				ok = 1;
-				NLA_PUT_FLAG(flags, flag);
-				break;
-			}
-		}
-		if (!ok) {
-			fprintf(stderr, "unknown flag %s\n", *argv);
-			err = 2;
-			goto out;
-		}
-		argc--;
-		argv++;
+	switch (parse_mntr_flags(&argc, &argv, msg)) {
+	case 0:
+		return 0;
+	case -ENOMEM:
+		fprintf(stderr, "failed to allocate flags\n");
+		return 2;
+	case -EINVAL:
+		fprintf(stderr, "unknown flag %s\n", *argv);
+		return 2;
+	default:
+		return 2;
 	}
-
-	nla_put_nested(msg, NL80211_ATTR_MNTR_FLAGS, flags);
-
-	err = 0;
-	goto out;
  nla_put_failure:
-	err = -ENOBUFS;
- out:
-	nlmsg_free(flags);
-	return err;
+	return -ENOBUFS;
 }
 COMMAND(set, monitor, "<flag> [...]",
 	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_set);

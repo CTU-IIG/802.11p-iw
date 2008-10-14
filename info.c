@@ -66,6 +66,74 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		nla_parse(tb_band, NL80211_BAND_ATTR_MAX, nla_data(nl_band),
 			  nla_len(nl_band), NULL);
 
+#ifdef NL80211_BAND_ATTR_HT_CAPA
+		if (tb_band[NL80211_BAND_ATTR_HT_CAPA]) {
+			unsigned short cap = nla_get_u16(tb_band[NL80211_BAND_ATTR_HT_CAPA]);
+#define PCOM(fmt, args...) do { printf("\t\t\t * " fmt "\n", ##args); } while (0)
+#define PBCOM(bit, args...) if (cap & (bit)) PCOM(args)
+			printf("\t\tHT capabilities: 0x%.4x\n", cap);
+			PBCOM(0x0001, "LPDC coding");
+			if (cap & 0x0002)
+				PCOM("20/40 MHz operation");
+			else
+				PCOM("20 MHz operation");
+			switch ((cap & 0x000c) >> 2) {
+			case 0:
+				PCOM("static SM PS");
+				break;
+			case 1:
+				PCOM("dynamic SM PS");
+				break;
+			case 2:
+				PCOM("reserved SM PS");
+				break;
+			case 3:
+				PCOM("SM PS disabled");
+				break;
+			}
+			PBCOM(0x0010, "HT-greenfield");
+			PBCOM(0x0020, "20 MHz short GI");
+			PBCOM(0x0040, "40 MHz short GI");
+			PBCOM(0x0080, "TX STBC");
+			if (cap & 0x300)
+				PCOM("RX STBC %d streams", (cap & 0x0300) >> 8);
+			PBCOM(0x0400, "HT-delayed block-ack");
+			PCOM("max A-MSDU len %d", 0xeff + ((cap & 0x0800) << 1));
+			PBCOM(0x1000, "DSSS/CCK 40 MHz");
+			PBCOM(0x2000, "PSMP support");
+			PBCOM(0x4000, "40 MHz intolerant");
+			PBCOM(0x8000, "L-SIG TXOP protection support");
+		}
+		if (tb_band[NL80211_BAND_ATTR_HT_AMPDU_FACTOR]) {
+			unsigned char factor = nla_get_u8(tb_band[NL80211_BAND_ATTR_HT_AMPDU_FACTOR]);
+			printf("\t\tHT A-MPDU factor: 0x%.4x (%d bytes)\n", factor, (1<<(13+factor))-1);
+		}
+		if (tb_band[NL80211_BAND_ATTR_HT_AMPDU_DENSITY]) {
+			unsigned char dens = nla_get_u8(tb_band[NL80211_BAND_ATTR_HT_AMPDU_DENSITY]);
+			printf("\t\tHT A-MPDU density: 0x%.4x (", dens);
+			switch (dens) {
+			case 0:
+				printf("no restriction)\n");
+				break;
+			case 1:
+				printf("1/4 usec)\n");
+				break;
+			case 2:
+				printf("1/2 usec)\n");
+				break;
+			default:
+				printf("%d usec)\n", 1<<(dens - 3));
+			}
+		}
+		if (tb_band[NL80211_BAND_ATTR_HT_MCS_SET] &&
+		    nla_len(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]) == 16) {
+			unsigned char *mcs = nla_data(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]);
+			printf("\t\tHT MCS set: %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x\n",
+				mcs[0], mcs[1], mcs[2], mcs[3], mcs[4], mcs[5], mcs[6], mcs[7],
+				mcs[8], mcs[9], mcs[10], mcs[11], mcs[12], mcs[13], mcs[14], mcs[15]);
+		}
+#endif
+
 		printf("\t\tFrequencies:\n");
 
 		nla_for_each_nested(nl_freq, tb_band[NL80211_BAND_ATTR_FREQS], rem_freq) {

@@ -39,6 +39,13 @@ static int parse_mntr_flags(int *_argc, char ***_argv,
 		     flag < NL80211_MNTR_FLAG_MAX; flag++) {
 			if (strcmp(*argv, mntr_flags[flag]) == 0) {
 				ok = 1;
+				/*
+				 * This shouldn't be adding "flag" if that is
+				 * zero, but due to a problem in the kernel's
+				 * nl80211 code (using NLA_NESTED policy) it
+				 * will reject an empty nested attribute but
+				 * not one that contains an invalid attribute
+				 */
 				NLA_PUT_FLAG(flags, flag);
 				break;
 			}

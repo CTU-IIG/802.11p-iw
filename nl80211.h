@@ -106,10 +106,11 @@
  * 	to the the specified ISO/IEC 3166-1 alpha2 country code. The core will
  * 	store this as a valid request and then query userspace for it.
  *
- * @NL80211_CMD_GET_SCAN: get scan results
- * @NL80211_CMD_TRIGGER_SCAN: trigger a new scan with the given parameters
- * @NL80211_CMD_NEW_SCAN: scan notification (as a reply to NL80211_CMD_GET_SCAN
- *	and on the "scan" multicast group)
+ * @NL80211_CMD_GET_MESH_PARAMS: Get mesh networking properties for the
+ *	interface identified by %NL80211_ATTR_IFINDEX
+ *
+ * @NL80211_CMD_SET_MESH_PARAMS: Set mesh networking properties for the
+ *      interface identified by %NL80211_ATTR_IFINDEX
  *
  * @NL80211_CMD_MAX: highest used command number
  * @__NL80211_CMD_AFTER_LAST: internal use
@@ -153,9 +154,8 @@ enum nl80211_commands {
 	NL80211_CMD_SET_REG,
 	NL80211_CMD_REQ_SET_REG,
 
-	NL80211_CMD_GET_SCAN,
-	NL80211_CMD_TRIGGER_SCAN,
-	NL80211_CMD_NEW_SCAN,
+	NL80211_CMD_GET_MESH_PARAMS,
+	NL80211_CMD_SET_MESH_PARAMS,
 
 	/* add new commands above here */
 
@@ -251,13 +251,6 @@ enum nl80211_commands {
  *	supported interface types, each a flag attribute with the number
  *	of the interface mode.
  *
- * @NL80211_ATTR_MAX_NUM_SCAN_SSIDS: number of SSIDs you can scan with
- *	a single scan request, a wiphy attribute.
- *
- * @NL80211_ATTR_SCAN_FREQUENCIES: nested attribute with frequencies
- * @NL80211_ATTR_SCAN_SSIDS: nested attribute with SSIDs
- * @NL80211_ATTR_BSS: scan result BSS
- *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
@@ -312,12 +305,7 @@ enum nl80211_attrs {
 	NL80211_ATTR_REG_ALPHA2,
 	NL80211_ATTR_REG_RULES,
 
-	NL80211_ATTR_MAX_NUM_SCAN_SSIDS,
-
-	NL80211_ATTR_SCAN_FREQUENCIES,
-	NL80211_ATTR_SCAN_SSIDS,
-	NL80211_ATTR_SCAN_GENERATION,
-	NL80211_ATTR_BSS,
+	NL80211_ATTR_MESH_PARAMS,
 
 	/* add attributes here, update the policy in nl80211.c */
 
@@ -629,18 +617,79 @@ enum nl80211_mntr_flags {
 	NL80211_MNTR_FLAG_MAX = __NL80211_MNTR_FLAG_AFTER_LAST - 1
 };
 
-enum nl80211_bss {
-	__NL80211_BSS_INVALID,
-	NL80211_BSS_BSSID,
-	NL80211_BSS_FREQUENCY,
-	NL80211_BSS_TSF,
-	NL80211_BSS_BEACON_INTERVAL,
-	NL80211_BSS_CAPABILITY,
-	NL80211_BSS_INFORMATION_ELEMENTS,
+/**
+ * enum nl80211_meshconf_params - mesh configuration parameters
+ *
+ * Mesh configuration parameters
+ *
+ * @__NL80211_MESHCONF_INVALID: internal use
+ *
+ * @NL80211_MESHCONF_RETRY_TIMEOUT: specifies the initial retry timeout in
+ * millisecond units, used by the Peer Link Open message
+ *
+ * @NL80211_MESHCONF_CONFIRM_TIMEOUT: specifies the inital confirm timeout, in
+ * millisecond units, used by the peer link management to close a peer link
+ *
+ * @NL80211_MESHCONF_HOLDING_TIMEOUT: specifies the holding timeout, in
+ * millisecond units
+ *
+ * @NL80211_MESHCONF_MAX_PEER_LINKS: maximum number of peer links allowed
+ * on this mesh interface
+ *
+ * @NL80211_MESHCONF_MAX_RETRIES: specifies the maximum number of peer link
+ * open retries that can be sent to establish a new peer link instance in a
+ * mesh
+ *
+ * @NL80211_MESHCONF_TTL: specifies the value of TTL field set at a source mesh
+ * point.
+ *
+ * @NL80211_MESHCONF_AUTO_OPEN_PLINKS: whether we should automatically
+ * open peer links when we detect compatible mesh peers.
+ *
+ * @NL80211_MESHCONF_HWMP_MAX_PREQ_RETRIES: the number of action frames
+ * containing a PREQ that an MP can send to a particular destination (path
+ * target)
+ *
+ * @NL80211_MESHCONF_PATH_REFRESH_TIME: how frequently to refresh mesh paths
+ * (in milliseconds)
+ *
+ * @NL80211_MESHCONF_MIN_DISCOVERY_TIMEOUT: minimum length of time to wait
+ * until giving up on a path discovery (in milliseconds)
+ *
+ * @NL80211_MESHCONF_HWMP_ACTIVE_PATH_TIMEOUT: The time (in TUs) for which mesh
+ * points receiving a PREQ shall consider the forwarding information from the
+ * root to be valid. (TU = time unit)
+ *
+ * @NL80211_MESHCONF_HWMP_PREQ_MIN_INTERVAL: The minimum interval of time (in
+ * TUs) during which an MP can send only one action frame containing a PREQ
+ * reference element
+ *
+ * @NL80211_MESHCONF_HWMP_NET_DIAM_TRVS_TIME: The interval of time (in TUs)
+ * that it takes for an HWMP information element to propagate across the mesh
+ *
+ * @NL80211_MESHCONF_ATTR_MAX: highest possible mesh configuration attribute
+ *
+ * @__NL80211_MESHCONF_ATTR_AFTER_LAST: internal use
+ */
+enum nl80211_meshconf_params {
+	__NL80211_MESHCONF_INVALID,
+	NL80211_MESHCONF_RETRY_TIMEOUT,
+	NL80211_MESHCONF_CONFIRM_TIMEOUT,
+	NL80211_MESHCONF_HOLDING_TIMEOUT,
+	NL80211_MESHCONF_MAX_PEER_LINKS,
+	NL80211_MESHCONF_MAX_RETRIES,
+	NL80211_MESHCONF_TTL,
+	NL80211_MESHCONF_AUTO_OPEN_PLINKS,
+	NL80211_MESHCONF_HWMP_MAX_PREQ_RETRIES,
+	NL80211_MESHCONF_PATH_REFRESH_TIME,
+	NL80211_MESHCONF_MIN_DISCOVERY_TIMEOUT,
+	NL80211_MESHCONF_HWMP_ACTIVE_PATH_TIMEOUT,
+	NL80211_MESHCONF_HWMP_PREQ_MIN_INTERVAL,
+	NL80211_MESHCONF_HWMP_NET_DIAM_TRVS_TIME,
 
 	/* keep last */
-	__NL80211_BSS_AFTER_LAST,
-	NL80211_BSS_MAX = __NL80211_BSS_AFTER_LAST - 1
+	__NL80211_MESHCONF_ATTR_AFTER_LAST,
+	NL80211_MESHCONF_ATTR_MAX = __NL80211_MESHCONF_ATTR_AFTER_LAST - 1
 };
 
 #endif /* __LINUX_NL80211_H */

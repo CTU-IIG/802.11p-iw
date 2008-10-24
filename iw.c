@@ -143,6 +143,8 @@ static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
 
 static int finish_handler(struct nl_msg *msg, void *arg)
 {
+	int *ret = arg;
+	*ret = 0;
 	return NL_SKIP;
 }
 
@@ -253,7 +255,7 @@ static int handle_cmd(struct nl80211_state *state,
 	err = 1;
 
 	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
-	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, NULL);
+	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
 
 	while (err > 0)

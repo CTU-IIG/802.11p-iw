@@ -85,6 +85,8 @@ static void usage(const char *argv0)
 	fprintf(stderr, "\t--debug\t\tenable netlink debugging\n");
 	fprintf(stderr, "\t--version\tshow version\n");
 	fprintf(stderr, "Commands:\n");
+	fprintf(stderr, "\thelp\n");
+	fprintf(stderr, "\tevent\n");
 	for (cmd = &__start___cmd; cmd < &__stop___cmd;
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
 		if (!cmd->handler || cmd->hidden)
@@ -266,6 +268,62 @@ static int handle_cmd(struct nl80211_state *state,
 	return 2;
 }
 
+static int no_seq_check(struct nl_msg *msg, void *arg)
+{
+	return NL_OK;
+}
+
+static int print_event(struct nl_msg *msg, void *arg)
+{
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+	struct nlattr *tb[NL80211_ATTR_MAX + 1];
+
+	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
+		  genlmsg_attrlen(gnlh, 0), NULL);
+                          
+	switch (gnlh->cmd) {
+	case NL80211_CMD_NEW_WIPHY: {
+		printf("wiphy rename: phy #%d to %s\n",
+		       nla_get_u32(tb[NL80211_ATTR_WIPHY]),
+		       nla_get_string(tb[NL80211_ATTR_WIPHY_NAME]));
+		break;
+	}
+	}
+
+	return NL_SKIP;
+}
+
+static int listen_events(struct nl80211_state *state,
+			 int argc, char **argv)
+{
+	int mcid, ret;
+	struct nl_cb *cb = nl_cb_alloc(debug ? NL_CB_DEBUG : NL_CB_DEFAULT);
+
+	if (!cb) {
+		fprintf(stderr, "failed to allocate netlink callbacks\n");
+		return -ENOMEM;
+	}
+
+	mcid = nl_get_multicast_id(state->nl_handle, "nl80211", "config");
+	if (mcid < 0)
+		return mcid;
+
+	ret = nl_socket_add_membership(state->nl_handle, mcid);
+	if (ret)
+		return ret;
+	
+	/* no sequence checking for multicast messages */
+	nl_cb_set(cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);
+	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_event, NULL);
+
+	while (1)
+		nl_recvmsgs(state->nl_handle, cb);
+
+	nl_cb_put(cb);
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	struct nl80211_state nlstate;
@@ -299,7 +357,9 @@ int main(int argc, char **argv)
 	if (err)
 		return 1;
 
-	if (strcmp(*argv, "dev") == 0) {
+	if (strcmp(*argv, "event") == 0) {
+		err = listen_events(&nlstate, argc, argv);
+	} else if (strcmp(*argv, "dev") == 0) {
 		argc--;
 		argv++;
 		err = handle_cmd(&nlstate, CIB_NETDEV, argc, argv);

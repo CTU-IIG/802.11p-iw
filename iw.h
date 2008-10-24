@@ -58,4 +58,6 @@ int mac_addr_n2a(char *mac_addr, unsigned char *arg);
 
 const char *iftype_name(enum nl80211_iftype iftype);
 
+int nl_get_multicast_id(struct nl_handle *handle, const char *family, const char *group);
+
 #endif /* __IW_H */

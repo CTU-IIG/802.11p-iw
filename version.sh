@@ -1,8 +1,8 @@
 #!/bin/sh
 
-VERSION="0.9.5"
+VERSION="0.9.6"
+OUT="version.h"
 
-(
 if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	git update-index --refresh --unmerged > /dev/null
 	descr=$(git describe)
@@ -11,13 +11,12 @@ if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	# is correct...
 	[ "${descr%%-*}" = "v$VERSION" ] || exit 2
 	
-	echo -n '#define IW_VERSION "'
-	echo -n "${descr#v}"
+	echo -n '#define IW_VERSION "' > "$OUT"
+	echo -n "${descr#v}" >> "$OUT"
 	if git diff-index --name-only HEAD | read dummy ; then
-		echo -n "-dirty"
+		echo -n "-dirty" >> "$OUT"
 	fi
-	echo '"'
+	echo '"' >> "$OUT"
 else
-echo "#define IW_VERSION \"$VERSION-nogit\""
+echo "#define IW_VERSION \"$VERSION-nogit\"" > "$OUT"
 fi
-) > version.h

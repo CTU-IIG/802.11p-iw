@@ -17,11 +17,6 @@ static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
 	return NL_STOP;
 }
 
-static int finish_handler(struct nl_msg *msg, void *arg)
-{
-	return NL_SKIP;
-}
-
 static int ack_handler(struct nl_msg *msg, void *arg)
 {
 	int *ret = arg;
@@ -102,7 +97,6 @@ int nl_get_multicast_id(struct nl_handle *handle, const char *family, const char
 	ret = 1;
 
 	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &ret);
-	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, NULL);
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &ret);
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, family_handler, &grp);
 

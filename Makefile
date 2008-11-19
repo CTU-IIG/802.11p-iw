@@ -2,10 +2,14 @@
 
 MAKEFLAGS += --no-print-directory
 
+PREFIX ?= /usr
+BINDIR ?= $(PREFIX)/bin
+MANDIR ?= $(PREFIX)/share/man
+
 MKDIR ?= mkdir -p
 INSTALL ?= install
-PREFIX ?= /usr
 CC ?= "gcc"
+
 CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration `pkg-config --cflags libnl-1`
 CFLAGS += -O2 -g
 LDFLAGS += `pkg-config --libs libnl-1`
@@ -49,11 +53,11 @@ check:
 
 install: iw iw.8.gz
 	@$(NQ) ' INST iw'
-	$(Q)$(MKDIR) $(DESTDIR)$(PREFIX)/bin/
-	$(Q)$(INSTALL) -m 755 -o root -g root -t $(DESTDIR)$(PREFIX)/bin/ iw
+	$(Q)$(MKDIR) $(DESTDIR)$(BINDIR)
+	$(Q)$(INSTALL) -m 755 -t $(DESTDIR)$(BINDIR) iw
 	@$(NQ) ' INST iw.8'
-	$(Q)$(MKDIR) $(DESTDIR)$(PREFIX)/share/man/man8/
-	$(Q)$(INSTALL) -m 644 -o root -g root -t $(DESTDIR)$(PREFIX)/share/man/man8/ iw.8.gz
+	$(Q)$(MKDIR) $(DESTDIR)$(MANDIR)/man8/
+	$(Q)$(INSTALL) -m 644 -t $(DESTDIR)$(MANDIR)/man8/ iw.8.gz
 
 clean:
 	$(Q)rm -f iw *.o *~ *.gz version.h *-stamp

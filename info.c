@@ -16,7 +16,7 @@ static void print_flag(const char *name, int *open)
 		printf(" (");
 	else
 		printf(", ");
-	printf(name);
+	printf("%s", name);
 	*open = 1;
 }
 

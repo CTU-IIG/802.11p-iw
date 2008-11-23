@@ -34,6 +34,7 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN] = { .type = NLA_FLAG },
 		[NL80211_FREQUENCY_ATTR_NO_IBSS] = { .type = NLA_FLAG },
 		[NL80211_FREQUENCY_ATTR_RADAR] = { .type = NLA_FLAG },
+		[NL80211_FREQUENCY_ATTR_MAX_TX_POWER] = { .type = NLA_U32 },
 	};
 
 	struct nlattr *tb_rate[NL80211_BITRATE_ATTR_MAX + 1];
@@ -142,6 +143,11 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			if (!tb_freq[NL80211_FREQUENCY_ATTR_FREQ])
 				continue;
 			printf("\t\t\t* %d MHz", nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_FREQ]));
+
+			if (tb_freq[NL80211_FREQUENCY_ATTR_MAX_TX_POWER] &&
+			    !tb_freq[NL80211_FREQUENCY_ATTR_DISABLED])
+				printf(" (%.1f dBm)", 0.01 * nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_MAX_TX_POWER]));
+
 			open = 0;
 			if (tb_freq[NL80211_FREQUENCY_ATTR_DISABLED])
 				print_flag("disabled", &open);

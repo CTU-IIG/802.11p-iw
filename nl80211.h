@@ -3,7 +3,26 @@
 /*
  * 802.11 netlink interface public header
  *
- * Copyright 2006, 2007 Johannes Berg <johannes@sipsolutions.net>
+ * Copyright 2006, 2007, 2008 Johannes Berg <johannes@sipsolutions.net>
+ * Copyright 2008 Michael Wu <flamingice@sourmilk.net>
+ * Copyright 2008 Luis Carlos Cobo <luisca@cozybit.com>
+ * Copyright 2008 Michael Buesch <mb@bu3sch.de>
+ * Copyright 2008 Luis R. Rodriguez <lrodriguez@atheros.com>
+ * Copyright 2008 Jouni Malinen <jouni.malinen@atheros.com>
+ * Copyright 2008 Colin McCabe <colin@cozybit.com>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
  */
 
 /**
@@ -25,8 +44,10 @@
  *
  * @NL80211_CMD_GET_WIPHY: request information about a wiphy or dump request
  *	to get a list of all present wiphys.
- * @NL80211_CMD_SET_WIPHY: set wiphy name, needs %NL80211_ATTR_WIPHY and
- *	%NL80211_ATTR_WIPHY_NAME.
+ * @NL80211_CMD_SET_WIPHY: set wiphy parameters, needs %NL80211_ATTR_WIPHY or
+ *	%NL80211_ATTR_IFINDEX; can be used to set %NL80211_ATTR_WIPHY_NAME,
+ *	%NL80211_ATTR_WIPHY_TXQ_PARAMS, %NL80211_ATTR_WIPHY_FREQ, and/or
+ *	%NL80211_ATTR_WIPHY_SEC_CHAN_OFFSET.
  * @NL80211_CMD_NEW_WIPHY: Newly created wiphy, response to get request
  *	or rename notification. Has attributes %NL80211_ATTR_WIPHY and
  *	%NL80211_ATTR_WIPHY_NAME.
@@ -187,6 +208,15 @@ enum nl80211_commands {
  * @NL80211_ATTR_WIPHY: index of wiphy to operate on, cf.
  *	/sys/class/ieee80211/<phyname>/index
  * @NL80211_ATTR_WIPHY_NAME: wiphy name (used for renaming)
+ * @NL80211_ATTR_WIPHY_TXQ_PARAMS: a nested array of TX queue parameters
+ * @NL80211_ATTR_WIPHY_FREQ: frequency of the selected channel in MHz
+ * @NL80211_ATTR_WIPHY_SEC_CHAN_OFFSET: included with NL80211_ATTR_WIPHY_FREQ
+ *	if HT20 or HT40 are allowed (i.e., 802.11n disabled if not included):
+ *	NL80211_SEC_CHAN_NO_HT = HT not allowed (i.e., same as not including
+ *		this attribute)
+ *	NL80211_SEC_CHAN_DISABLED = HT20 only
+ *	NL80211_SEC_CHAN_BELOW = secondary channel is below the primary channel
+ *	NL80211_SEC_CHAN_ABOVE = secondary channel is above the primary channel
  *
  * @NL80211_ATTR_IFINDEX: network interface index of the device to operate on
  * @NL80211_ATTR_IFNAME: network interface name
@@ -252,6 +282,9 @@ enum nl80211_commands {
  *	(u8, 0 or 1)
  * @NL80211_ATTR_BSS_SHORT_SLOT_TIME: whether short slot time enabled
  *	(u8, 0 or 1)
+ * @NL80211_ATTR_BSS_BASIC_RATES: basic rates, array of basic
+ *	rates in format defined by IEEE 802.11 7.3.2.2 but without the length
+ *	restriction (at most %NL80211_MAX_SUPP_RATES).
  *
  * @NL80211_ATTR_HT_CAPABILITY: HT Capability information element (from
  *	association request when used with NL80211_CMD_NEW_STATION)
@@ -323,6 +356,12 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_MESH_PARAMS,
 
+	NL80211_ATTR_BSS_BASIC_RATES,
+
+	NL80211_ATTR_WIPHY_TXQ_PARAMS,
+	NL80211_ATTR_WIPHY_FREQ,
+	NL80211_ATTR_WIPHY_SEC_CHAN_OFFSET,
+
 	NL80211_ATTR_MAX_NUM_SCAN_SSIDS,
 
 	NL80211_ATTR_SCAN_FREQUENCIES,
@@ -341,6 +380,10 @@ enum nl80211_attrs {
  * here
  */
 #define NL80211_ATTR_HT_CAPABILITY NL80211_ATTR_HT_CAPABILITY
+#define NL80211_ATTR_BSS_BASIC_RATES NL80211_ATTR_BSS_BASIC_RATES
+#define NL80211_ATTR_WIPHY_TXQ_PARAMS NL80211_ATTR_WIPHY_TXQ_PARAMS
+#define NL80211_ATTR_WIPHY_FREQ NL80211_ATTR_WIPHY_FREQ
+#define NL80211_ATTR_WIPHY_SEC_CHAN_OFFSET NL80211_ATTR_WIPHY_SEC_CHAN_OFFSET
 
 #define NL80211_MAX_SUPP_RATES			32
 #define NL80211_MAX_SUPP_REG_RULES		32
@@ -520,6 +563,8 @@ enum nl80211_band_attr {
  *	on this channel in current regulatory domain.
  * @NL80211_FREQUENCY_ATTR_RADAR: Radar detection is mandatory
  *	on this channel in current regulatory domain.
+ * @NL80211_FREQUENCY_ATTR_MAX_TX_POWER: Maximum transmission power in mBm
+ *	(100 * dBm).
  */
 enum nl80211_frequency_attr {
 	__NL80211_FREQUENCY_ATTR_INVALID,
@@ -528,11 +573,14 @@ enum nl80211_frequency_attr {
 	NL80211_FREQUENCY_ATTR_PASSIVE_SCAN,
 	NL80211_FREQUENCY_ATTR_NO_IBSS,
 	NL80211_FREQUENCY_ATTR_RADAR,
+	NL80211_FREQUENCY_ATTR_MAX_TX_POWER,
 
 	/* keep last */
 	__NL80211_FREQUENCY_ATTR_AFTER_LAST,
 	NL80211_FREQUENCY_ATTR_MAX = __NL80211_FREQUENCY_ATTR_AFTER_LAST - 1
 };
+
+#define NL80211_FREQUENCY_ATTR_MAX_TX_POWER NL80211_FREQUENCY_ATTR_MAX_TX_POWER
 
 /**
  * enum nl80211_bitrate_attr - bitrate attributes
@@ -713,6 +761,47 @@ enum nl80211_meshconf_params {
 	/* keep last */
 	__NL80211_MESHCONF_ATTR_AFTER_LAST,
 	NL80211_MESHCONF_ATTR_MAX = __NL80211_MESHCONF_ATTR_AFTER_LAST - 1
+};
+
+/**
+ * enum nl80211_txq_attr - TX queue parameter attributes
+ * @__NL80211_TXQ_ATTR_INVALID: Attribute number 0 is reserved
+ * @NL80211_TXQ_ATTR_QUEUE: TX queue identifier (NL80211_TXQ_Q_*)
+ * @NL80211_TXQ_ATTR_TXOP: Maximum burst time in units of 32 usecs, 0 meaning
+ *	disabled
+ * @NL80211_TXQ_ATTR_CWMIN: Minimum contention window [a value of the form
+ *	2^n-1 in the range 1..32767]
+ * @NL80211_TXQ_ATTR_CWMAX: Maximum contention window [a value of the form
+ *	2^n-1 in the range 1..32767]
+ * @NL80211_TXQ_ATTR_AIFS: Arbitration interframe space [0..255]
+ * @__NL80211_TXQ_ATTR_AFTER_LAST: Internal
+ * @NL80211_TXQ_ATTR_MAX: Maximum TXQ attribute number
+ */
+enum nl80211_txq_attr {
+	__NL80211_TXQ_ATTR_INVALID,
+	NL80211_TXQ_ATTR_QUEUE,
+	NL80211_TXQ_ATTR_TXOP,
+	NL80211_TXQ_ATTR_CWMIN,
+	NL80211_TXQ_ATTR_CWMAX,
+	NL80211_TXQ_ATTR_AIFS,
+
+	/* keep last */
+	__NL80211_TXQ_ATTR_AFTER_LAST,
+	NL80211_TXQ_ATTR_MAX = __NL80211_TXQ_ATTR_AFTER_LAST - 1
+};
+
+enum nl80211_txq_q {
+	NL80211_TXQ_Q_VO,
+	NL80211_TXQ_Q_VI,
+	NL80211_TXQ_Q_BE,
+	NL80211_TXQ_Q_BK
+};
+
+enum nl80211_sec_chan_offset {
+	NL80211_SEC_CHAN_NO_HT /* No HT */,
+	NL80211_SEC_CHAN_DISABLED /* HT20 only */,
+	NL80211_SEC_CHAN_BELOW /* HT40- */,
+	NL80211_SEC_CHAN_ABOVE /* HT40+ */
 };
 
 enum nl80211_bss {

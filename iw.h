@@ -57,5 +57,9 @@ int mac_addr_a2n(unsigned char *mac_addr, char *arg);
 int mac_addr_n2a(char *mac_addr, unsigned char *arg);
 
 const char *iftype_name(enum nl80211_iftype iftype);
+int ieee80211_channel_to_frequency(int chan);
+int ieee80211_frequency_to_channel(int freq);
+
+int nl_get_multicast_id(struct nl_handle *handle, const char *family, const char *group);
 
 #endif /* __IW_H */

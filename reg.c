@@ -11,7 +11,7 @@
 #include "nl80211.h"
 #include "iw.h"
 
-int isalpha_upper(char letter)
+static int isalpha_upper(char letter)
 {
 	if (letter >= 65 && letter <= 90)
 		return 1;

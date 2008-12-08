@@ -93,32 +93,32 @@ static uint32_t _parse_u32(const char *str, _any *ret)
 	return 0;
 }
 
-void _print_u8(struct nlattr *a)
+static void _print_u8(struct nlattr *a)
 {
 	printf("%d", nla_get_u8(a));
 }
 
-void _print_u16(struct nlattr *a)
+static void _print_u16(struct nlattr *a)
 {
 	printf("%d", nla_get_u16(a));
 }
 
-void _print_u16_timeout(struct nlattr *a)
+static void _print_u16_timeout(struct nlattr *a)
 {
 	printf("%d milliseconds", nla_get_u16(a));
 }
 
-void _print_u16_in_TUs(struct nlattr *a)
+static void _print_u16_in_TUs(struct nlattr *a)
 {
 	printf("%d TUs", nla_get_u16(a));
 }
 
-void _print_u32_timeout(struct nlattr *a)
+static void _print_u32_timeout(struct nlattr *a)
 {
 	printf("%u milliseconds", nla_get_u32(a));
 }
 
-void _print_u32_in_TUs(struct nlattr *a)
+static void _print_u32_in_TUs(struct nlattr *a)
 {
 	printf("%d TUs", nla_get_u32(a));
 }
@@ -213,6 +213,7 @@ static int set_interface_meshparam(struct nl_cb *cb,
 	int err;
 	uint32_t ret;
 	const struct mesh_param_descr *mdescr;
+	struct nlattr *container;
 	_any any;
 
 	mdescr = find_mesh_param(argc, argv, "change");
@@ -233,8 +234,7 @@ static int set_interface_meshparam(struct nl_cb *cb,
 	}
 
 	/* Construct a netlink message */
-	struct nlattr *container =
-		nla_nest_start(msg, NL80211_ATTR_MESH_PARAMS);
+	container = nla_nest_start(msg, NL80211_ATTR_MESH_PARAMS);
 	if (!container)
 		return -ENOBUFS;
 	err = mdescr->nla_put_fn(msg, mdescr->mesh_param_num, &any);

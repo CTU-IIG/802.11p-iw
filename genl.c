@@ -9,6 +9,8 @@
 #include <netlink/msg.h>
 #include <netlink/attr.h>
 
+#include "iw.h"
+
 static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
 			 void *arg)
 {

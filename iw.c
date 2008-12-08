@@ -23,7 +23,7 @@
 #include "iw.h"
 #include "version.h"
 
-int debug = 0;
+static int debug = 0;
 
 static int nl80211_init(struct nl80211_state *state)
 {

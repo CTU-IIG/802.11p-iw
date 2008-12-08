@@ -39,6 +39,8 @@ struct cmd {
 		       int argc, char **argv);
 };
 
+#define ARRAY_SIZE(ar) (sizeof(ar)/sizeof(ar[0]))
+
 #define __COMMAND(sect, name, args, nlcmd, flags, hidden, idby, handler)\
 	static const struct cmd						\
 	__cmd_ ## handler ## _ ## nlcmd ## _ ## idby ## _ ## hidden	\

@@ -45,7 +45,7 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 		return 1;
 
 	if (argc == 2) {
-		for (i = 0; i < sizeof(htmap)/sizeof(htmap[0]); i++) {
+		for (i = 0; i < ARRAY_SIZE(htmap); i++) {
 			if (strcasecmp(htmap[i].name, argv[1]) == 0) {
 				htval = htmap[i].val;
 				break;

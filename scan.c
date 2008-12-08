@@ -93,12 +93,11 @@ static const printfn ieprinters[] = {
 	[50] = print_supprates,
 	[221] = print_vendor,
 };
-#define NUMPRINTERS (sizeof(ieprinters)/sizeof(ieprinters[0]))
 
 static void print_ies(unsigned char *ie, int ielen)
 {
 	while (ielen >= 2 && ielen >= ie[1]) {
-		if (ie[0] < NUMPRINTERS && ieprinters[ie[0]]) {
+		if (ie[0] < ARRAY_SIZE(ieprinters) && ieprinters[ie[0]]) {
 			ieprinters[ie[0]](ie[0], ie[1], ie + 2);
 		} else {
 			int i;

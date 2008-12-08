@@ -284,12 +284,14 @@ static int print_event(struct nl_msg *msg, void *arg)
 		  genlmsg_attrlen(gnlh, 0), NULL);
                           
 	switch (gnlh->cmd) {
-	case NL80211_CMD_NEW_WIPHY: {
+	case NL80211_CMD_NEW_WIPHY:
 		printf("wiphy rename: phy #%d to %s\n",
 		       nla_get_u32(tb[NL80211_ATTR_WIPHY]),
 		       nla_get_string(tb[NL80211_ATTR_WIPHY_NAME]));
 		break;
-	}
+	default:
+		printf("unknown event: %d\n", gnlh->cmd);
+		break;
 	}
 
 	return NL_SKIP;

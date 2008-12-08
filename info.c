@@ -138,11 +138,13 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		printf("\t\tFrequencies:\n");
 
 		nla_for_each_nested(nl_freq, tb_band[NL80211_BAND_ATTR_FREQS], rem_freq) {
+			uint32_t freq;
 			nla_parse(tb_freq, NL80211_FREQUENCY_ATTR_MAX, nla_data(nl_freq),
 				  nla_len(nl_freq), freq_policy);
 			if (!tb_freq[NL80211_FREQUENCY_ATTR_FREQ])
 				continue;
-			printf("\t\t\t* %d MHz", nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_FREQ]));
+			freq = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_FREQ]);
+			printf("\t\t\t* %d MHz [%d]", freq, ieee80211_frequency_to_channel(freq));
 
 			if (tb_freq[NL80211_FREQUENCY_ATTR_MAX_TX_POWER] &&
 			    !tb_freq[NL80211_FREQUENCY_ATTR_DISABLED])

@@ -2,8 +2,9 @@
 This is 'iw', a tool to use nl80211.
 
 
-To build iw, just enter 'make'. If that fails, copy the file
-defconfig to .config and adjust the settings in it.
+To build iw, just enter 'make'. If that fails, set the
+PKG_CONFIG_PATH environment variable to allow the Makefile
+to find libnl.
 
 
 'iw' is currently maintained at http://git.sipsolutions.net/iw.git/,

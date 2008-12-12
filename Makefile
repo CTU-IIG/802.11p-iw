@@ -12,7 +12,7 @@ CC ?= "gcc"
 
 CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration `pkg-config --cflags libnl-1`
 CFLAGS += -O2 -g
-LDFLAGS += `pkg-config --libs libnl-1`
+LIBS += `pkg-config --libs libnl-1`
 NLVERSION = 1.0
 
 OBJS = iw.o info.o phy.o interface.o station.o util.o mpath.o reg.o mesh.o genl.o
@@ -42,7 +42,7 @@ version.h: version.sh
 
 iw:	$(OBJS)
 	@$(NQ) ' CC  ' iw
-	$(Q)$(CC) $(LDFLAGS) $(OBJS) -o iw
+	$(Q)$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o iw
 
 check:
 	$(Q)$(MAKE) all CC="REAL_CC=$(CC) CHECK=\"sparse -Wall\" cgcc"

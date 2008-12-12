@@ -33,14 +33,24 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *sinfo[NL80211_STA_INFO_MAX + 1];
+	struct nlattr *rinfo[NL80211_RATE_INFO_MAX + 1];
 	char mac_addr[20], state_name[10], dev[20];
 	static struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
 		[NL80211_STA_INFO_INACTIVE_TIME] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_RX_BYTES] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_TX_BYTES] = { .type = NLA_U32 },
+		[NL80211_STA_INFO_SIGNAL] = { .type = NLA_U8 },
+		[NL80211_STA_INFO_TX_BITRATE] = { .type = NLA_NESTED },
 		[NL80211_STA_INFO_LLID] = { .type = NLA_U16 },
 		[NL80211_STA_INFO_PLID] = { .type = NLA_U16 },
 		[NL80211_STA_INFO_PLINK_STATE] = { .type = NLA_U8 },
+	};
+
+	static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
+		[NL80211_RATE_INFO_BITRATE] = { .type = NLA_U16 },
+		[NL80211_RATE_INFO_MCS] = { .type = NLA_U8 },
+		[NL80211_RATE_INFO_40_MHZ_WIDTH] = { .type = NLA_FLAG },
+		[NL80211_RATE_INFO_SHORT_GI] = { .type = NLA_FLAG },
 	};
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -76,6 +86,30 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	if (sinfo[NL80211_STA_INFO_TX_BYTES])
 		printf("\n\ttx bytes:\t%d",
 			nla_get_u32(sinfo[NL80211_STA_INFO_TX_BYTES]));
+	if (sinfo[NL80211_STA_INFO_SIGNAL])
+		printf("\n\tsignal:  \t%d dBm",
+			(int8_t)nla_get_u8(sinfo[NL80211_STA_INFO_SIGNAL]));
+
+	if (sinfo[NL80211_STA_INFO_TX_BITRATE]) {
+		if (nla_parse_nested(rinfo, NL80211_RATE_INFO_MAX,
+				     sinfo[NL80211_STA_INFO_TX_BITRATE], rate_policy)) {
+			fprintf(stderr, "failed to parse nested rate attributes!");
+		} else {
+			printf("\n\ttx bitrate:\t");
+			if (rinfo[NL80211_RATE_INFO_BITRATE]) {
+				int rate = nla_get_u16(rinfo[NL80211_RATE_INFO_BITRATE]);
+				printf("%d.%d MBit/s", rate / 10, rate % 10);
+			}
+
+			if (rinfo[NL80211_RATE_INFO_MCS])
+				printf(" MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_MCS]));
+			if (rinfo[NL80211_RATE_INFO_40_MHZ_WIDTH])
+				printf(" 40Mhz");
+			if (rinfo[NL80211_RATE_INFO_SHORT_GI])
+				printf(" short GI");
+		}
+	}
+
 	if (sinfo[NL80211_STA_INFO_LLID])
 		printf("\n\tmesh llid:\t%d",
 			nla_get_u16(sinfo[NL80211_STA_INFO_LLID]));

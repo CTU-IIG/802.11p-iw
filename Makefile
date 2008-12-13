@@ -29,8 +29,8 @@ LIBS += -lnl-genl
 NLLIBNAME = libnl-2.0
 endif
 
-LIBS += `pkg-config --libs $(NLLIBNAME)`
-CFLAGS += `pkg-config --cflags $(NLLIBNAME)`
+LIBS += $(shell pkg-config --libs $(NLLIBNAME))
+CFLAGS += $(shell pkg-config --cflags $(NLLIBNAME))
 
 ifeq ($(V),1)
 Q=

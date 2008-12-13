@@ -10,7 +10,11 @@
 #define ETH_ALEN 6
 
 struct nl80211_state {
+#ifdef CONFIG_LIBNL20
+	struct nl_sock *nl_handle;
+#else
 	struct nl_handle *nl_handle;
+#endif
 	struct nl_cache *nl_cache;
 	struct genl_family *nl80211;
 };

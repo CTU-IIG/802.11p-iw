@@ -10,13 +10,27 @@ MKDIR ?= mkdir -p
 INSTALL ?= install
 CC ?= "gcc"
 
-CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration `pkg-config --cflags libnl-1`
+CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration
 CFLAGS += -O2 -g
-LIBS += `pkg-config --libs libnl-1`
-NLVERSION = 1.0
 
 OBJS = iw.o info.o phy.o interface.o station.o util.o mpath.o reg.o mesh.o genl.o
 ALL = iw
+
+NL1FOUND := $(shell pkg-config --atleast-version=1 libnl-1 && echo Y)
+NL2FOUND := $(shell pkg-config --atleast-version=2 libnl-2.0 && echo Y)
+
+ifeq ($(NL1FOUND),Y)
+NLLIBNAME = libnl-1
+endif
+
+ifeq ($(NL2FOUND),Y)
+CFLAGS += -DCONFIG_LIBNL20
+LIBS += -lnl-genl
+NLLIBNAME = libnl-2.0
+endif
+
+LIBS += `pkg-config --libs $(NLLIBNAME)`
+CFLAGS += `pkg-config --cflags $(NLLIBNAME)`
 
 ifeq ($(V),1)
 Q=
@@ -29,8 +43,13 @@ endif
 all: version_check $(ALL)
 
 version_check:
-	@if ! pkg-config --atleast-version=$(NLVERSION) libnl-1; then echo "You need at least libnl version $(NLVERSION)"; exit 1; fi
-
+ifeq ($(NL2FOUND),Y)
+else
+ifeq ($(NL1FOUND),Y)
+else
+	$(error No libnl found)
+endif
+endif
 
 version.h: version.sh
 	@$(NQ) ' GEN  version.h'

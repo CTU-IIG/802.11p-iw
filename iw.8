@@ -7,8 +7,9 @@ iw \- show / manipulate wireless devices and their configuration
 .in +8
 .ti -8
 .B ip
-.RI [ " OPTIONS " ] " OBJECT " { " COMMAND " | "
-.BR help " }"
+.RI [ " OPTIONS " ] " " { " 
+.BR help " |"
+.RI ""OBJECT " " COMMAND " }"
 .sp
 
 .ti -8
@@ -17,9 +18,13 @@ iw \- show / manipulate wireless devices and their configuration
 .sp
 
 .ti -8
-.IR OPTIONS " := { --debug }"
+.IR OPTIONS " := { --version | --debug }"
 
 .SH OPTIONS
+
+.TP
+.BR " --version"
+print version information and exit.
 
 .TP
 .BR " --debug"
@@ -31,12 +36,16 @@ enable netlink message debugging.
 .I OBJECT
 
 .TP
-.B dev
+.B dev <interface name>
 - network interface.
 
 .TP
-.B phy
+.B phy <phy name>
 - wireless hardware device.
+
+.TP
+.B reg
+- regulatory agent.
 
 .SS
 .I COMMAND

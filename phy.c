@@ -33,11 +33,11 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 		const char *name;
 		unsigned int val;
 	} htmap[] = {
-		{ .name = "HT20", .val = NL80211_SEC_CHAN_DISABLED, },
-		{ .name = "HT40+", .val = NL80211_SEC_CHAN_ABOVE, },
-		{ .name = "HT40-", .val = NL80211_SEC_CHAN_BELOW, },
+		{ .name = "HT20", .val = NL80211_CHAN_HT20, },
+		{ .name = "HT40+", .val = NL80211_CHAN_HT40PLUS, },
+		{ .name = "HT40-", .val = NL80211_CHAN_HT40MINUS, },
 	};
-	unsigned int htval = NL80211_SEC_CHAN_NO_HT;
+	unsigned int htval = NL80211_CHAN_NO_HT;
 	unsigned int freq;
 	int i;
 
@@ -51,7 +51,7 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 				break;
 			}
 		}
-		if (htval == NL80211_SEC_CHAN_NO_HT)
+		if (htval == NL80211_CHAN_NO_HT)
 			return 1;
 	}
 
@@ -60,7 +60,7 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 		freq = ieee80211_channel_to_frequency(freq);
 
 	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
-	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_SEC_CHAN_OFFSET, htval);
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_CHANNEL_TYPE, htval);
 
 	return 0;
  nla_put_failure:

@@ -23,13 +23,37 @@
 #include "iw.h"
 #include "version.h"
 
+#ifndef CONFIG_LIBNL20
+/* libnl 2.0 compatibility code */
+
+static inline struct nl_handle *nl_socket_alloc(void)
+{
+	return nl_handle_alloc();
+}
+
+static inline void nl_socket_free(struct nl_handle *h)
+{
+	nl_handle_destroy(h);
+}
+
+static inline int __genl_ctrl_alloc_cache(struct nl_handle *h, struct nl_cache **cache)
+{
+	struct nl_cache *tmp = genl_ctrl_alloc_cache(h);
+	if (!tmp)
+		return -ENOMEM;
+	*cache = tmp;
+	return 0;
+}
+#define genl_ctrl_alloc_cache __genl_ctrl_alloc_cache
+#endif /* CONFIG_LIBNL20 */
+
 static int debug = 0;
 
 static int nl80211_init(struct nl80211_state *state)
 {
 	int err;
 
-	state->nl_handle = nl_handle_alloc();
+	state->nl_handle = nl_socket_alloc();
 	if (!state->nl_handle) {
 		fprintf(stderr, "Failed to allocate netlink handle.\n");
 		return -ENOMEM;
@@ -41,8 +65,7 @@ static int nl80211_init(struct nl80211_state *state)
 		goto out_handle_destroy;
 	}
 
-	state->nl_cache = genl_ctrl_alloc_cache(state->nl_handle);
-	if (!state->nl_cache) {
+	if (genl_ctrl_alloc_cache(state->nl_handle, &state->nl_cache)) {
 		fprintf(stderr, "Failed to allocate generic netlink cache.\n");
 		err = -ENOMEM;
 		goto out_handle_destroy;
@@ -60,7 +83,7 @@ static int nl80211_init(struct nl80211_state *state)
  out_cache_free:
 	nl_cache_free(state->nl_cache);
  out_handle_destroy:
-	nl_handle_destroy(state->nl_handle);
+	nl_socket_free(state->nl_handle);
 	return err;
 }
 
@@ -68,7 +91,7 @@ static void nl80211_cleanup(struct nl80211_state *state)
 {
 	genl_family_put(state->nl80211);
 	nl_cache_free(state->nl_cache);
-	nl_handle_destroy(state->nl_handle);
+	nl_socket_free(state->nl_handle);
 }
 
 __COMMAND(NULL, NULL, NULL, 0, 0, 0, CIB_NONE, NULL);
@@ -284,12 +307,14 @@ static int print_event(struct nl_msg *msg, void *arg)
 		  genlmsg_attrlen(gnlh, 0), NULL);
                           
 	switch (gnlh->cmd) {
-	case NL80211_CMD_NEW_WIPHY: {
+	case NL80211_CMD_NEW_WIPHY:
 		printf("wiphy rename: phy #%d to %s\n",
 		       nla_get_u32(tb[NL80211_ATTR_WIPHY]),
 		       nla_get_string(tb[NL80211_ATTR_WIPHY_NAME]));
 		break;
-	}
+	default:
+		printf("unknown event: %d\n", gnlh->cmd);
+		break;
 	}
 
 	return NL_SKIP;

@@ -10,8 +10,8 @@ MKDIR ?= mkdir -p
 INSTALL ?= install
 CC ?= "gcc"
 
+CFLAGS ?= -O2 -g
 CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration
-CFLAGS += -O2 -g
 
 OBJS = iw.o info.o phy.o interface.o station.o util.o mpath.o reg.o mesh.o genl.o
 ALL = iw

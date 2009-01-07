@@ -125,6 +125,8 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		[NL80211_BSS_BEACON_INTERVAL] = { .type = NLA_U16 },
 		[NL80211_BSS_CAPABILITY] = { .type = NLA_U16 },
 		[NL80211_BSS_INFORMATION_ELEMENTS] = { },
+		[NL80211_BSS_SIGNAL_MBM] = { .type = NLA_U32 },
+		[NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
 	};
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -160,6 +162,14 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 	if (bss[NL80211_BSS_CAPABILITY])
 		printf("\tcapability: 0x%.4x\n",
 			nla_get_u16(bss[NL80211_BSS_CAPABILITY]));
+	if (bss[NL80211_BSS_SIGNAL_MBM]) {
+		int s = nla_get_u32(bss[NL80211_BSS_SIGNAL_MBM]);
+		printf("\tsignal: %d.%.2d dBm\n", s/100, s%100);
+	}
+	if (bss[NL80211_BSS_SIGNAL_UNSPEC]) {
+		unsigned char s = nla_get_u8(bss[NL80211_BSS_SIGNAL_UNSPEC]);
+		printf("\tsignal: %d/100\n", s);
+	}
 	if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
 		print_ies(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]),
 			  nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));

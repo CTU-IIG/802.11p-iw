@@ -135,8 +135,10 @@
  *
  * @NL80211_CMD_GET_SCAN: get scan results
  * @NL80211_CMD_TRIGGER_SCAN: trigger a new scan with the given parameters
- * @NL80211_CMD_NEW_SCAN: scan notification (as a reply to NL80211_CMD_GET_SCAN
- *	and on the "scan" multicast group)
+ * @NL80211_CMD_NEW_SCAN_RESULTS: scan notification (as a reply to
+ *	NL80211_CMD_GET_SCAN and on the "scan" multicast group)
+ * @NL80211_CMD_SCAN_ABORTED: scan was aborted, for unspecified reasons,
+ *	partial scan results may be available
  *
  * @NL80211_CMD_MAX: highest used command number
  * @__NL80211_CMD_AFTER_LAST: internal use
@@ -185,7 +187,8 @@ enum nl80211_commands {
 
 	NL80211_CMD_GET_SCAN,
 	NL80211_CMD_TRIGGER_SCAN,
-	NL80211_CMD_NEW_SCAN,
+	NL80211_CMD_NEW_SCAN_RESULTS,
+	NL80211_CMD_SCAN_ABORTED,
 
 	/* add new commands above here */
 
@@ -296,8 +299,13 @@ enum nl80211_commands {
  * @NL80211_ATTR_MAX_NUM_SCAN_SSIDS: number of SSIDs you can scan with
  *	a single scan request, a wiphy attribute.
  *
- * @NL80211_ATTR_SCAN_FREQUENCIES: nested attribute with frequencies
- * @NL80211_ATTR_SCAN_SSIDS: nested attribute with SSIDs
+ * @NL80211_ATTR_SCAN_FREQUENCIES: nested attribute with frequencies (in MHz)
+ * @NL80211_ATTR_SCAN_SSIDS: nested attribute with SSIDs, leave out for passive
+ *	scanning and include a zero-length SSID (wildcard) for wildcard scan
+ * @NL80211_ATTR_SCAN_GENERATION: the scan generation increases whenever the
+ *	scan result list changes (BSS expired or added) so that applications
+ *	can verify that they got a single, consistent snapshot (when all dump
+ *	messages carried the same generation number)
  * @NL80211_ATTR_BSS: scan result BSS
  *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
@@ -835,6 +843,23 @@ enum nl80211_channel_type {
 	NL80211_CHAN_HT40PLUS
 };
 
+/**
+ * enum nl80211_bss - netlink attributes for a BSS
+ *
+ * @__NL80211_BSS_INVALID: invalid
+ * @NL80211_BSS_FREQUENCY: frequency in MHz (u32)
+ * @NL80211_BSS_TSF: TSF of the received probe response/beacon (u64)
+ * @NL80211_BSS_BEACON_INTERVAL: beacon interval of the (I)BSS (u16)
+ * @NL80211_BSS_CAPABILITY: capability field (CPU order, u16)
+ * @NL80211_BSS_INFORMATION_ELEMENTS: binary attribute containing the
+ *	raw information elements from the probe response/beacon (bin)
+ * @NL80211_BSS_SIGNAL_MBM: signal strength of probe response/beacon
+ *	in mBm (100 * dBm) (s32)
+ * @NL80211_BSS_SIGNAL_UNSPEC: signal strength of the probe response/beacon
+ *	in unspecified units, scaled to 0..100 (u8)
+ * @__NL80211_BSS_AFTER_LAST: internal
+ * @NL80211_BSS_MAX: highest BSS attribute
+ */
 enum nl80211_bss {
 	__NL80211_BSS_INVALID,
 	NL80211_BSS_BSSID,
@@ -843,6 +868,8 @@ enum nl80211_bss {
 	NL80211_BSS_BEACON_INTERVAL,
 	NL80211_BSS_CAPABILITY,
 	NL80211_BSS_INFORMATION_ELEMENTS,
+	NL80211_BSS_SIGNAL_MBM,
+	NL80211_BSS_SIGNAL_UNSPEC,
 
 	/* keep last */
 	__NL80211_BSS_AFTER_LAST,

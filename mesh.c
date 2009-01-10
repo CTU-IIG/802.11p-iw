@@ -192,9 +192,10 @@ static const struct mesh_param_descr* find_mesh_param(int argc, char **argv,
 
 	/* Find out what mesh parameter we want to change. */
 	mdescr = NULL;
-	for (i = 0; ARRAY_SIZE(_mesh_param_descrs); i++)
+	for (i = 0; i < ARRAY_SIZE(_mesh_param_descrs); i++) {
 		if (!strcmp(_mesh_param_descrs[i].name, argv[0]))
 			return _mesh_param_descrs + i;
+	}
 
 	if (!mdescr) {
 		printf("Mesh_param must be one of: ");

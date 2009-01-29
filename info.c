@@ -151,14 +151,17 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 				printf(" (%.1f dBm)", 0.01 * nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_MAX_TX_POWER]));
 
 			open = 0;
-			if (tb_freq[NL80211_FREQUENCY_ATTR_DISABLED])
+			if (tb_freq[NL80211_FREQUENCY_ATTR_DISABLED]) {
 				print_flag("disabled", &open);
+				goto next;
+			}
 			if (tb_freq[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN])
 				print_flag("passive scanning", &open);
 			if (tb_freq[NL80211_FREQUENCY_ATTR_NO_IBSS])
 				print_flag("no IBSS", &open);
 			if (tb_freq[NL80211_FREQUENCY_ATTR_RADAR])
 				print_flag("radar detection", &open);
+ next:
 			if (open)
 				printf(")");
 			printf("\n");

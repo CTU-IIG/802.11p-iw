@@ -92,6 +92,14 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 	} else if (strcmp(tpstr, "monitor") == 0) {
 		*type = NL80211_IFTYPE_MONITOR;
 		return 1;
+	} else if (strcmp(tpstr, "master") == 0) {
+		*type = NL80211_IFTYPE_UNSPECIFIED;
+		fprintf(stderr, "See http://wireless.kernel.org/RTFM-AP.\n");
+		return 2;
+	} else if (strcmp(tpstr, "ap") == 0) {
+		*type = NL80211_IFTYPE_UNSPECIFIED;
+		fprintf(stderr, "See http://wireless.kernel.org/RTFM-AP.\n");
+		return 2;
 	} else if (strcmp(tpstr, "__ap") == 0) {
 		*type = NL80211_IFTYPE_AP;
 		return 1;
@@ -132,8 +140,8 @@ static int handle_interface_add(struct nl_cb *cb,
 	argv++;
 
 	tpset = get_if_type(&argc, &argv, &type);
-	if (tpset <= 0)
-		return 1;
+	if (tpset != 1)
+		return tpset;
 
 	if (argc) {
 		if (strcmp(argv[0], "mesh_id") == 0) {

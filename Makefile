@@ -55,7 +55,7 @@ version.h: version.sh
 	@$(NQ) ' GEN  version.h'
 	$(Q)./version.sh
 
-%.o: %.c iw.h version.h
+%.o: %.c iw.h version.h nl80211.h
 	@$(NQ) ' CC  ' $@
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 

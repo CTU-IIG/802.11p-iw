@@ -13,7 +13,7 @@ CC ?= "gcc"
 CFLAGS ?= -O2 -g
 CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration
 
-OBJS = iw.o info.o phy.o interface.o station.o util.o mpath.o reg.o mesh.o genl.o scan.o
+OBJS = iw.o genl.o info.o phy.o interface.o station.o util.o mesh.o mpath.o scan.o reg.o
 ALL = iw
 
 NL1FOUND := $(shell pkg-config --atleast-version=1 libnl-1 && echo Y)

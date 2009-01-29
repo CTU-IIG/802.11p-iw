@@ -64,7 +64,7 @@ static int family_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-int nl_get_multicast_id(struct nl_handle *handle, const char *family, const char *group)
+int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *group)
 {
 	struct nl_msg *msg;
 	struct nl_cb *cb;
@@ -84,7 +84,7 @@ int nl_get_multicast_id(struct nl_handle *handle, const char *family, const char
 		goto out_fail_cb;
 	}
 
-	ctrlid = genl_ctrl_resolve(handle, "nlctrl");
+	ctrlid = genl_ctrl_resolve(sock, "nlctrl");
 
         genlmsg_put(msg, 0, 0, ctrlid, 0,
 		    0, CTRL_CMD_GETFAMILY, 0);
@@ -92,7 +92,7 @@ int nl_get_multicast_id(struct nl_handle *handle, const char *family, const char
 	ret = -ENOBUFS;
 	NLA_PUT_STRING(msg, CTRL_ATTR_FAMILY_NAME, family);
 
-	ret = nl_send_auto_complete(handle, msg);
+	ret = nl_send_auto_complete(sock, msg);
 	if (ret < 0)
 		goto out;
 
@@ -103,7 +103,7 @@ int nl_get_multicast_id(struct nl_handle *handle, const char *family, const char
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, family_handler, &grp);
 
 	while (ret > 0)
-		nl_recvmsgs(handle, cb);
+		nl_recvmsgs(sock, cb);
 
 	if (ret == 0)
 		ret = grp.id;

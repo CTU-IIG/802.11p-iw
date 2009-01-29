@@ -10,12 +10,12 @@
 
 #define ETH_ALEN 6
 
-struct nl80211_state {
-#ifdef CONFIG_LIBNL20
-	struct nl_sock *nl_handle;
-#else
-	struct nl_handle *nl_handle;
+#ifndef CONFIG_LIBNL20
+#  define nl_sock nl_handle
 #endif
+
+struct nl80211_state {
+	struct nl_sock *nl_sock;
 	struct nl_cache *nl_cache;
 	struct genl_family *nl80211;
 };
@@ -67,6 +67,6 @@ const char *iftype_name(enum nl80211_iftype iftype);
 int ieee80211_channel_to_frequency(int chan);
 int ieee80211_frequency_to_channel(int freq);
 
-int nl_get_multicast_id(struct nl_handle *handle, const char *family, const char *group);
+int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *group);
 
 #endif /* __IW_H */

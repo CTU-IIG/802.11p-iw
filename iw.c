@@ -31,12 +31,12 @@ static inline struct nl_handle *nl_socket_alloc(void)
 	return nl_handle_alloc();
 }
 
-static inline void nl_socket_free(struct nl_handle *h)
+static inline void nl_socket_free(struct nl_sock *h)
 {
 	nl_handle_destroy(h);
 }
 
-static inline int __genl_ctrl_alloc_cache(struct nl_handle *h, struct nl_cache **cache)
+static inline int __genl_ctrl_alloc_cache(struct nl_sock *h, struct nl_cache **cache)
 {
 	struct nl_cache *tmp = genl_ctrl_alloc_cache(h);
 	if (!tmp)
@@ -53,19 +53,19 @@ static int nl80211_init(struct nl80211_state *state)
 {
 	int err;
 
-	state->nl_handle = nl_socket_alloc();
-	if (!state->nl_handle) {
-		fprintf(stderr, "Failed to allocate netlink handle.\n");
+	state->nl_sock = nl_socket_alloc();
+	if (!state->nl_sock) {
+		fprintf(stderr, "Failed to allocate netlink socket.\n");
 		return -ENOMEM;
 	}
 
-	if (genl_connect(state->nl_handle)) {
+	if (genl_connect(state->nl_sock)) {
 		fprintf(stderr, "Failed to connect to generic netlink.\n");
 		err = -ENOLINK;
 		goto out_handle_destroy;
 	}
 
-	if (genl_ctrl_alloc_cache(state->nl_handle, &state->nl_cache)) {
+	if (genl_ctrl_alloc_cache(state->nl_sock, &state->nl_cache)) {
 		fprintf(stderr, "Failed to allocate generic netlink cache.\n");
 		err = -ENOMEM;
 		goto out_handle_destroy;
@@ -83,7 +83,7 @@ static int nl80211_init(struct nl80211_state *state)
  out_cache_free:
 	nl_cache_free(state->nl_cache);
  out_handle_destroy:
-	nl_socket_free(state->nl_handle);
+	nl_socket_free(state->nl_sock);
 	return err;
 }
 
@@ -91,7 +91,7 @@ static void nl80211_cleanup(struct nl80211_state *state)
 {
 	genl_family_put(state->nl80211);
 	nl_cache_free(state->nl_cache);
-	nl_socket_free(state->nl_handle);
+	nl_socket_free(state->nl_sock);
 }
 
 __COMMAND(NULL, NULL, NULL, 0, 0, 0, CIB_NONE, NULL);
@@ -271,7 +271,7 @@ static int handle_cmd(struct nl80211_state *state,
 	if (err)
 		goto out;
 
-	err = nl_send_auto_complete(state->nl_handle, msg);
+	err = nl_send_auto_complete(state->nl_sock, msg);
 	if (err < 0)
 		goto out;
 
@@ -282,7 +282,7 @@ static int handle_cmd(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
 
 	while (err > 0)
-		nl_recvmsgs(state->nl_handle, cb);
+		nl_recvmsgs(state->nl_sock, cb);
  out:
 	nl_cb_put(cb);
  out_free_msg:
@@ -331,11 +331,11 @@ static int listen_events(struct nl80211_state *state,
 		return -ENOMEM;
 	}
 
-	mcid = nl_get_multicast_id(state->nl_handle, "nl80211", "config");
+	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "config");
 	if (mcid < 0)
 		return mcid;
 
-	ret = nl_socket_add_membership(state->nl_handle, mcid);
+	ret = nl_socket_add_membership(state->nl_sock, mcid);
 	if (ret)
 		return ret;
 	
@@ -344,7 +344,7 @@ static int listen_events(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_event, NULL);
 
 	while (1)
-		nl_recvmsgs(state->nl_handle, cb);
+		nl_recvmsgs(state->nl_sock, cb);
 
 	nl_cb_put(cb);
 

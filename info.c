@@ -89,7 +89,7 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 #ifdef NL80211_BAND_ATTR_HT_CAPA
 		if (tb_band[NL80211_BAND_ATTR_HT_CAPA]) {
 			unsigned short cap = nla_get_u16(tb_band[NL80211_BAND_ATTR_HT_CAPA]);
-#define PCOM(fmt, args...) do { printf("\t\t\t * " fmt "\n", ##args); } while (0)
+#define PCOM(fmt, args...) do { printf("\t\t\t* " fmt "\n", ##args); } while (0)
 #define PBCOM(bit, args...) if (cap & (bit)) PCOM(args)
 			printf("\t\tHT capabilities: 0x%.4x\n", cap);
 			PBCOM(0x0001, "LPDC coding");

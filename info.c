@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <errno.h>
 #include <net/if.h>
 
@@ -18,6 +19,24 @@ static void print_flag(const char *name, int *open)
 		printf(", ");
 	printf("%s", name);
 	*open = 1;
+}
+
+static void print_mcs_index(unsigned char *mcs)
+{
+	unsigned int mcs_bit;
+
+	for (mcs_bit = 0; mcs_bit <= 76; mcs_bit++) {
+		unsigned int mcs_octet = mcs_bit/8;
+		unsigned int MCS_RATE_BIT = 1 << mcs_bit % 8;
+		bool mcs_rate_idx_set;
+
+		mcs_rate_idx_set = !!(mcs[mcs_octet] & MCS_RATE_BIT);
+
+		if (!mcs_rate_idx_set)
+			continue;
+
+		printf("\t\t\tMCS index %d\n", mcs_bit);
+	}
 }
 
 static int print_phy_handler(struct nl_msg *msg, void *arg)
@@ -70,7 +89,7 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 #ifdef NL80211_BAND_ATTR_HT_CAPA
 		if (tb_band[NL80211_BAND_ATTR_HT_CAPA]) {
 			unsigned short cap = nla_get_u16(tb_band[NL80211_BAND_ATTR_HT_CAPA]);
-#define PCOM(fmt, args...) do { printf("\t\t\t * " fmt "\n", ##args); } while (0)
+#define PCOM(fmt, args...) do { printf("\t\t\t* " fmt "\n", ##args); } while (0)
 #define PBCOM(bit, args...) if (cap & (bit)) PCOM(args)
 			printf("\t\tHT capabilities: 0x%.4x\n", cap);
 			PBCOM(0x0001, "LPDC coding");
@@ -128,10 +147,50 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		}
 		if (tb_band[NL80211_BAND_ATTR_HT_MCS_SET] &&
 		    nla_len(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]) == 16) {
+			/* As defined in 7.3.2.57.4 Supported MCS Set field */
+			unsigned int tx_max_num_spatial_streams, max_rx_supp_data_rate;
 			unsigned char *mcs = nla_data(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]);
+			bool tx_mcs_set_defined, tx_mcs_set_equal, tx_unequal_modulation;
+
 			printf("\t\tHT MCS set: %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x\n",
 				mcs[0], mcs[1], mcs[2], mcs[3], mcs[4], mcs[5], mcs[6], mcs[7],
 				mcs[8], mcs[9], mcs[10], mcs[11], mcs[12], mcs[13], mcs[14], mcs[15]);
+
+			max_rx_supp_data_rate = ((mcs[10] >> 8) & ((mcs[11] & 0x3) << 8));
+			tx_mcs_set_defined = !!(mcs[12] & (1 << 0));
+			tx_mcs_set_equal = !(mcs[12] & (1 << 1));
+			tx_max_num_spatial_streams = (mcs[12] | ((1 << 3) | (1 << 4))) + 1;
+			tx_unequal_modulation = !!(mcs[12] & (1 << 5));
+
+			if (max_rx_supp_data_rate)
+				printf("\t\tHT Max RX data rate: %d Mbps\n", max_rx_supp_data_rate);
+			/* XXX: else see 9.6.0e.5.3 how to get this I think */
+
+			if (tx_mcs_set_defined) {
+				if (tx_mcs_set_equal) {
+					printf("\t\tHT TX/RX MCS rate indexes supported:\n");
+					print_mcs_index(&mcs[0]);
+				} else {
+					printf("\t\tHT RX MCS rate indexes supported:\n");
+					print_mcs_index(&mcs[0]);
+
+					if (tx_unequal_modulation)
+						printf("TX unequal modulation supported\n");
+					else
+						printf("TX unequal modulation not supported\n");
+
+					printf("\t\tHT TX Max spatiel streams: %d\n",
+						tx_max_num_spatial_streams);
+
+					printf("\t\tHT TX MCS rate indexes supported may differ\n");
+				}
+			}
+			else {
+				printf("\t\tHT RX MCS rate indexes supported:\n");
+				print_mcs_index(&mcs[0]);
+				printf("\t\tHT TX MCS rates indexes are undefined\n");
+			}
+
 		}
 #endif
 

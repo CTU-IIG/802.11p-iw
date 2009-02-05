@@ -170,12 +170,11 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 static void print_all_mesh_param_descr(void)
 {
 	int i;
-	const char *comma = "";
 
-	for (i = 0; i < ARRAY_SIZE(_mesh_param_descrs); i++) {
-		printf("%s%s", comma, _mesh_param_descrs[i].name);
-		comma = ", ";
-	}
+	printf("Possible mesh parameters are:\n");
+
+	for (i = 0; i < ARRAY_SIZE(_mesh_param_descrs); i++)
+		printf(" - %s\n", _mesh_param_descrs[i].name);
 }
 
 static const struct mesh_param_descr* find_mesh_param(int argc, char **argv,
@@ -187,6 +186,7 @@ static const struct mesh_param_descr* find_mesh_param(int argc, char **argv,
 	if (argc < 1) {
 		printf("You must specify which mesh parameter to %s.\n",
 		       action_name);
+		print_all_mesh_param_descr();
 		return NULL;
 	}
 
@@ -198,9 +198,7 @@ static const struct mesh_param_descr* find_mesh_param(int argc, char **argv,
 	}
 
 	if (!mdescr) {
-		printf("Mesh_param must be one of: ");
 		print_all_mesh_param_descr();
-		printf("\n");
 		return NULL;
 	}
 	return mdescr;

@@ -150,9 +150,13 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 	if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
 	printf("BSS %s (on %s)\n", mac_addr, dev);
 
-	if (bss[NL80211_BSS_TSF])
-		printf("\tTSF: %llu usec\n",
-			(unsigned long long)nla_get_u64(bss[NL80211_BSS_TSF]));
+	if (bss[NL80211_BSS_TSF]) {
+		unsigned long long tsf;
+		tsf = (unsigned long long)nla_get_u64(bss[NL80211_BSS_TSF]);
+		printf("\tTSF: %llu usec (%llud, %.2lld:%.2llu:%.2llu)\n",
+			tsf, tsf/1000/1000/60/60/24, (tsf/1000/1000/60/60) % 24,
+			(tsf/1000/1000/60) % 60, (tsf/1000/1000) % 60);
+	}
 	if (bss[NL80211_BSS_FREQUENCY])
 		printf("\tfreq: %d\n",
 			nla_get_u32(bss[NL80211_BSS_FREQUENCY]));

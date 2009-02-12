@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
@@ -11,6 +12,10 @@
 
 #include "nl80211.h"
 #include "iw.h"
+
+struct scan_params {
+	bool unknown;
+};
 
 static int handle_scan(struct nl_cb *cb,
 		       struct nl_msg *msg,
@@ -74,9 +79,22 @@ static void print_ign(unsigned char type, unsigned char len, unsigned char *data
 	/* ignore for now, not too useful */
 }
 
-static void print_vendor(unsigned char type, unsigned char len, unsigned char *data)
+static const printfn ieprinters[] = {
+	[0] = print_ssid,
+	[1] = print_supprates,
+	[3] = print_ds,
+	[5] = print_ign,
+	[50] = print_supprates,
+};
+
+static void print_vendor(unsigned char len, unsigned char *data,
+			 struct scan_params *params)
 {
 	int i;
+
+	/* currently _all_ vendor IEs are unknown (not parsed) */
+	if (!params->unknown)
+		return;
 
 	printf("\tVendor specific: OUI %.2x:%.2x:%.2x, data: ",
 		data[0], data[1], data[2]);
@@ -85,21 +103,14 @@ static void print_vendor(unsigned char type, unsigned char len, unsigned char *d
 	printf("\n");
 }
 
-static const printfn ieprinters[] = {
-	[0] = print_ssid,
-	[1] = print_supprates,
-	[3] = print_ds,
-	[5] = print_ign,
-	[50] = print_supprates,
-	[221] = print_vendor,
-};
-
-static void print_ies(unsigned char *ie, int ielen)
+static void print_ies(unsigned char *ie, int ielen, struct scan_params *params)
 {
 	while (ielen >= 2 && ielen >= ie[1]) {
 		if (ie[0] < ARRAY_SIZE(ieprinters) && ieprinters[ie[0]]) {
 			ieprinters[ie[0]](ie[0], ie[1], ie + 2);
-		} else {
+		} else if (ie[0] == 221 /* vendor */) {
+			print_vendor(ie[1], ie + 2, params);
+		} else if (params->unknown) {
 			int i;
 
 			printf("\tUnknown IE (%d): ", ie[0]);
@@ -176,19 +187,28 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 	}
 	if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
 		print_ies(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]),
-			  nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
+			  nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]),
+			  arg);
 
 	return NL_SKIP;
 }
 
-
+static struct scan_params scan_params;
 
 static int handle_scan_dump(struct nl_cb *cb,
 			    struct nl_msg *msg,
 			    int argc, char **argv)
 {
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_bss_handler, NULL);
+	if (argc > 1)
+		return 1;
+
+	scan_params.unknown = false;
+	if (argc == 1 && !strcmp(argv[0], "-u"))
+		scan_params.unknown = true;
+
+	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_bss_handler,
+		  &scan_params);
 	return 0;
 }
-COMMAND(scan, dump, NULL,
+COMMAND(scan, dump, "[-u]",
 	NL80211_CMD_GET_SCAN, NLM_F_DUMP, CIB_NETDEV, handle_scan_dump);

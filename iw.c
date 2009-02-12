@@ -302,6 +302,7 @@ static int print_event(struct nl_msg *msg, void *arg)
 {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
+	char ifname[100];
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
 		  genlmsg_attrlen(gnlh, 0), NULL);
@@ -311,6 +312,16 @@ static int print_event(struct nl_msg *msg, void *arg)
 		printf("wiphy rename: phy #%d to %s\n",
 		       nla_get_u32(tb[NL80211_ATTR_WIPHY]),
 		       nla_get_string(tb[NL80211_ATTR_WIPHY_NAME]));
+		break;
+	case NL80211_CMD_NEW_SCAN_RESULTS:
+		if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), ifname);
+		printf("scan finished on %s (phy #%d)\n",
+		       ifname, nla_get_u32(tb[NL80211_ATTR_WIPHY]));
+		break;
+	case NL80211_CMD_SCAN_ABORTED:
+		if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), ifname);
+		printf("scan aborted on %s (phy #%d)\n",
+		       ifname, nla_get_u32(tb[NL80211_ATTR_WIPHY]));
 		break;
 	default:
 		printf("unknown event: %d\n", gnlh->cmd);
@@ -338,7 +349,15 @@ static int listen_events(struct nl80211_state *state,
 	ret = nl_socket_add_membership(state->nl_sock, mcid);
 	if (ret)
 		return ret;
-	
+
+	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "scan");
+	if (mcid < 0)
+		return mcid;
+
+	ret = nl_socket_add_membership(state->nl_sock, mcid);
+	if (ret)
+		return ret;
+
 	/* no sequence checking for multicast messages */
 	nl_cb_set(cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_event, NULL);

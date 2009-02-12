@@ -351,12 +351,11 @@ static int listen_events(struct nl80211_state *state,
 		return ret;
 
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "scan");
-	if (mcid < 0)
-		return mcid;
-
-	ret = nl_socket_add_membership(state->nl_sock, mcid);
-	if (ret)
-		return ret;
+	if (mcid >= 0) {
+		ret = nl_socket_add_membership(state->nl_sock, mcid);
+		if (ret)
+			return ret;
+	}
 
 	/* no sequence checking for multicast messages */
 	nl_cb_set(cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);

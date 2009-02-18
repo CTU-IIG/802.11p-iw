@@ -39,6 +39,8 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_INACTIVE_TIME] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_RX_BYTES] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_TX_BYTES] = { .type = NLA_U32 },
+		[NL80211_STA_INFO_RX_PACKETS] = { .type = NLA_U32 },
+		[NL80211_STA_INFO_TX_PACKETS] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_SIGNAL] = { .type = NLA_U8 },
 		[NL80211_STA_INFO_TX_BITRATE] = { .type = NLA_NESTED },
 		[NL80211_STA_INFO_LLID] = { .type = NLA_U16 },
@@ -83,9 +85,15 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	if (sinfo[NL80211_STA_INFO_RX_BYTES])
 		printf("\n\trx bytes:\t%d",
 			nla_get_u32(sinfo[NL80211_STA_INFO_RX_BYTES]));
+	if (sinfo[NL80211_STA_INFO_RX_PACKETS])
+		printf("\n\trx packets:\t%d",
+			nla_get_u32(sinfo[NL80211_STA_INFO_RX_PACKETS]));
 	if (sinfo[NL80211_STA_INFO_TX_BYTES])
 		printf("\n\ttx bytes:\t%d",
 			nla_get_u32(sinfo[NL80211_STA_INFO_TX_BYTES]));
+	if (sinfo[NL80211_STA_INFO_TX_PACKETS])
+		printf("\n\ttx packets:\t%d",
+			nla_get_u32(sinfo[NL80211_STA_INFO_TX_PACKETS]));
 	if (sinfo[NL80211_STA_INFO_SIGNAL])
 		printf("\n\tsignal:  \t%d dBm",
 			(int8_t)nla_get_u8(sinfo[NL80211_STA_INFO_SIGNAL]));

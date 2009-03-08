@@ -36,7 +36,7 @@ static int parse_mntr_flags(int *_argc, char ***_argv,
 	while (argc) {
 		int ok = 0;
 		for (flag = __NL80211_MNTR_FLAG_INVALID;
-		     flag < NL80211_MNTR_FLAG_MAX; flag++) {
+		     flag <= NL80211_MNTR_FLAG_MAX; flag++) {
 			if (strcmp(*argv, mntr_flags[flag]) == 0) {
 				ok = 1;
 				/*

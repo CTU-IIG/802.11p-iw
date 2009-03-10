@@ -69,4 +69,6 @@ int ieee80211_frequency_to_channel(int freq);
 
 int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *group);
 
+char *reg_initiator_to_string(__u8 initiator);
+
 #endif /* __IW_H */

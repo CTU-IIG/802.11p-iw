@@ -303,6 +303,7 @@ static int print_event(struct nl_msg *msg, void *arg)
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	char ifname[100];
+	__u8 reg_type;
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
 		  genlmsg_attrlen(gnlh, 0), NULL);
@@ -323,6 +324,42 @@ static int print_event(struct nl_msg *msg, void *arg)
 		printf("scan aborted on %s (phy #%d)\n",
 		       ifname, nla_get_u32(tb[NL80211_ATTR_WIPHY]));
 		break;
+	case NL80211_CMD_REG_CHANGE:
+
+		printf("regulatory domain change: ");
+
+		reg_type = nla_get_u8(tb[NL80211_ATTR_REG_TYPE]);
+
+		switch (reg_type) {
+		case NL80211_REGDOM_TYPE_COUNTRY:
+			printf("set to %s by %s request",
+			       nla_get_string(tb[NL80211_ATTR_REG_ALPHA2]),
+			       reg_initiator_to_string(nla_get_u8(tb[NL80211_ATTR_REG_INITIATOR])));
+			if (tb[NL80211_ATTR_WIPHY])
+				printf(" on phy%d", nla_get_u32(tb[NL80211_ATTR_WIPHY]));
+			break;
+		case NL80211_REGDOM_TYPE_WORLD:
+			printf("set to world roaming by %s request",
+			       reg_initiator_to_string(nla_get_u8(tb[NL80211_ATTR_REG_INITIATOR])));
+			break;
+		case NL80211_REGDOM_TYPE_CUSTOM_WORLD:
+			printf("custom world roaming rules in place on phy%d by %s request",
+			       nla_get_u32(tb[NL80211_ATTR_WIPHY]),
+			       reg_initiator_to_string(nla_get_u32(tb[NL80211_ATTR_REG_INITIATOR])));
+			break;
+		case NL80211_REGDOM_TYPE_INTERSECTION:
+			printf("intersection used due to a request made by %s",
+			       reg_initiator_to_string(nla_get_u32(tb[NL80211_ATTR_REG_INITIATOR])));
+			if (tb[NL80211_ATTR_WIPHY])
+				printf(" on phy%d", nla_get_u32(tb[NL80211_ATTR_WIPHY]));
+			break;
+		default:
+			printf("unknown source (upgrade this utility)");
+			break;
+		}
+
+		printf("\n");
+		break;
 	default:
 		printf("unknown event: %d\n", gnlh->cmd);
 		break;
@@ -342,6 +379,7 @@ static int listen_events(struct nl80211_state *state,
 		return -ENOMEM;
 	}
 
+	/* Configuration multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "config");
 	if (mcid < 0)
 		return mcid;
@@ -350,7 +388,16 @@ static int listen_events(struct nl80211_state *state,
 	if (ret)
 		return ret;
 
+	/* Scan multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "scan");
+	if (mcid >= 0) {
+		ret = nl_socket_add_membership(state->nl_sock, mcid);
+		if (ret)
+			return ret;
+	}
+
+	/* Regulatory multicast group */
+	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "regulatory");
 	if (mcid >= 0) {
 		ret = nl_socket_add_membership(state->nl_sock, mcid);
 		if (ret)

@@ -1,6 +1,7 @@
 #include <net/if.h>
 #include <errno.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
@@ -18,26 +19,26 @@
 #define DBM_TO_MBM(gain) ((gain) * 100)
 #define MBM_TO_DBM(gain) ((gain) / 100)
 
-static int isalpha_upper(char letter)
+static bool isalpha_upper(char letter)
 {
 	if (letter >= 65 && letter <= 90)
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
-static int is_alpha2(char *alpha2)
+static bool is_alpha2(char *alpha2)
 {
 	if (isalpha_upper(alpha2[0]) && isalpha_upper(alpha2[1]))
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
-static int is_world_regdom(char *alpha2)
+static bool is_world_regdom(char *alpha2)
 {
 	/* ASCII 0 */
 	if (alpha2[0] == 48 && alpha2[1] == 48)
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 static int handle_reg_set(struct nl_cb *cb,

@@ -149,6 +149,8 @@ static int phy_lookup(char *name)
 	snprintf(buf, sizeof(buf), "/sys/class/ieee80211/%s/index", name);
 
 	fd = open(buf, O_RDONLY);
+	if (fd < 0)
+		return -1;
 	pos = read(fd, buf, sizeof(buf) - 1);
 	if (pos < 0)
 		return -1;
@@ -200,12 +202,17 @@ static int handle_cmd(struct nl80211_state *state,
 		break;
 	case CIB_NETDEV:
 		devidx = if_nametoindex(*argv);
+		if (devidx == 0)
+			devidx = -1;
 		argc--;
 		argv++;
 		break;
 	default:
 		break;
 	}
+
+	if (devidx < 0)
+		return -errno;
 
 	section = command = *argv;
 	argc--;

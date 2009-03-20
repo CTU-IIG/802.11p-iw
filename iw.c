@@ -180,8 +180,15 @@ static int ack_handler(struct nl_msg *msg, void *arg)
 	return NL_STOP;
 }
 
+enum id_input {
+	II_NONE,
+	II_NETDEV,
+	II_PHY_NAME,
+	II_PHY_IDX,
+};
+
 static int handle_cmd(struct nl80211_state *state,
-		      enum command_identify_by idby,
+		      enum id_input idby,
 		      int argc, char **argv)
 {
 	struct cmd *cmd;
@@ -190,17 +197,29 @@ static int handle_cmd(struct nl80211_state *state,
 	int devidx = 0;
 	int err;
 	const char *command, *section;
+	char *tmp;
+	enum command_identify_by command_idby = CIB_NONE;
 
-	if (argc <= 1 && idby != CIB_NONE)
+	if (argc <= 1 && idby != II_NONE)
 		return 1;
 
 	switch (idby) {
-	case CIB_PHY:
+	case II_PHY_IDX:
+		command_idby = CIB_PHY;
+		devidx = strtoul(*argv + 4, &tmp, 0);
+		if (*tmp != '\0')
+			return 1;
+		argc--;
+		argv++;
+		break;
+	case II_PHY_NAME:
+		command_idby = CIB_PHY;
 		devidx = phy_lookup(*argv);
 		argc--;
 		argv++;
 		break;
-	case CIB_NETDEV:
+	case II_NETDEV:
+		command_idby = CIB_NETDEV;
 		devidx = if_nametoindex(*argv);
 		if (devidx == 0)
 			devidx = -1;
@@ -222,7 +241,7 @@ static int handle_cmd(struct nl80211_state *state,
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
 		if (!cmd->handler)
 			continue;
-		if (cmd->idby != idby)
+		if (cmd->idby != command_idby)
 			continue;
 		if (cmd->section) {
 			if (strcmp(cmd->section, section))
@@ -263,7 +282,7 @@ static int handle_cmd(struct nl80211_state *state,
 	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
 		    cmd->nl_msg_flags, cmd->cmd, 0);
 
-	switch (idby) {
+	switch (command_idby) {
 	case CIB_PHY:
 		NLA_PUT_U32(msg, NL80211_ATTR_WIPHY, devidx);
 		break;
@@ -461,13 +480,18 @@ int main(int argc, char **argv)
 	} else if (strcmp(*argv, "dev") == 0) {
 		argc--;
 		argv++;
-		err = handle_cmd(&nlstate, CIB_NETDEV, argc, argv);
-	} else if (strcmp(*argv, "phy") == 0) {
-		argc--;
-		argv++;
-		err = handle_cmd(&nlstate, CIB_PHY, argc, argv);
+		err = handle_cmd(&nlstate, II_NETDEV, argc, argv);
+	} else if (strncmp(*argv, "phy", 3) == 0) {
+		if (strlen(*argv) == 3) {
+			argc--;
+			argv++;
+			err = handle_cmd(&nlstate, II_PHY_NAME, argc, argv);
+		} else if (*(*argv + 3) == '#')
+			err = handle_cmd(&nlstate, II_PHY_IDX, argc, argv);
+		else
+			err = 1;
 	} else
-		err = handle_cmd(&nlstate, CIB_NONE, argc, argv);
+		err = handle_cmd(&nlstate, II_NONE, argc, argv);
 
 	if (err == 1)
 		usage(argv0);

@@ -54,7 +54,6 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		[NL80211_FREQUENCY_ATTR_NO_IBSS] = { .type = NLA_FLAG },
 		[NL80211_FREQUENCY_ATTR_RADAR] = { .type = NLA_FLAG },
 		[NL80211_FREQUENCY_ATTR_MAX_TX_POWER] = { .type = NLA_U32 },
-		[NL80211_FREQUENCY_ATTR_MAX_BANDWIDTH] = { .type = NLA_U32 },
 	};
 
 	struct nlattr *tb_rate[NL80211_BITRATE_ATTR_MAX + 1];
@@ -206,19 +205,9 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			freq = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_FREQ]);
 			printf("\t\t\t* %d MHz [%d]", freq, ieee80211_frequency_to_channel(freq));
 
-			if (!tb_freq[NL80211_FREQUENCY_ATTR_DISABLED]) {
-				bool set_freq_pow_bw = false;
-				if (tb_freq[NL80211_FREQUENCY_ATTR_MAX_TX_POWER]) {
-					printf(" (%.1f dBm", 0.01 * nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_MAX_TX_POWER]));
-					set_freq_pow_bw = true;
-				}
-				if (tb_freq[NL80211_FREQUENCY_ATTR_MAX_BANDWIDTH]) {
-					printf(" / %d MHz", nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_MAX_BANDWIDTH]));
-					set_freq_pow_bw = true;
-				}
-				if (set_freq_pow_bw)
-					printf(")");
-			}
+			if (tb_freq[NL80211_FREQUENCY_ATTR_MAX_TX_POWER] &&
+			    !tb_freq[NL80211_FREQUENCY_ATTR_DISABLED])
+				printf(" (%.1f dBm)", 0.01 * nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_MAX_TX_POWER]));
 
 			open = 0;
 			if (tb_freq[NL80211_FREQUENCY_ATTR_DISABLED]) {

@@ -117,22 +117,20 @@ static void usage(const char *argv0)
 		switch (cmd->idby) {
 		case CIB_NONE:
 			fprintf(stderr, "\t");
-			/* fall through */
+			break;
 		case CIB_PHY:
-			if (cmd->idby == CIB_PHY)
-				fprintf(stderr, "\tphy <phyname> ");
-			/* fall through */
+			fprintf(stderr, "\tphy <phyname> ");
+			break;
 		case CIB_NETDEV:
-			if (cmd->idby == CIB_NETDEV)
-				fprintf(stderr, "\tdev <devname> ");
-			if (cmd->section)
-				fprintf(stderr, "%s ", cmd->section);
-			fprintf(stderr, "%s", cmd->name);
-			if (cmd->args)
-				fprintf(stderr, " %s", cmd->args);
-			fprintf(stderr, "\n");
+			fprintf(stderr, "\tdev <devname> ");
 			break;
 		}
+		if (cmd->section)
+			fprintf(stderr, "%s ", cmd->section);
+		fprintf(stderr, "%s", cmd->name);
+		if (cmd->args)
+			fprintf(stderr, " %s", cmd->args);
+		fprintf(stderr, "\n");
 	}
 }
 

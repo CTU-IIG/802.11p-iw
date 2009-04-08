@@ -122,7 +122,6 @@ static void usage(const char *argv0)
 			fprintf(stderr, "\tphy <phyname> ");
 			break;
 		case CIB_NETDEV:
-		case CIB_NETDEV_RAW:
 			fprintf(stderr, "\tdev <devname> ");
 			break;
 		}
@@ -256,12 +255,6 @@ int handle_cmd(struct nl80211_state *state, enum id_input idby,
 
 	if (cmd >= &__stop___cmd)
 		return 1;
-
-	if (cmd->idby == CIB_NETDEV_RAW) {
-		argc++;
-		argv--;
-		return cmd->handler(state, NULL, NULL, argc, argv);
-	}
 
 	msg = nlmsg_alloc();
 	if (!msg) {

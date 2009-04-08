@@ -24,7 +24,6 @@ enum command_identify_by {
 	CIB_NONE,
 	CIB_PHY,
 	CIB_NETDEV,
-	CIB_NETDEV_RAW,
 };
 
 enum id_input {

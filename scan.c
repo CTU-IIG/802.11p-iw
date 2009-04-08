@@ -17,7 +17,8 @@ struct scan_params {
 	bool unknown;
 };
 
-static int handle_scan(struct nl_cb *cb,
+static int handle_scan(struct nl80211_state *state,
+		       struct nl_cb *cb,
 		       struct nl_msg *msg,
 		       int argc, char **argv)
 {
@@ -195,7 +196,8 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 
 static struct scan_params scan_params;
 
-static int handle_scan_dump(struct nl_cb *cb,
+static int handle_scan_dump(struct nl80211_state *state,
+			    struct nl_cb *cb,
 			    struct nl_msg *msg,
 			    int argc, char **argv)
 {

@@ -11,7 +11,8 @@
 #include "nl80211.h"
 #include "iw.h"
 
-static int handle_name(struct nl_cb *cb,
+static int handle_name(struct nl80211_state *state,
+		       struct nl_cb *cb,
 		       struct nl_msg *msg,
 		       int argc, char **argv)
 {
@@ -67,7 +68,8 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 	return -ENOBUFS;
 }
 
-static int handle_freq(struct nl_cb *cb, struct nl_msg *msg,
+static int handle_freq(struct nl80211_state *state,
+		       struct nl_cb *cb, struct nl_msg *msg,
 		       int argc, char **argv)
 {
 	return handle_freqchan(msg, false, argc, argv);
@@ -77,7 +79,8 @@ COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
 COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
 	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_freq);
 
-static int handle_chan(struct nl_cb *cb, struct nl_msg *msg,
+static int handle_chan(struct nl80211_state *state,
+		       struct nl_cb *cb, struct nl_msg *msg,
 		       int argc, char **argv)
 {
 	return handle_freqchan(msg, true, argc, argv);

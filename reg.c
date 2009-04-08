@@ -57,7 +57,8 @@ char *reg_initiator_to_string(__u8 initiator)
 	}
 }
 
-static int handle_reg_set(struct nl_cb *cb,
+static int handle_reg_set(struct nl80211_state *state,
+			  struct nl_cb *cb,
 			  struct nl_msg *msg,
 			  int argc, char **argv)
 {
@@ -175,7 +176,8 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 #undef PARSE_FLAG
 }
 
-static int handle_reg_get(struct nl_cb *cb,
+static int handle_reg_get(struct nl80211_state *state,
+			  struct nl_cb *cb,
 			  struct nl_msg *msg,
 			  int argc, char **argv)
 {

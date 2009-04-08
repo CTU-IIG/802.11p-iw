@@ -24,6 +24,14 @@ enum command_identify_by {
 	CIB_NONE,
 	CIB_PHY,
 	CIB_NETDEV,
+	CIB_NETDEV_RAW,
+};
+
+enum id_input {
+	II_NONE,
+	II_NETDEV,
+	II_PHY_NAME,
+	II_PHY_IDX,
 };
 
 struct cmd {
@@ -39,7 +47,8 @@ struct cmd {
 	 * zero on success, 1 if the arguments were wrong
 	 * and the usage message should and 2 otherwise.
 	 */
-	int (*handler)(struct nl_cb *cb,
+	int (*handler)(struct nl80211_state *state,
+		       struct nl_cb *cb,
 		       struct nl_msg *msg,
 		       int argc, char **argv);
 };
@@ -59,6 +68,11 @@ struct cmd {
 	__COMMAND(NULL, #name, args, cmd, flags, 0, idby, handler)
 extern struct cmd __start___cmd;
 extern struct cmd __stop___cmd;
+
+
+int handle_cmd(struct nl80211_state *state, enum id_input idby,
+	       int argc, char **argv);
+
 
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);
 int mac_addr_n2a(char *mac_addr, unsigned char *arg);

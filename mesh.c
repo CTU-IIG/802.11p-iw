@@ -205,9 +205,10 @@ static const struct mesh_param_descr* find_mesh_param(int argc, char **argv,
 }
 
 /* Setter */
-static int set_interface_meshparam(struct nl_cb *cb,
-				struct nl_msg *msg,
-				int argc, char **argv)
+static int set_interface_meshparam(struct nl80211_state *state,
+				   struct nl_cb *cb,
+				   struct nl_msg *msg,
+				   int argc, char **argv)
 {
 	int err;
 	uint32_t ret;
@@ -272,9 +273,10 @@ static int print_mesh_param_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int get_interface_meshparam(struct nl_cb *cb,
-				struct nl_msg *msg,
-				int argc, char **argv)
+static int get_interface_meshparam(struct nl80211_state *state,
+				   struct nl_cb *cb,
+				   struct nl_msg *msg,
+				   int argc, char **argv)
 {
 	const struct mesh_param_descr *mdescr;
 

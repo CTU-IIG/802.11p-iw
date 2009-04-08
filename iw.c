@@ -122,6 +122,7 @@ static void usage(const char *argv0)
 			fprintf(stderr, "\tphy <phyname> ");
 			break;
 		case CIB_NETDEV:
+		case CIB_NETDEV_RAW:
 			fprintf(stderr, "\tdev <devname> ");
 			break;
 		}
@@ -178,19 +179,11 @@ static int ack_handler(struct nl_msg *msg, void *arg)
 	return NL_STOP;
 }
 
-enum id_input {
-	II_NONE,
-	II_NETDEV,
-	II_PHY_NAME,
-	II_PHY_IDX,
-};
-
-static int handle_cmd(struct nl80211_state *state,
-		      enum id_input idby,
-		      int argc, char **argv)
+int handle_cmd(struct nl80211_state *state, enum id_input idby,
+	       int argc, char **argv)
 {
 	struct cmd *cmd;
-	struct nl_cb *cb = NULL;
+	struct nl_cb *cb;
 	struct nl_msg *msg;
 	int devidx = 0;
 	int err;
@@ -264,6 +257,12 @@ static int handle_cmd(struct nl80211_state *state,
 	if (cmd >= &__stop___cmd)
 		return 1;
 
+	if (cmd->idby == CIB_NETDEV_RAW) {
+		argc++;
+		argv--;
+		return cmd->handler(state, NULL, NULL, argc, argv);
+	}
+
 	msg = nlmsg_alloc();
 	if (!msg) {
 		fprintf(stderr, "failed to allocate netlink message\n");
@@ -291,7 +290,7 @@ static int handle_cmd(struct nl80211_state *state,
 		break;
 	}
 
-	err = cmd->handler(cb, msg, argc, argv);
+	err = cmd->handler(state, cb, msg, argc, argv);
 	if (err)
 		goto out;
 

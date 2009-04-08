@@ -257,7 +257,8 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int handle_info(struct nl_cb *cb,
+static int handle_info(struct nl80211_state *state,
+		       struct nl_cb *cb,
 		       struct nl_msg *msg,
 		       int argc, char **argv)
 {

@@ -94,7 +94,8 @@ static int print_mpath_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int handle_mpath_get(struct nl_cb *cb,
+static int handle_mpath_get(struct nl80211_state *state,
+			    struct nl_cb *cb,
 			    struct nl_msg *msg,
 			    int argc, char **argv)
 {
@@ -126,7 +127,8 @@ COMMAND(mpath, get, "<MAC address>",
 COMMAND(mpath, del, "<MAC address>",
 	NL80211_CMD_DEL_MPATH, 0, CIB_NETDEV, handle_mpath_get);
 
-static int handle_mpath_set(struct nl_cb *cb,
+static int handle_mpath_set(struct nl80211_state *state,
+			    struct nl_cb *cb,
 			    struct nl_msg *msg,
 			    int argc, char **argv)
 {
@@ -171,7 +173,8 @@ COMMAND(mpath, new, "<destination MAC address> next_hop <next hop MAC address>",
 COMMAND(mpath, set, "<destination MAC address> next_hop <next hop MAC address>",
 	NL80211_CMD_SET_MPATH, 0, CIB_NETDEV, handle_mpath_set);
 
-static int handle_mpath_dump(struct nl_cb *cb,
+static int handle_mpath_dump(struct nl80211_state *state,
+			     struct nl_cb *cb,
 			     struct nl_msg *msg,
 			     int argc, char **argv)
 {

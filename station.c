@@ -158,7 +158,8 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int handle_station_get(struct nl_cb *cb,
+static int handle_station_get(struct nl80211_state *state,
+			      struct nl_cb *cb,
 			      struct nl_msg *msg,
 			      int argc, char **argv)
 {
@@ -191,7 +192,8 @@ COMMAND(station, get, "<MAC address>",
 COMMAND(station, del, "<MAC address>",
 	NL80211_CMD_DEL_STATION, 0, CIB_NETDEV, handle_station_get);
 
-static int handle_station_set(struct nl_cb *cb,
+static int handle_station_set(struct nl80211_state *state,
+			      struct nl_cb *cb,
 			      struct nl_msg *msg,
 			      int argc, char **argv)
 {
@@ -237,7 +239,8 @@ static int handle_station_set(struct nl_cb *cb,
 COMMAND(station, set, "<MAC address> plink_action <open|block>",
 	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set);
 
-static int handle_station_dump(struct nl_cb *cb,
+static int handle_station_dump(struct nl80211_state *state,
+			       struct nl_cb *cb,
 			       struct nl_msg *msg,
 			       int argc, char **argv)
 {

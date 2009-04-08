@@ -123,7 +123,8 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 	return -1;
 }
 
-static int handle_interface_add(struct nl_cb *cb,
+static int handle_interface_add(struct nl80211_state *state,
+				struct nl_cb *cb,
 				struct nl_msg *msg,
 				int argc, char **argv)
 {
@@ -183,7 +184,8 @@ COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags ...]",
 COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags ...]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_NETDEV, handle_interface_add);
 
-static int handle_interface_del(struct nl_cb *cb,
+static int handle_interface_del(struct nl80211_state *state,
+				struct nl_cb *cb,
 				struct nl_msg *msg,
 				int argc, char **argv)
 {
@@ -210,7 +212,8 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int handle_interface_info(struct nl_cb *cb,
+static int handle_interface_info(struct nl80211_state *state,
+				 struct nl_cb *cb,
 				 struct nl_msg *msg,
 				 int argc, char **argv)
 {
@@ -219,7 +222,8 @@ static int handle_interface_info(struct nl_cb *cb,
 }
 TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info);
 
-static int handle_interface_set(struct nl_cb *cb,
+static int handle_interface_set(struct nl80211_state *state,
+				struct nl_cb *cb,
 				struct nl_msg *msg,
 				int argc, char **argv)
 {
@@ -246,7 +250,8 @@ static int handle_interface_set(struct nl_cb *cb,
 COMMAND(set, monitor, "<flag> [...]",
 	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_set);
 
-static int handle_interface_meshid(struct nl_cb *cb,
+static int handle_interface_meshid(struct nl80211_state *state,
+				   struct nl_cb *cb,
 				   struct nl_msg *msg,
 				   int argc, char **argv)
 {

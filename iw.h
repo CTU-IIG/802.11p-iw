@@ -72,6 +72,8 @@ extern struct cmd __stop___cmd;
 
 int handle_cmd(struct nl80211_state *state, enum id_input idby,
 	       int argc, char **argv);
+__u32 listen_events(struct nl80211_state *state,
+		    const int n_waits, const __u32 *waits);
 
 
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);

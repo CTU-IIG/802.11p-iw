@@ -391,11 +391,33 @@ static int print_event(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int listen_events(struct nl80211_state *state,
-			 int argc, char **argv)
+struct wait_event {
+	int n_cmds;
+	const __u32 *cmds;
+	__u32 cmd;
+};
+
+static int wait_event(struct nl_msg *msg, void *arg)
+{
+	struct wait_event *wait = arg;
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+	int i;
+
+	for (i = 0; i < wait->n_cmds; i++) {
+		if (gnlh->cmd == wait->cmds[i]) {
+			wait->cmd = gnlh->cmd;
+		}
+	}
+
+	return NL_SKIP;
+}
+
+__u32 listen_events(struct nl80211_state *state,
+		    const int n_waits, const __u32 *waits)
 {
 	int mcid, ret;
 	struct nl_cb *cb = nl_cb_alloc(debug ? NL_CB_DEBUG : NL_CB_DEFAULT);
+	struct wait_event wait_ev;
 
 	if (!cb) {
 		fprintf(stderr, "failed to allocate netlink callbacks\n");
@@ -429,14 +451,23 @@ static int listen_events(struct nl80211_state *state,
 
 	/* no sequence checking for multicast messages */
 	nl_cb_set(cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_event, NULL);
 
-	while (1)
+	if (n_waits && waits) {
+		wait_ev.cmds = waits;
+		wait_ev.n_cmds = n_waits;
+		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, wait_event, &wait_ev);
+	} else {
+		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_event, NULL);
+	}
+
+	wait_ev.cmd = 0;
+
+	while (!wait_ev.cmd)
 		nl_recvmsgs(state->nl_sock, cb);
 
 	nl_cb_put(cb);
 
-	return 0;
+	return wait_ev.cmd;
 }
 
 int main(int argc, char **argv)
@@ -473,7 +504,10 @@ int main(int argc, char **argv)
 		return 1;
 
 	if (strcmp(*argv, "event") == 0) {
-		err = listen_events(&nlstate, argc, argv);
+		if (argc != 1)
+			err = 1;
+		else
+			err = listen_events(&nlstate, 0, NULL);
 	} else if (strcmp(*argv, "dev") == 0) {
 		argc--;
 		argv++;

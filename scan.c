@@ -214,3 +214,40 @@ static int handle_scan_dump(struct nl80211_state *state,
 }
 COMMAND(scan, dump, "[-u]",
 	NL80211_CMD_GET_SCAN, NLM_F_DUMP, CIB_NETDEV, handle_scan_dump);
+
+static int handle_scan_combined(struct nl80211_state *state,
+				struct nl_cb *cb,
+				struct nl_msg *msg,
+				int argc, char **argv)
+{
+	static char *trig_argv[] = {
+		NULL,
+		"scan",
+		"trigger",
+	};
+	static char *dump_argv[] = {
+		NULL,
+		"scan",
+		"dump",
+	};
+	static const __u32 cmds[] = {
+		NL80211_CMD_NEW_SCAN_RESULTS,
+		NL80211_CMD_SCAN_ABORTED,
+	};
+	int err;
+
+	trig_argv[0] = argv[0];
+	err = handle_cmd(state, II_NETDEV, ARRAY_SIZE(trig_argv), trig_argv);
+	if (err)
+		return err;
+
+	if (listen_events(state, ARRAY_SIZE(cmds), cmds) ==
+					NL80211_CMD_SCAN_ABORTED) {
+		printf("scan aborted!\n");
+		return 0;
+	}
+
+	dump_argv[0] = argv[0];
+	return handle_cmd(state, II_NETDEV, ARRAY_SIZE(dump_argv), dump_argv);
+}
+TOPLEVEL(scan, NULL, 0, 0, CIB_NETDEV, handle_scan_combined);

@@ -181,17 +181,20 @@ static int ack_handler(struct nl_msg *msg, void *arg)
 int handle_cmd(struct nl80211_state *state, enum id_input idby,
 	       int argc, char **argv)
 {
-	struct cmd *cmd;
+	struct cmd *cmd, *match = NULL;
 	struct nl_cb *cb;
 	struct nl_msg *msg;
 	int devidx = 0;
-	int err;
+	int err, o_argc;
 	const char *command, *section;
-	char *tmp;
+	char *tmp, **o_argv;
 	enum command_identify_by command_idby = CIB_NONE;
 
 	if (argc <= 1 && idby != II_NONE)
 		return 1;
+
+	o_argc = argc;
+	o_argv = argv;
 
 	switch (idby) {
 	case II_PHY_IDX:
@@ -238,8 +241,11 @@ int handle_cmd(struct nl80211_state *state, enum id_input idby,
 				continue;
 			/* this is a bit icky ... */
 			if (command == section) {
-				if (argc <= 0)
+				if (argc <= 0) {
+					if (match)
+						break;
 					return 1;
+				}
 				command = *argv;
 				argc--;
 				argv++;
@@ -250,11 +256,20 @@ int handle_cmd(struct nl80211_state *state, enum id_input idby,
 			continue;
 		if (argc && !cmd->args)
 			continue;
-		break;
+
+		match = cmd;
 	}
 
-	if (cmd >= &__stop___cmd)
+	cmd = match;
+
+	if (!cmd)
 		return 1;
+
+	if (!cmd->cmd) {
+		argc = o_argc;
+		argv = o_argv;
+		return cmd->handler(state, NULL, NULL, argc, argv);
+	}
 
 	msg = nlmsg_alloc();
 	if (!msg) {

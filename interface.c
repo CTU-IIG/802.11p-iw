@@ -109,11 +109,13 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 	} else if (strcmp(tpstr, "wds") == 0) {
 		*type = NL80211_IFTYPE_WDS;
 		return 1;
-	} else if (strcmp(tpstr, "station") == 0) {
+	} else if (strcmp(tpstr, "managed") == 0 ||
+		   strcmp(tpstr, "mgd") == 0 ||
+		   strcmp(tpstr, "station") == 0) {
 		*type = NL80211_IFTYPE_STATION;
 		return 1;
 	} else if (strcmp(tpstr, "mp") == 0 ||
-			strcmp(tpstr, "mesh") == 0) {
+		   strcmp(tpstr, "mesh") == 0) {
 		*type = NL80211_IFTYPE_MESH_POINT;
 		return 1;
 	}

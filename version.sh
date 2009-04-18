@@ -18,5 +18,5 @@ if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	fi
 	echo '"' >> "$OUT"
 else
-echo "#define IW_VERSION \"$VERSION-nogit\"" > "$OUT"
+echo "#define IW_VERSION \"$VERSION\"" > "$OUT"
 fi

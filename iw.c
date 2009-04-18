@@ -334,6 +334,7 @@ static int print_event(struct nl_msg *msg, void *arg)
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	char ifname[100];
+	char macbuf[6*3];
 	__u8 reg_type;
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -390,6 +391,12 @@ static int print_event(struct nl_msg *msg, void *arg)
 		}
 
 		printf("\n");
+		break;
+	case NL80211_CMD_JOIN_IBSS:
+		if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), ifname);
+		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		printf("IBSS %s joined on %s (phy #%d)\n",
+		       macbuf, ifname, nla_get_u32(tb[NL80211_ATTR_WIPHY]));
 		break;
 	default:
 		printf("unknown event: %d\n", gnlh->cmd);
@@ -451,6 +458,14 @@ __u32 listen_events(struct nl80211_state *state,
 
 	/* Regulatory multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "regulatory");
+	if (mcid >= 0) {
+		ret = nl_socket_add_membership(state->nl_sock, mcid);
+		if (ret)
+			return ret;
+	}
+
+	/* MLME multicast group */
+	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "mlme");
 	if (mcid >= 0) {
 		ret = nl_socket_add_membership(state->nl_sock, mcid);
 		if (ret)

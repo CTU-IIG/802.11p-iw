@@ -55,7 +55,7 @@ else
 endif
 endif
 
-version.h: version.sh
+version.h: version.sh *.c nl80211.h iw.h Makefile
 	@$(NQ) ' GEN  version.h'
 	$(Q)./version.sh
 

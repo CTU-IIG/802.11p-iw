@@ -48,11 +48,11 @@ int mac_addr_a2n(unsigned char *mac_addr, char *arg)
 static const char *ifmodes[NL80211_IFTYPE_MAX + 1] = {
 	"unspecified",
 	"IBSS",
-	"Station",
+	"managed",
 	"AP",
-	"AP(VLAN)",
+	"AP/VLAN",
 	"WDS",
-	"Monitor",
+	"monitor",
 	"mesh point"
 };
 

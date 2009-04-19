@@ -94,8 +94,8 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_socket_free(state->nl_sock);
 }
 
-__COMMAND(NULL, NULL, NULL, 0, 0, 0, CIB_NONE, NULL);
-__COMMAND(NULL, NULL, NULL, 1, 0, 0, CIB_NONE, NULL);
+__COMMAND(NULL, NULL, "", NULL, 0, 0, 0, CIB_NONE, NULL);
+__COMMAND(NULL, NULL, "", NULL, 1, 0, 0, CIB_NONE, NULL);
 
 static int cmd_size;
 
@@ -485,8 +485,8 @@ int main(int argc, char **argv)
 	const char *argv0;
 
 	/* calculate command size including padding */
-	cmd_size = abs((long)&__cmd_NULL_1_CIB_NONE_0
-	             - (long)&__cmd_NULL_0_CIB_NONE_0);
+	cmd_size = abs((long)&__cmd_NULL_NULL_1_CIB_NONE_0
+	             - (long)&__cmd_NULL_NULL_0_CIB_NONE_0);
 	/* strip off self */
 	argc--;
 	argv0 = *argv++;
@@ -516,11 +516,11 @@ int main(int argc, char **argv)
 			err = 1;
 		else
 			err = listen_events(&nlstate, 0, NULL);
-	} else if (strcmp(*argv, "dev") == 0) {
+	} else if (strcmp(*argv, "dev") == 0 && argc > 1) {
 		argc--;
 		argv++;
 		err = handle_cmd(&nlstate, II_NETDEV, argc, argv);
-	} else if (strncmp(*argv, "phy", 3) == 0) {
+	} else if (strncmp(*argv, "phy", 3) == 0 && argc > 1) {
 		if (strlen(*argv) == 3) {
 			argc--;
 			argv++;

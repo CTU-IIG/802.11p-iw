@@ -14,47 +14,41 @@ static int join_ibss(struct nl80211_state *state,
 		     struct nl_msg *msg,
 		     int argc, char **argv)
 {
-	int oargc;
-	char *bssid = NULL, *freq = NULL;
+	char *end;
 	unsigned char abssid[6];
 
-	NLA_PUT(msg, NL80211_ATTR_SSID, strlen(argv[0]), argv[0]);
+	if (argc < 2)
+		return 1;
 
+	/* SSID */
+	NLA_PUT(msg, NL80211_ATTR_SSID, strlen(argv[0]), argv[0]);
 	argv++;
 	argc--;
 
-	oargc = argc;
+	/* freq */
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FREQ,
+		    strtoul(argv[0], &end, 10));
+	if (*end != '\0')
+		return 1;
+	argv++;
+	argc--;
 
-	while (argc) {
-		if (argc > 0 && strcmp(argv[0], "bssid") == 0) {
-			bssid = argv[1];
-			argv += 2;
-			argc -= 2;
-		}
-
-		if (argc > 0 && strcmp(argv[0], "freq") == 0) {
-			freq = argv[1];
-			argv += 2;
-			argc -= 2;
-		}
-		if (oargc == argc)
-			return 1;
-		oargc = argc;
+	if (argc && strcmp(argv[0], "fixed-freq") == 0) {
+		NLA_PUT_FLAG(msg, NL80211_ATTR_FREQ_FIXED);
+		argv++;
+		argc--;
 	}
 
-	if (bssid) {
-		if (mac_addr_a2n(abssid, bssid))
+	if (argc) {
+		if (mac_addr_a2n(abssid, argv[0]))
 			return 1;
 		NLA_PUT(msg, NL80211_ATTR_MAC, 6, abssid);
+		argv++;
+		argc--;
 	}
 
-	if (freq) {
-		char *end;
-		NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FREQ,
-			    strtoul(freq, &end, 10));
-		if (*end != '\0')
-			return 1;
-	}
+	if (argc)
+		return 1;
 
 	return 0;
  nla_put_failure:
@@ -70,5 +64,5 @@ static int leave_ibss(struct nl80211_state *state,
 }
 COMMAND(ibss, leave, NULL,
 	NL80211_CMD_LEAVE_IBSS, 0, CIB_NETDEV, leave_ibss);
-COMMAND(ibss, join, "<SSID> [bssid <bssid>] [freq <freq in MHz>]",
+COMMAND(ibss, join, "<SSID> <freq in MHz> [fixed-freq] [<fixed bssid>]",
 	NL80211_CMD_JOIN_IBSS, 0, CIB_NETDEV, join_ibss);

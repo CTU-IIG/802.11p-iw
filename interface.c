@@ -200,16 +200,26 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
+	unsigned int *wiphy = arg;
+	const char *indent = "";
 
 	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
 		  genlmsg_attrlen(gnlh, 0), NULL);
 
+	if (wiphy && tb_msg[NL80211_ATTR_WIPHY]) {
+		unsigned int thiswiphy = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY]);
+		indent = "\t";
+		if (*wiphy != thiswiphy)
+			printf("phy#%d\n", thiswiphy);
+		*wiphy = thiswiphy;
+	}
+
 	if (tb_msg[NL80211_ATTR_IFNAME])
-		printf("Interface %s\n", nla_get_string(tb_msg[NL80211_ATTR_IFNAME]));
+		printf("%sInterface %s\n", indent, nla_get_string(tb_msg[NL80211_ATTR_IFNAME]));
 	if (tb_msg[NL80211_ATTR_IFINDEX])
-		printf("\tifindex %d\n", nla_get_u32(tb_msg[NL80211_ATTR_IFINDEX]));
+		printf("%s\tifindex %d\n", indent, nla_get_u32(tb_msg[NL80211_ATTR_IFINDEX]));
 	if (tb_msg[NL80211_ATTR_IFTYPE])
-		printf("\ttype %s\n", iftype_name(nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE])));
+		printf("%s\ttype %s\n", indent, iftype_name(nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE])));
 
 	return NL_SKIP;
 }
@@ -272,3 +282,16 @@ static int handle_interface_meshid(struct nl80211_state *state,
 }
 COMMAND(set, meshid, "<meshid>",
 	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_meshid);
+
+static unsigned int dev_dump_wiphy;
+
+static int handle_dev_dump(struct nl80211_state *state,
+			   struct nl_cb *cb,
+			   struct nl_msg *msg,
+			   int argc, char **argv)
+{
+	dev_dump_wiphy = -1;
+	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, &dev_dump_wiphy);
+	return 0;
+}
+TOPLEVEL(dev, NULL, NL80211_CMD_GET_INTERFACE, NLM_F_DUMP, CIB_NONE, handle_dev_dump);

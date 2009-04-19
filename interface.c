@@ -1,6 +1,7 @@
 #include <net/if.h>
 #include <errno.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
@@ -70,28 +71,29 @@ static int parse_mntr_flags(int *_argc, char ***_argv,
 	return err;
 }
 
-/* return 0 if not found, 1 if ok, -1 on error */
-static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
+/* return 0 if ok, internal error otherwise */
+static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type,
+		       bool need_type)
 {
 	char *tpstr;
 
-	if (*argc < 2)
-		return 0;
+	if (*argc < 1 + !!need_type)
+		return 1;
 
-	if (strcmp((*argv)[0], "type"))
-		return 0;
+	if (need_type && strcmp((*argv)[0], "type"))
+		return 1;
 
-	tpstr = (*argv)[1];
-	*argc -= 2;
-	*argv += 2;
+	tpstr = (*argv)[!!need_type];
+	*argc -= 1 + !!need_type;
+	*argv += 1 + !!need_type;
 
 	if (strcmp(tpstr, "adhoc") == 0 ||
 	    strcmp(tpstr, "ibss") == 0) {
 		*type = NL80211_IFTYPE_ADHOC;
-		return 1;
+		return 0;
 	} else if (strcmp(tpstr, "monitor") == 0) {
 		*type = NL80211_IFTYPE_MONITOR;
-		return 1;
+		return 0;
 	} else if (strcmp(tpstr, "master") == 0) {
 		*type = NL80211_IFTYPE_UNSPECIFIED;
 		fprintf(stderr, "See http://wireless.kernel.org/RTFM-AP.\n");
@@ -102,27 +104,26 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type)
 		return 2;
 	} else if (strcmp(tpstr, "__ap") == 0) {
 		*type = NL80211_IFTYPE_AP;
-		return 1;
+		return 0;
 	} else if (strcmp(tpstr, "__ap_vlan") == 0) {
 		*type = NL80211_IFTYPE_AP_VLAN;
-		return 1;
+		return 0;
 	} else if (strcmp(tpstr, "wds") == 0) {
 		*type = NL80211_IFTYPE_WDS;
-		return 1;
+		return 0;
 	} else if (strcmp(tpstr, "managed") == 0 ||
 		   strcmp(tpstr, "mgd") == 0 ||
 		   strcmp(tpstr, "station") == 0) {
 		*type = NL80211_IFTYPE_STATION;
-		return 1;
+		return 0;
 	} else if (strcmp(tpstr, "mp") == 0 ||
 		   strcmp(tpstr, "mesh") == 0) {
 		*type = NL80211_IFTYPE_MESH_POINT;
-		return 1;
+		return 0;
 	}
 
-
 	fprintf(stderr, "invalid interface type %s\n", tpstr);
-	return -1;
+	return 2;
 }
 
 static int handle_interface_add(struct nl80211_state *state,
@@ -142,8 +143,8 @@ static int handle_interface_add(struct nl80211_state *state,
 	argc--;
 	argv++;
 
-	tpset = get_if_type(&argc, &argv, &type);
-	if (tpset != 1)
+	tpset = get_if_type(&argc, &argv, &type, true);
+	if (tpset)
 		return tpset;
 
 	if (argc) {
@@ -295,3 +296,27 @@ static int handle_dev_dump(struct nl80211_state *state,
 	return 0;
 }
 TOPLEVEL(dev, NULL, NL80211_CMD_GET_INTERFACE, NLM_F_DUMP, CIB_NONE, handle_dev_dump);
+
+static int handle_interface_type(struct nl80211_state *state,
+				 struct nl_cb *cb,
+				 struct nl_msg *msg,
+				 int argc, char **argv)
+{
+	enum nl80211_iftype type;
+	int tpset;
+
+	tpset = get_if_type(&argc, &argv, &type, false);
+	if (tpset)
+		return tpset;
+
+	if (argc)
+		return 1;
+
+	NLA_PUT_U32(msg, NL80211_ATTR_IFTYPE, type);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, type, "<type>",
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_type);

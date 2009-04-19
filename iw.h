@@ -54,17 +54,17 @@ struct cmd {
 
 #define ARRAY_SIZE(ar) (sizeof(ar)/sizeof(ar[0]))
 
-#define __COMMAND(sect, name, args, nlcmd, flags, hidden, idby, handler)\
+#define __COMMAND(sect, symname, name, args, nlcmd, flags, hidden, idby, handler)\
 	static const struct cmd						\
-	__cmd_ ## handler ## _ ## nlcmd ## _ ## idby ## _ ## hidden	\
+	__cmd ## _ ## symname ## _ ## handler ## _ ## nlcmd ## _ ## idby ## _ ## hidden\
 	__attribute__((used)) __attribute__((section("__cmd")))		\
 	= { sect, name, args, nlcmd, flags, hidden, idby, handler }
 #define COMMAND(section, name, args, cmd, flags, idby, handler)	\
-	__COMMAND(#section, #name, args, cmd, flags, 0, idby, handler)
+	__COMMAND(#section, name, #name, args, cmd, flags, 0, idby, handler)
 #define HIDDEN(section, name, args, cmd, flags, idby, handler)	\
-	__COMMAND(#section, #name, args, cmd, flags, 1, idby, handler)
+	__COMMAND(#section, name, #name, args, cmd, flags, 1, idby, handler)
 #define TOPLEVEL(name, args, cmd, flags, idby, handler)		\
-	__COMMAND(NULL, #name, args, cmd, flags, 0, idby, handler)
+	__COMMAND(NULL, name, #name, args, cmd, flags, 0, idby, handler)
 extern struct cmd __start___cmd;
 extern struct cmd __stop___cmd;
 

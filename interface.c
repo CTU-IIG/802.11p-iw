@@ -173,8 +173,7 @@ static int handle_interface_add(struct nl80211_state *state,
 		return 1;
 
 	NLA_PUT_STRING(msg, NL80211_ATTR_IFNAME, name);
-	if (tpset)
-		NLA_PUT_U32(msg, NL80211_ATTR_IFTYPE, type);
+	NLA_PUT_U32(msg, NL80211_ATTR_IFTYPE, type);
 	if (mesh_id)
 		NLA_PUT(msg, NL80211_ATTR_MESH_ID, strlen(mesh_id), mesh_id);
 

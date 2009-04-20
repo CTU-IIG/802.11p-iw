@@ -13,7 +13,7 @@ CC ?= "gcc"
 CFLAGS ?= -O2 -g
 CFLAGS += -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration
 
-OBJS = iw.o genl.o info.o phy.o interface.o ibss.o station.o util.o mesh.o mpath.o scan.o reg.o
+OBJS = iw.o genl.o info.o phy.o interface.o ibss.o station.o util.o mesh.o mpath.o scan.o reg.o version.o
 ALL = iw
 
 NL1FOUND := $(shell pkg-config --atleast-version=1 libnl-1 && echo Y)
@@ -55,11 +55,15 @@ else
 endif
 endif
 
-version.h: version.sh *.c nl80211.h iw.h Makefile
-	@$(NQ) ' GEN  version.h'
-	$(Q)./version.sh
 
-%.o: %.c iw.h version.h nl80211.h
+VERSION_OBJS := $(filter-out version.o, $(OBJS))
+
+version.c: version.sh $(patsubst %.o,%.c,$(VERSION_OBJS)) nl80211.h iw.h Makefile \
+		$(wildcard .git/index .git/refs/tags)
+	@$(NQ) ' GEN ' $@
+	$(Q)./version.sh $@
+
+%.o: %.c iw.h nl80211.h
 	@$(NQ) ' CC  ' $@
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -83,4 +87,4 @@ install: iw iw.8.gz
 	$(Q)$(INSTALL) -m 644 -t $(DESTDIR)$(MANDIR)/man8/ iw.8.gz
 
 clean:
-	$(Q)rm -f iw *.o *~ *.gz version.h *-stamp
+	$(Q)rm -f iw *.o *~ *.gz version.c *-stamp

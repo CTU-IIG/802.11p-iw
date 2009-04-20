@@ -2,6 +2,6 @@ iw
 *~
 *.o
 .config
-version.h
+version.c
 iw.8.gz
 *-stamp

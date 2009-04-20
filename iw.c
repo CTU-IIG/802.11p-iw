@@ -21,7 +21,6 @@
 
 #include "nl80211.h"
 #include "iw.h"
-#include "version.h"
 
 #ifndef CONFIG_LIBNL20
 /* libnl 2.0 compatibility code */
@@ -136,7 +135,7 @@ static void usage(const char *argv0)
 
 static void version(void)
 {
-	printf("iw version " IW_VERSION "\n");
+	printf("iw version %s\n", iw_version);
 }
 
 static int phy_lookup(char *name)

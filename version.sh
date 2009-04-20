@@ -1,7 +1,7 @@
 #!/bin/sh
 
 VERSION="0.9.12"
-OUT="version.h"
+OUT="$1"
 
 if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	git update-index --refresh --unmerged > /dev/null
@@ -10,13 +10,14 @@ if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	# on git builds check that the version number above
 	# is correct...
 	[ "${descr%%-*}" = "v$VERSION" ] || exit 2
-	
-	echo -n '#define IW_VERSION "' > "$OUT"
-	echo -n "${descr#v}" >> "$OUT"
+
+	echo -n 'const char iw_version[] = "' > "$OUT"
+	v="${descr#v}"
 	if git diff-index --name-only HEAD | read dummy ; then
-		echo -n "-dirty" >> "$OUT"
+		v="$v"-dirty
 	fi
-	echo '"' >> "$OUT"
 else
-echo "#define IW_VERSION \"$VERSION\"" > "$OUT"
+	v="$VERSION"
 fi
+
+echo "const char iw_version[] = \"$v\";" > "$OUT"

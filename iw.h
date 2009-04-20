@@ -68,6 +68,7 @@ struct cmd {
 extern struct cmd __start___cmd;
 extern struct cmd __stop___cmd;
 
+extern const char iw_version[];
 
 int handle_cmd(struct nl80211_state *state, enum id_input idby,
 	       int argc, char **argv);

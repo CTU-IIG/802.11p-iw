@@ -241,6 +241,30 @@ static int handle_scan_combined(struct nl80211_state *state,
 	if (err)
 		return err;
 
+	/*
+	 * WARNING: DO NOT COPY THIS CODE INTO YOUR APPLICATION
+	 *
+	 * This code has a bug, which requires creating a separate
+	 * nl80211 socket to fix:
+	 * It is possible for a NL80211_CMD_NEW_SCAN_RESULTS or
+	 * NL80211_CMD_SCAN_ABORTED message to be sent by the kernel
+	 * before (!) we listen to it, because we only start listening
+	 * after we send our scan request.
+	 *
+	 * Doing it the other way around has a race condition as well,
+	 * if you first open the events socket you may get a notification
+	 * for a previous scan.
+	 *
+	 * The only proper way to fix this would be to listen to events
+	 * before sending the command, and for the kernel to send the
+	 * scan request along with the event, so that you can match up
+	 * whether the scan you requested was finished or aborted (this
+	 * may result in processing a scan that another application
+	 * requested, but that doesn't seem to be a problem).
+	 *
+	 * Alas, the kernel doesn't do that (yet).
+	 */
+
 	if (listen_events(state, ARRAY_SIZE(cmds), cmds) ==
 					NL80211_CMD_SCAN_ABORTED) {
 		printf("scan aborted!\n");

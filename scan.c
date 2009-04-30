@@ -88,20 +88,117 @@ static const printfn ieprinters[] = {
 	[50] = print_supprates,
 };
 
+static void tab_on_first(bool *first)
+{
+	if (!*first)
+		printf("\t");
+	else
+		*first = false;
+}
+
+static void print_wifi_wps(unsigned char type, unsigned char len, unsigned char *data)
+{
+	bool first = true;
+	__u16 subtype, sublen;
+
+	printf("\tWPS:");
+
+	while (len >= 4) {
+		subtype = (data[0] << 8) + data[1];
+		sublen = (data[2] << 8) + data[3];
+		if (sublen > len)
+			break;
+
+		switch (subtype) {
+		case 0x104a:
+			tab_on_first(&first);
+			printf("\t * Version: %#.2x\n", data[4]);
+			break;
+		case 0x1011:
+			tab_on_first(&first);
+			printf("\t * Device name: %.*s\n", sublen, data + 4);
+			break;
+		case 0x1021:
+			tab_on_first(&first);
+			printf("\t * Manufacturer: %.*s\n", sublen, data + 4);
+			break;
+		case 0x1023:
+			tab_on_first(&first);
+			printf("\t * Model: %.*s\n", sublen, data + 4);
+			break;
+		case 0x1008: {
+			__u16 meth = (data[4] << 8) + data[5];
+			bool comma = false;
+			tab_on_first(&first);
+			printf("\t * Config methods:");
+#define T(bit, name) do {		\
+	if (meth & (1<<bit)) {		\
+		if (comma)		\
+			printf(",");	\
+		comma = true;		\
+		printf(" " name);	\
+	} } while (0)
+			T(0, "USB");
+			T(1, "Ethernet");
+			T(2, "Label");
+			T(3, "Display");
+			T(4, "Ext. NFC");
+			T(5, "Int. NFC");
+			T(6, "NFC Intf.");
+			T(7, "PBC");
+			T(8, "Keypad");
+			printf("\n");
+			break;
+#undef T
+		}
+		default:
+			break;
+		}
+
+		data += sublen + 4;
+		len -= sublen + 4;
+	}
+
+	if (len != 0) {
+		printf("\t\t * bogus tail data (%d):", len);
+		while (len) {
+			printf(" %.2x", *data);
+			data++;
+			len--;
+		}
+		printf("\n");
+	}
+}
+
+static const printfn wifiprinters[] = {
+	[4] = print_wifi_wps,
+};
+
 static void print_vendor(unsigned char len, unsigned char *data,
 			 struct scan_params *params)
 {
 	int i;
 
 	if (len < 3) {
-		printf("\tVendor specific: <too short> data:\n");
+		printf("\tVendor specific: <too short> data:");
 		for(i = 0; i < len; i++)
 			printf(" %.02x", data[i]);
 		printf("\n");
 		return;
 	}
 
-	/* currently _all_ vendor IEs are unknown (not parsed) */
+	if (len >= 4 && data[0] == 0x00 && data[1] == 0x50 && data[2] == 0xF2) {
+		if (data[3] < ARRAY_SIZE(wifiprinters) && wifiprinters[data[3]])
+			return wifiprinters[data[3]](data[3], len - 4, data + 4);
+		if (!params->unknown)
+			return;
+		printf("\tWiFi OUI %#.2x data:", data[3]);
+		for(i = 0; i < len - 4; i++)
+			printf(" %.02x", data[i + 4]);
+		printf("\n");
+		return;
+	}
+
 	if (!params->unknown)
 		return;
 

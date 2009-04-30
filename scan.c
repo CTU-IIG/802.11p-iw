@@ -122,9 +122,9 @@ static void print_ies(unsigned char *ie, int ielen, struct scan_params *params)
 		} else if (params->unknown) {
 			int i;
 
-			printf("\tUnknown IE (%d): ", ie[0]);
+			printf("\tUnknown IE (%d):", ie[0]);
 			for (i=0; i<ie[1]; i++)
-				printf("\\x%.2x", ie[2+i]);
+				printf(" %.2x", ie[2+i]);
 			printf("\n");
 		}
 		ielen -= ie[1] + 2;

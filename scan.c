@@ -93,14 +93,22 @@ static void print_vendor(unsigned char len, unsigned char *data,
 {
 	int i;
 
+	if (len < 3) {
+		printf("\tVendor specific: <too short> data:\n");
+		for(i = 0; i < len; i++)
+			printf(" %.02x", data[i]);
+		printf("\n");
+		return;
+	}
+
 	/* currently _all_ vendor IEs are unknown (not parsed) */
 	if (!params->unknown)
 		return;
 
-	printf("\tVendor specific: OUI %.2x:%.2x:%.2x, data: ",
+	printf("\tVendor specific: OUI %.2x:%.2x:%.2x, data:",
 		data[0], data[1], data[2]);
-	for (i=3; i<len; i++)
-		printf("\\x%.2x", data[i]);
+	for (i = 3; i < len; i++)
+		printf(" %.2x", data[i]);
 	printf("\n");
 }
 

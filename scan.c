@@ -126,6 +126,12 @@ static void print_wifi_wps(unsigned char type, unsigned char len, unsigned char 
 			tab_on_first(&first);
 			printf("\t * Model: %.*s\n", sublen, data + 4);
 			break;
+		case 0x1057: {
+			__u16 val = (data[4] << 8) | data[5];
+			tab_on_first(&first);
+			printf("\t * AP setup locked: 0x%.4x\n", val);
+			break;
+		}
 		case 0x1008: {
 			__u16 meth = (data[4] << 8) + data[5];
 			bool comma = false;

@@ -340,12 +340,13 @@ static int handle_scan_combined(struct nl80211_state *state,
 		NULL,
 		"scan",
 		"dump",
+		NULL,
 	};
 	static const __u32 cmds[] = {
 		NL80211_CMD_NEW_SCAN_RESULTS,
 		NL80211_CMD_SCAN_ABORTED,
 	};
-	int err;
+	int dump_argc, err;
 
 	trig_argv[0] = argv[0];
 	err = handle_cmd(state, II_NETDEV, ARRAY_SIZE(trig_argv), trig_argv);
@@ -382,7 +383,13 @@ static int handle_scan_combined(struct nl80211_state *state,
 		return 0;
 	}
 
+	if (argc == 3 && !strcmp(argv[2], "-u")) {
+		dump_argc = 4;
+		dump_argv[3] = "-u";
+	} else
+		dump_argc = 3;
+
 	dump_argv[0] = argv[0];
-	return handle_cmd(state, II_NETDEV, ARRAY_SIZE(dump_argv), dump_argv);
+	return handle_cmd(state, II_NETDEV, dump_argc, dump_argv);
 }
-TOPLEVEL(scan, NULL, 0, 0, CIB_NETDEV, handle_scan_combined);
+TOPLEVEL(scan, "[-u]", 0, 0, CIB_NETDEV, handle_scan_combined);

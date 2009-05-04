@@ -380,7 +380,7 @@ static void print_wifi_wps(unsigned char type, unsigned char len, unsigned char 
 		switch (subtype) {
 		case 0x104a:
 			tab_on_first(&first);
-			printf("\t * Version: %#.2x\n", data[4]);
+			printf("\t * Version: %d.%d\n", data[4] >> 4, data[4] & 0xF);
 			break;
 		case 0x1011:
 			tab_on_first(&first);

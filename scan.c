@@ -157,6 +157,28 @@ static void tab_on_first(bool *first)
 		*first = false;
 }
 
+static void print_wifi_wmm(unsigned char type, unsigned char len, unsigned char *data)
+{
+	int i;
+
+	printf("\tWMM ");
+	switch (data[0]) {
+	case 0x00:
+		printf("information:");
+		break;
+	case 0x01:
+		printf("parameter:");
+		break;
+	default:
+		printf("type %d:", data[0]);
+		break;
+	}
+
+	for(i=0; i<len-1; i++)
+		printf(" %.02x", data[i + 1]);
+	printf("\n");
+}
+
 static void print_wifi_wps(unsigned char type, unsigned char len, unsigned char *data)
 {
 	bool first = true;
@@ -238,6 +260,7 @@ static void print_wifi_wps(unsigned char type, unsigned char len, unsigned char 
 }
 
 static const printfn wifiprinters[] = {
+	[2] = print_wifi_wmm,
 	[4] = print_wifi_wps,
 };
 

@@ -117,6 +117,12 @@ static void print_country(unsigned char type, unsigned char len, unsigned char *
 	case 'O':
 		printf(" (outdoor)");
 		break;
+	case ' ':
+		printf(" (in/outdoor)");
+		break;
+	default:
+		printf(" (invalid environment)");
+		break;
 	}
 	printf(", data:");
 	for(i=0; i<len-3; i++)

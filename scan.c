@@ -317,9 +317,12 @@ static void print_rsn_ie(const char *defcipher, const char *defauth,
 	}
 
 	count = data[0] | (data[1] << 8);
+	if (2 + (count * 4) > len)
+		goto invalid;
+
 	tab_on_first(&first);
 	printf("\t * Pairwise ciphers:");
-	for (i=0; i<count; i++) {
+	for (i = 0; i < count; i++) {
 		printf(" ");
 		print_cipher(data + 2 + (i * 4));
 	}
@@ -335,6 +338,9 @@ static void print_rsn_ie(const char *defcipher, const char *defauth,
 	}
 
 	count = data[0] | (data[1] << 8);
+	if (2 + (count * 4) > len)
+		goto invalid;
+
 	tab_on_first(&first);
 	printf("\t * Authentication suites:");
 	for (i = 0; i < count; i++) {
@@ -352,6 +358,20 @@ static void print_rsn_ie(const char *defcipher, const char *defauth,
 	capa = data[0] | (data[1] << 8);
 	tab_on_first(&first);
 	printf("\t * Capabilities: 0x%.4x\n", capa);
+
+	data += 2;
+	len -= 2;
+
+invalid:
+	if (len != 0) {
+		printf("\t\t * bogus tail data (%d):", len);
+		while (len) {
+			printf(" %.2x", *data);
+			data++;
+			len--;
+		}
+		printf("\n");
+	}
 }
 
 static void print_rsn(const uint8_t type, uint8_t len, const uint8_t *data)

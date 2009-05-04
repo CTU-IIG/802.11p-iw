@@ -176,6 +176,11 @@ static void print_country(const uint8_t type, uint8_t len, const uint8_t *data)
 	printf("\n");
 }
 
+static void print_powerconstraint(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	printf(" %d dB\n", data[0]);
+}
+
 static void print_erp(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	if (data[0] == 0x00)
@@ -407,6 +412,7 @@ static const struct ie_print ieprinters[] = {
 	[3] = { "DS Paramater set", print_ds, 1, 1, },
 	[5] = PRINT_IGN,
 	[7] = { "Country", print_country, 3, 255, },
+	[32] = { "Power constraint", print_powerconstraint, 1, 1, },
 	[42] = { "ERP", print_erp, 1, 255, },
 	[48] = { "RSN", print_rsn, 2, 255, },
 	[50] = { "Extended supported rates", print_supprates, 0, 255, },

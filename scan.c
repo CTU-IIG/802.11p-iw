@@ -159,7 +159,8 @@ static void print_cipher(unsigned char *data)
 			printf("WEP-104");
 			break;
 		default:
-			printf("Reserved (%.02x)", data[3]);
+			printf("Unknown (%.02x-%.02x-%.02x:%d)",
+				data[0], data[1] ,data[2], data[3]);
 			break;
 		}
 	} else if (memcmp(data, ieee80211_oui, 3) == 0) {
@@ -183,11 +184,13 @@ static void print_cipher(unsigned char *data)
 			printf("AES-128-CMAC");
 			break;
 		default:
-			printf("Reserved (%.02x)", data[3]);
+			printf("Unknown (%.02x-%.02x-%.02x:%d)",
+				data[0], data[1] ,data[2], data[3]);
 			break;
 		}
 	} else
-		printf("Other");
+		printf("Unknown (%.02x-%.02x-%.02x:%d)",
+			data[0], data[1] ,data[2], data[3]);
 }
 
 static void print_auth(unsigned char *data)
@@ -201,7 +204,8 @@ static void print_auth(unsigned char *data)
 			printf("PSK");
 			break;
 		default:
-			printf("Reserved (%.02x)", data[3]);
+			printf("Unknown (%.02x-%.02x-%.02x:%d)",
+				data[0], data[1] ,data[2], data[3]);
 			break;
 		}
 	} else if (memcmp(data, ieee80211_oui, 3) == 0) {
@@ -213,16 +217,18 @@ static void print_auth(unsigned char *data)
 			printf("PSK");
 			break;
 		default:
-			printf("Reserved (%.02x)", data[3]);
+			printf("Unknown (%.02x-%.02x-%.02x:%d)",
+				data[0], data[1] ,data[2], data[3]);
 			break;
 		}
 	} else
-		printf("Other");
+		printf("Unknown (%.02x-%.02x-%.02x:%d)",
+			data[0], data[1] ,data[2], data[3]);
 }
 
-static void print_wpa(const char *ie,
-		      const char *defcipher, const char *defauth,
-		      unsigned char len, unsigned char *data)
+static void print_rsn_ie(const char *ie,
+			 const char *defcipher, const char *defauth,
+			 unsigned char len, unsigned char *data)
 {
 	bool first = true;
 	__u16 version, count, capa;
@@ -306,7 +312,7 @@ static void print_wpa(const char *ie,
 
 static void print_rsn(unsigned char type, unsigned char len, unsigned char *data)
 {
-	print_wpa("RSN", "CCMP", "IEEE 802.1X", len, data);
+	print_rsn_ie("RSN", "CCMP", "IEEE 802.1X", len, data);
 }
 
 static void print_capabilities(unsigned char type, unsigned char len, unsigned char *data)
@@ -333,7 +339,7 @@ static const printfn ieprinters[] = {
 
 static void print_wifi_wpa(unsigned char type, unsigned char len, unsigned char *data)
 {
-	print_wpa("WPA", "TKIP", "IEEE 802.1X", len, data);
+	print_rsn_ie("WPA", "TKIP", "IEEE 802.1X", len, data);
 }
 
 static void print_wifi_wmm(unsigned char type, unsigned char len, unsigned char *data)

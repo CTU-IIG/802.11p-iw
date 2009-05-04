@@ -80,11 +80,27 @@ static void print_ign(unsigned char type, unsigned char len, unsigned char *data
 	/* ignore for now, not too useful */
 }
 
+static void print_erp(unsigned char type, unsigned char len, unsigned char *data)
+{
+	if (data[0] == 0x00)
+		return;
+
+	printf("\tERP:");
+	if (data[0] & 0x01)
+		printf(" NonERP_Present");
+	if (data[0] & 0x02)
+		printf(" Use_Protection");
+	if (data[0] & 0x04)
+		printf(" Barker_Preamble_Mode");
+	printf("\n");
+}
+
 static const printfn ieprinters[] = {
 	[0] = print_ssid,
 	[1] = print_supprates,
 	[3] = print_ds,
 	[5] = print_ign,
+	[42] = print_erp,
 	[50] = print_supprates,
 };
 

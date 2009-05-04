@@ -114,6 +114,16 @@ static void print_erp(unsigned char type, unsigned char len, unsigned char *data
 	printf("\n");
 }
 
+static void print_capabilities(unsigned char type, unsigned char len, unsigned char *data)
+{
+	int i;
+
+	printf("\tExtended capabilties:");
+	for(i=0; i<len; i++)
+		printf(" %.02x", data[i]);
+	printf("\n");
+}
+
 static const printfn ieprinters[] = {
 	[0] = print_ssid,
 	[1] = print_supprates,
@@ -122,6 +132,7 @@ static const printfn ieprinters[] = {
 	[7] = print_country,
 	[42] = print_erp,
 	[50] = print_supprates,
+	[127] = print_capabilities,
 };
 
 static void tab_on_first(bool *first)

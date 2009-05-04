@@ -63,15 +63,15 @@ static int handle_scan(struct nl80211_state *state,
 	}
 
 	for (i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "freq") == 0 && parse == NONE) {
+		if (parse == NONE && strcmp(argv[i], "freq") == 0) {
 			parse = FREQ;
 			have_freqs = true;
 			continue;
-		} else if (strcmp(argv[i], "ssid") == 0 && parse < SSID) {
+		} else if (parse < SSID && strcmp(argv[i], "ssid") == 0) {
 			parse = SSID;
 			have_ssids = true;
 			continue;
-		} else if (strcmp(argv[i], "passive") == 0 && parse < SSID) {
+		} else if (parse < SSID && strcmp(argv[i], "passive") == 0) {
 			parse = DONE;
 			passive = true;
 			continue;

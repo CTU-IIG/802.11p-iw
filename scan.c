@@ -39,21 +39,75 @@ static int handle_scan(struct nl80211_state *state,
 		       struct nl_msg *msg,
 		       int argc, char **argv)
 {
-	struct nl_msg *ssids = NULL;
+	struct nl_msg *ssids = NULL, *freqs = NULL;
+	char *eptr;
 	int err = -ENOBUFS;
+	int i;
+	enum {
+		NONE,
+		FREQ,
+		SSID,
+		DONE,
+	} parse = NONE;
+	int freq;
+	bool passive = false, have_ssids = false, have_freqs = false;
 
 	ssids = nlmsg_alloc();
 	if (!ssids)
 		return -ENOMEM;
-	NLA_PUT(ssids, 1, 0, "");
-	nla_put_nested(msg, NL80211_ATTR_SCAN_SSIDS, ssids);
+
+	freqs = nlmsg_alloc();
+	if (!freqs) {
+		nlmsg_free(ssids);
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "freq") == 0 && parse == NONE) {
+			parse = FREQ;
+			have_freqs = true;
+			continue;
+		} else if (strcmp(argv[i], "ssid") == 0 && parse < SSID) {
+			parse = SSID;
+			have_ssids = true;
+			continue;
+		} else if (strcmp(argv[i], "passive") == 0 && parse < SSID) {
+			parse = DONE;
+			passive = true;
+			continue;
+		}
+
+		switch (parse) {
+		case NONE:
+		case DONE:
+			return 1;
+		case FREQ:
+			freq = strtoul(argv[i], &eptr, 10);
+			if (eptr != argv[i] + strlen(argv[i]))
+				return 1;
+			NLA_PUT_U32(freqs, i, freq);
+			break;
+		case SSID:
+			NLA_PUT(ssids, i, strlen(argv[i]), argv[i]);
+			break;
+		}
+	}
+
+	if (!have_ssids)
+		NLA_PUT(ssids, 1, 0, "");
+	if (!passive)
+		nla_put_nested(msg, NL80211_ATTR_SCAN_SSIDS, ssids);
+
+	if (have_freqs)
+		nla_put_nested(msg, NL80211_ATTR_SCAN_FREQUENCIES, freqs);
 
 	err = 0;
  nla_put_failure:
 	nlmsg_free(ssids);
+	nlmsg_free(freqs);
 	return err;
 }
-COMMAND(scan, trigger, NULL,
+COMMAND(scan, trigger, "[freq <freq>*] [ssid <ssid>*|passive]",
 	NL80211_CMD_TRIGGER_SCAN, 0, CIB_NETDEV, handle_scan);
 
 static void tab_on_first(bool *first)
@@ -646,11 +700,12 @@ static int handle_scan_combined(struct nl80211_state *state,
 				struct nl_msg *msg,
 				int argc, char **argv)
 {
-	static char *trig_argv[] = {
+	char **trig_argv;
+/*	static char *trig_argv[] = {
 		NULL,
 		"scan",
 		"trigger",
-	};
+	};*/
 	static char *dump_argv[] = {
 		NULL,
 		"scan",
@@ -661,10 +716,26 @@ static int handle_scan_combined(struct nl80211_state *state,
 		NL80211_CMD_NEW_SCAN_RESULTS,
 		NL80211_CMD_SCAN_ABORTED,
 	};
-	int dump_argc, err;
+	int trig_argc, dump_argc, err;
 
+	if (argc >= 3 && !strcmp(argv[2], "-u")) {
+		dump_argc = 4;
+		dump_argv[3] = "-u";
+	} else
+		dump_argc = 3;
+
+	trig_argc = 3 + (argc - 2) + (3 - dump_argc);
+	trig_argv = calloc(trig_argc, sizeof(*trig_argv));
+	if (!trig_argv)
+		return -ENOMEM;
 	trig_argv[0] = argv[0];
-	err = handle_cmd(state, II_NETDEV, ARRAY_SIZE(trig_argv), trig_argv);
+	trig_argv[1] = "scan";
+	trig_argv[2] = "trigger";
+	int i;
+	for (i = 0; i < argc - 2 - (dump_argc - 3); i++)
+		trig_argv[i + 3] = argv[i + 2 + (dump_argc - 3)];
+	err = handle_cmd(state, II_NETDEV, trig_argc, trig_argv);
+	free(trig_argv);
 	if (err)
 		return err;
 
@@ -698,13 +769,7 @@ static int handle_scan_combined(struct nl80211_state *state,
 		return 0;
 	}
 
-	if (argc == 3 && !strcmp(argv[2], "-u")) {
-		dump_argc = 4;
-		dump_argv[3] = "-u";
-	} else
-		dump_argc = 3;
-
 	dump_argv[0] = argv[0];
 	return handle_cmd(state, II_NETDEV, dump_argc, dump_argv);
 }
-TOPLEVEL(scan, "[-u]", 0, 0, CIB_NETDEV, handle_scan_combined);
+TOPLEVEL(scan, "[-u] [freq <freq>*] [ssid <ssid>*|passive]", 0, 0, CIB_NETDEV, handle_scan_combined);

@@ -56,8 +56,6 @@ static int handle_scan(struct nl80211_state *state,
 COMMAND(scan, trigger, NULL,
 	NL80211_CMD_TRIGGER_SCAN, 0, CIB_NETDEV, handle_scan);
 
-typedef void (*printfn)(unsigned char type, unsigned char len, unsigned char *data);
-
 static void tab_on_first(bool *first)
 {
 	if (!*first)
@@ -66,11 +64,13 @@ static void tab_on_first(bool *first)
 		*first = false;
 }
 
-static void print_ssid(unsigned char type, unsigned char len, unsigned char *data)
+static void print_ssid(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	int i;
-	printf("\tSSID: ");
-	for (i=0; i<len; i++) {
+
+	printf(" ");
+
+	for (i = 0; i < len; i++) {
 		if (isprint(data[i]))
 			printf("%c", data[i]);
 		else
@@ -79,37 +79,29 @@ static void print_ssid(unsigned char type, unsigned char len, unsigned char *dat
 	printf("\n");
 }
 
-static void print_supprates(unsigned char type, unsigned char len, unsigned char *data)
+static void print_supprates(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	int i;
 
-	if (type == 1)
-		printf("\tSupported rates: ");
-	else
-		printf("\tExtended supported rates: ");
+	printf(" ");
 
-	for (i=0; i<len; i++) {
+	for (i = 0; i < len; i++) {
 		int r = data[i] & 0x7f;
 		printf("%d.%d%s ", r/2, 5*(r&1), data[i] & 0x80 ? "*":"");
 	}
 	printf("\n");
 }
 
-static void print_ds(unsigned char type, unsigned char len, unsigned char *data)
+static void print_ds(const uint8_t type, uint8_t len, const uint8_t *data)
 {
-	printf("\tDS Parameter set: channel %d\n", data[0]);
+	printf(" channel %d\n", data[0]);
 }
 
-static void print_ign(unsigned char type, unsigned char len, unsigned char *data)
-{
-	/* ignore for now, not too useful */
-}
-
-static void print_country(unsigned char type, unsigned char len, unsigned char *data)
+static void print_country(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	int i;
 
-	printf("\tCountry: %.*s", 2, data);
+	printf(" %.*s", 2, data);
 	switch (data[2]) {
 	case 'I':
 		printf(" (indoor)");
@@ -130,12 +122,10 @@ static void print_country(unsigned char type, unsigned char len, unsigned char *
 	printf("\n");
 }
 
-static void print_erp(unsigned char type, unsigned char len, unsigned char *data)
+static void print_erp(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	if (data[0] == 0x00)
-		return;
-
-	printf("\tERP:");
+		printf(" <no flags>");
 	if (data[0] & 0x01)
 		printf(" NonERP_Present");
 	if (data[0] & 0x02)
@@ -145,7 +135,7 @@ static void print_erp(unsigned char type, unsigned char len, unsigned char *data
 	printf("\n");
 }
 
-static void print_cipher(unsigned char *data)
+static void print_cipher(const uint8_t *data)
 {
 	if (memcmp(data, wifi_oui, 3) == 0) {
 		switch (data[3]) {
@@ -199,7 +189,7 @@ static void print_cipher(unsigned char *data)
 			data[0], data[1] ,data[2], data[3]);
 }
 
-static void print_auth(unsigned char *data)
+static void print_auth(const uint8_t *data)
 {
 	if (memcmp(data, wifi_oui, 3) == 0) {
 		switch (data[3]) {
@@ -232,23 +222,12 @@ static void print_auth(unsigned char *data)
 			data[0], data[1] ,data[2], data[3]);
 }
 
-static void print_rsn_ie(const char *ie,
-			 const char *defcipher, const char *defauth,
-			 unsigned char len, unsigned char *data)
+static void print_rsn_ie(const char *defcipher, const char *defauth,
+			 uint8_t len, const uint8_t *data)
 {
 	bool first = true;
 	__u16 version, count, capa;
 	int i;
-
-	printf("\t%s:", ie);
-
-	if (len < 2) {
-		printf(" <too short> data:");
-		for(i = 0; i < len; i++)
-			printf(" %.02x", data[i]);
-		printf("\n");
-		return;
-	}
 
 	version = data[0] + (data[1] << 8);
 	tab_on_first(&first);
@@ -299,7 +278,7 @@ static void print_rsn_ie(const char *ie,
 	count = data[0] | (data[1] << 8);
 	tab_on_first(&first);
 	printf("\t * Authentication suites:");
-	for (i=0; i<count; i++) {
+	for (i = 0; i < count; i++) {
 		printf(" ");
 		print_auth(data + 2 + (i * 4));
 	}
@@ -316,66 +295,100 @@ static void print_rsn_ie(const char *ie,
 	printf("\t * Capabilities: 0x%.4x\n", capa);
 }
 
-static void print_rsn(unsigned char type, unsigned char len, unsigned char *data)
+static void print_rsn(const uint8_t type, uint8_t len, const uint8_t *data)
 {
-	print_rsn_ie("RSN", "CCMP", "IEEE 802.1X", len, data);
+	print_rsn_ie("CCMP", "IEEE 802.1X", len, data);
 }
 
-static void print_capabilities(unsigned char type, unsigned char len, unsigned char *data)
+static void print_capabilities(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	int i;
 
-	printf("\tExtended capabilties:");
-	for(i=0; i<len; i++)
+	for(i = 0; i < len; i++)
 		printf(" %.02x", data[i]);
 	printf("\n");
 }
 
-static const printfn ieprinters[] = {
-	[0] = print_ssid,
-	[1] = print_supprates,
-	[3] = print_ds,
-	[5] = print_ign,
-	[7] = print_country,
-	[42] = print_erp,
-	[48] = print_rsn,
-	[50] = print_supprates,
-	[127] = print_capabilities,
+struct ie_print {
+	const char *name;
+	void (*print)(const uint8_t type, uint8_t len, const uint8_t *data);
+	uint8_t minlen, maxlen;
 };
 
-static void print_wifi_wpa(unsigned char type, unsigned char len, unsigned char *data)
-{
-	print_rsn_ie("WPA", "TKIP", "IEEE 802.1X", len, data);
-}
-
-static void print_wifi_wmm(unsigned char type, unsigned char len, unsigned char *data)
+static void print_ie(const struct ie_print *p, const uint8_t type,
+		     uint8_t len, const uint8_t *data)
 {
 	int i;
 
-	printf("\tWMM ");
+	if (!p->print)
+		return;
+
+	printf("\t%s:", p->name);
+	if (len < p->minlen || len > p->maxlen) {
+		if (len > 1) {
+			printf(" <invalid: %d bytes:", len);
+			for (i = 0; i < len; i++)
+				printf(" %.02x", data[i]);
+			printf(">\n");
+		} else if (len)
+			printf(" <invalid: 1 byte: %.02x>\n", data[0]);
+		else
+			printf(" <invalid: no data>\n");
+		return;
+	}
+
+	p->print(type, len, data);
+}
+
+#define PRINT_IGN {		\
+	.name = "IGNORE",	\
+	.print = NULL,		\
+	.minlen = 0,		\
+	.maxlen = 255,		\
+}
+
+static const struct ie_print ieprinters[] = {
+	[0] = { "SSID", print_ssid, 0, 32, },
+	[1] = { "Supported rates", print_supprates, 0, 255, },
+	[3] = { "DS Paramater set", print_ds, 1, 1, },
+	[5] = PRINT_IGN,
+	[7] = { "Country", print_country, 3, 255, },
+	[42] = { "ERP", print_erp, 1, 255, },
+	[48] = { "RSN", print_rsn, 2, 255, },
+	[50] = { "Extended supported rates", print_supprates, 0, 255, },
+	[127] = { "Extended capabilities", print_capabilities, 0, 255, },
+};
+
+static void print_wifi_wpa(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	print_rsn_ie("TKIP", "IEEE 802.1X", len, data);
+}
+
+static void print_wifi_wmm(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	int i;
+
 	switch (data[0]) {
 	case 0x00:
-		printf("information:");
+		printf(" information:");
 		break;
 	case 0x01:
-		printf("parameter:");
+		printf(" parameter:");
 		break;
 	default:
-		printf("type %d:", data[0]);
+		printf(" type %d:", data[0]);
 		break;
 	}
 
-	for(i=0; i<len-1; i++)
+	for(i = 0; i < len - 1; i++)
 		printf(" %.02x", data[i + 1]);
 	printf("\n");
 }
 
-static void print_wifi_wps(unsigned char type, unsigned char len, unsigned char *data)
+static void print_wifi_wps(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	bool first = true;
 	__u16 subtype, sublen;
-
-	printf("\tWPS:");
 
 	while (len >= 4) {
 		subtype = (data[0] << 8) + data[1];
@@ -450,10 +463,10 @@ static void print_wifi_wps(unsigned char type, unsigned char len, unsigned char 
 	}
 }
 
-static const printfn wifiprinters[] = {
-	[1] = print_wifi_wpa,
-	[2] = print_wifi_wmm,
-	[4] = print_wifi_wps,
+static const struct ie_print wifiprinters[] = {
+	[1] = { "WPA", print_wifi_wpa, 2, 255, },
+	[2] = { "WMM", print_wifi_wmm, 1, 255, },
+	[4] = { "WPS", print_wifi_wps, 0, 255, },
 };
 
 static void print_vendor(unsigned char len, unsigned char *data,
@@ -470,8 +483,10 @@ static void print_vendor(unsigned char len, unsigned char *data,
 	}
 
 	if (len >= 4 && memcmp(data, wifi_oui, 3) == 0) {
-		if (data[3] < ARRAY_SIZE(wifiprinters) && wifiprinters[data[3]])
-			return wifiprinters[data[3]](data[3], len - 4, data + 4);
+		if (data[3] < ARRAY_SIZE(wifiprinters) && wifiprinters[data[3]].name) {
+			print_ie(&wifiprinters[data[3]], data[3], len - 4, data + 4);
+			return;
+		}
 		if (!params->unknown)
 			return;
 		printf("\tWiFi OUI %#.2x, data:", data[3]);
@@ -494,8 +509,8 @@ static void print_vendor(unsigned char len, unsigned char *data,
 static void print_ies(unsigned char *ie, int ielen, struct scan_params *params)
 {
 	while (ielen >= 2 && ielen >= ie[1]) {
-		if (ie[0] < ARRAY_SIZE(ieprinters) && ieprinters[ie[0]]) {
-			ieprinters[ie[0]](ie[0], ie[1], ie + 2);
+		if (ie[0] < ARRAY_SIZE(ieprinters) && ieprinters[ie[0]].name) {
+			print_ie(&ieprinters[ie[0]], ie[0], ie[1], ie + 2);
 		} else if (ie[0] == 221 /* vendor */) {
 			print_vendor(ie[1], ie + 2, params);
 		} else if (params->unknown) {

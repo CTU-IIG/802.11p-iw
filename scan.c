@@ -13,6 +13,20 @@
 #include "nl80211.h"
 #include "iw.h"
 
+#define WLAN_CAPABILITY_ESS		(1<<0)
+#define WLAN_CAPABILITY_IBSS		(1<<1)
+#define WLAN_CAPABILITY_CF_POLLABLE	(1<<2)
+#define WLAN_CAPABILITY_CF_POLL_REQUEST	(1<<3)
+#define WLAN_CAPABILITY_PRIVACY		(1<<4)
+#define WLAN_CAPABILITY_SHORT_PREAMBLE	(1<<5)
+#define WLAN_CAPABILITY_PBCC		(1<<6)
+#define WLAN_CAPABILITY_CHANNEL_AGILITY	(1<<7)
+#define WLAN_CAPABILITY_SPECTRUM_MGMT	(1<<8)
+#define WLAN_CAPABILITY_QOS		(1<<9)
+#define WLAN_CAPABILITY_SHORT_SLOT_TIME	(1<<10)
+#define WLAN_CAPABILITY_APSD		(1<<11)
+#define WLAN_CAPABILITY_DSSS_OFDM	(1<<13)
+
 struct scan_params {
 	bool unknown;
 };
@@ -333,9 +347,33 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 	if (bss[NL80211_BSS_BEACON_INTERVAL])
 		printf("\tbeacon interval: %d\n",
 			nla_get_u16(bss[NL80211_BSS_BEACON_INTERVAL]));
-	if (bss[NL80211_BSS_CAPABILITY])
-		printf("\tcapability: 0x%.4x\n",
-			nla_get_u16(bss[NL80211_BSS_CAPABILITY]));
+	if (bss[NL80211_BSS_CAPABILITY]) {
+		__u16 capa = nla_get_u16(bss[NL80211_BSS_CAPABILITY]);
+		printf("\tcapability:");
+		if (capa & WLAN_CAPABILITY_ESS)
+			printf(" ESS");
+		if (capa & WLAN_CAPABILITY_IBSS)
+			printf(" IBSS");
+		if (capa & WLAN_CAPABILITY_PRIVACY)
+			printf(" Privacy");
+		if (capa & WLAN_CAPABILITY_SHORT_PREAMBLE)
+			printf(" ShortPreamble");
+		if (capa & WLAN_CAPABILITY_PBCC)
+			printf(" PBCC");
+		if (capa & WLAN_CAPABILITY_CHANNEL_AGILITY)
+			printf(" ChannelAgility");
+		if (capa & WLAN_CAPABILITY_SPECTRUM_MGMT)
+			printf(" SpectrumMgmt");
+		if (capa & WLAN_CAPABILITY_QOS)
+			printf(" QoS");
+		if (capa & WLAN_CAPABILITY_SHORT_SLOT_TIME)
+			printf(" ShortSlotTime");
+		if (capa & WLAN_CAPABILITY_APSD)
+			printf(" APSD");
+		if (capa & WLAN_CAPABILITY_DSSS_OFDM)
+			printf(" DSSS-OFDM");
+		printf(" (0x%.4x)\n", capa);
+	}
 	if (bss[NL80211_BSS_SIGNAL_MBM]) {
 		int s = nla_get_u32(bss[NL80211_BSS_SIGNAL_MBM]);
 		printf("\tsignal: %d.%.2d dBm\n", s/100, s%100);

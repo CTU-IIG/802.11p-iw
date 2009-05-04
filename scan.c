@@ -306,7 +306,7 @@ static void print_wpa(const char *ie,
 
 static void print_rsn(unsigned char type, unsigned char len, unsigned char *data)
 {
-	print_wpa("WPA2", "CCMP", "IEEE 802.1X", len, data);
+	print_wpa("RSN", "CCMP", "IEEE 802.1X", len, data);
 }
 
 static void print_capabilities(unsigned char type, unsigned char len, unsigned char *data)

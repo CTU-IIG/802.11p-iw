@@ -80,6 +80,25 @@ static void print_ign(unsigned char type, unsigned char len, unsigned char *data
 	/* ignore for now, not too useful */
 }
 
+static void print_country(unsigned char type, unsigned char len, unsigned char *data)
+{
+	int i;
+
+	printf("\tCountry: %.*s", 2, data);
+	switch (data[2]) {
+	case 'I':
+		printf(" (indoor)");
+		break;
+	case 'O':
+		printf(" (outdoor)");
+		break;
+	}
+	printf(", data:");
+	for(i=0; i<len-3; i++)
+		printf(" %.02x", data[i + 3]);
+	printf("\n");
+}
+
 static void print_erp(unsigned char type, unsigned char len, unsigned char *data)
 {
 	if (data[0] == 0x00)
@@ -100,6 +119,7 @@ static const printfn ieprinters[] = {
 	[1] = print_supprates,
 	[3] = print_ds,
 	[5] = print_ign,
+	[7] = print_country,
 	[42] = print_erp,
 	[50] = print_supprates,
 };

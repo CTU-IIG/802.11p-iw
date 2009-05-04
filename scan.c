@@ -352,15 +352,14 @@ static void print_rsn_ie(const char *defcipher, const char *defauth,
 	data += 2 + (count * 4);
 	len -= 2 + (count * 4);
 
-	if (len < 2)
-		return;
+	if (len >= 2) {
+		capa = data[0] | (data[1] << 8);
+		tab_on_first(&first);
+		printf("\t * Capabilities: 0x%.4x\n", capa);
 
-	capa = data[0] | (data[1] << 8);
-	tab_on_first(&first);
-	printf("\t * Capabilities: 0x%.4x\n", capa);
-
-	data += 2;
-	len -= 2;
+		data += 2;
+		len -= 2;
+	}
 
 invalid:
 	if (len != 0) {

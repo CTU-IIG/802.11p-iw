@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdbool.h>
                      
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
@@ -108,7 +109,7 @@ static void usage(const char *argv0)
 	fprintf(stderr, "\t--version\tshow version\n");
 	fprintf(stderr, "Commands:\n");
 	fprintf(stderr, "\thelp\n");
-	fprintf(stderr, "\tevent\n");
+	fprintf(stderr, "\tevent [-f]\n");
 	for (cmd = &__start___cmd; cmd < &__stop___cmd;
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
 		if (!cmd->handler || cmd->hidden)
@@ -328,10 +329,59 @@ static int no_seq_check(struct nl_msg *msg, void *arg)
 	return NL_OK;
 }
 
+struct print_event_args {
+	bool frame;
+};
+
+static void print_frame(struct print_event_args *args, struct nlattr *attr,
+			bool reason)
+{
+	uint8_t *frame;
+	size_t len;
+	int i;
+	char macbuf[6*3];
+
+	if (!attr)
+		printf(" [no frame]");
+
+	frame = nla_data(attr);
+	len = nla_len(attr);
+
+	if (len >= 16) {
+		mac_addr_n2a(macbuf, frame + 10);
+		printf(" %s -> ", macbuf);
+	} else
+		printf(" ??? -> ");
+
+	if (len >= 20) {
+		mac_addr_n2a(macbuf, frame + 4);
+		printf("%s", macbuf);
+	} else
+		printf("???");
+
+	if (reason) {
+		if (len >= 26) {
+			uint16_t reason = (frame[25] << 8) + frame[24];
+			printf(" reason %d: %s",
+			       reason, get_reason_str(reason));
+		} else
+			printf(" reason ?: ???");
+	}
+
+	if (!args->frame)
+		return;
+
+	printf(" [frame:");
+	for (i = 0; i < len; i++)
+		printf(" %.02x", frame[i]);
+	printf("]");
+}
+
 static int print_event(struct nl_msg *msg, void *arg)
 {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
+	struct print_event_args *args = arg;
 	char ifname[100];
 	char macbuf[6*3];
 	__u8 reg_type;
@@ -399,16 +449,24 @@ static int print_event(struct nl_msg *msg, void *arg)
 		printf("IBSS %s joined\n", macbuf);
 		break;
 	case NL80211_CMD_AUTHENTICATE:
-		printf("auth\n");
+		printf("auth");
+		print_frame(args, tb[NL80211_ATTR_FRAME], false);
+		printf("\n");
 		break;
 	case NL80211_CMD_ASSOCIATE:
-		printf("assoc\n");
+		printf("assoc");
+		print_frame(args, tb[NL80211_ATTR_FRAME], false);
+		printf("\n");
 		break;
 	case NL80211_CMD_DEAUTHENTICATE:
-		printf("deauth\n");
+		printf("deauth");
+		print_frame(args, tb[NL80211_ATTR_FRAME], true);
+		printf("\n");
 		break;
 	case NL80211_CMD_DISASSOCIATE:
-		printf("disassoc\n");
+		printf("disassoc");
+		print_frame(args, tb[NL80211_ATTR_FRAME], true);
+		printf("\n");
 		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);
@@ -439,8 +497,9 @@ static int wait_event(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-__u32 listen_events(struct nl80211_state *state,
-		    const int n_waits, const __u32 *waits)
+static __u32 __listen_events(struct nl80211_state *state,
+			     const int n_waits, const __u32 *waits,
+			     struct print_event_args *args)
 {
 	int mcid, ret;
 	struct nl_cb *cb = nl_cb_alloc(debug ? NL_CB_DEBUG : NL_CB_DEFAULT);
@@ -492,7 +551,7 @@ __u32 listen_events(struct nl80211_state *state,
 		wait_ev.n_cmds = n_waits;
 		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, wait_event, &wait_ev);
 	} else {
-		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_event, NULL);
+		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_event, args);
 	}
 
 	wait_ev.cmd = 0;
@@ -503,6 +562,30 @@ __u32 listen_events(struct nl80211_state *state,
 	nl_cb_put(cb);
 
 	return wait_ev.cmd;
+}
+
+__u32 listen_events(struct nl80211_state *state,
+		    const int n_waits, const __u32 *waits)
+{
+	return __listen_events(state, n_waits, waits, NULL);
+}
+
+static int print_events(struct nl80211_state *state, int argc, char **argv)
+{
+	struct print_event_args args;
+
+	memset(&args, 0, sizeof(args));
+
+	if (argc > 1)
+		return 1;
+
+	if (argc > 0) {
+		if (strcmp(argv[0], "-f"))
+			return 1;
+		args.frame = true;
+	}
+
+	return __listen_events(state, 0, NULL, &args);
 }
 
 int main(int argc, char **argv)
@@ -539,10 +622,9 @@ int main(int argc, char **argv)
 		return 1;
 
 	if (strcmp(*argv, "event") == 0) {
-		if (argc != 1)
-			err = 1;
-		else
-			err = listen_events(&nlstate, 0, NULL);
+		argc--;
+		argv++;
+		err = print_events(&nlstate, argc, argv);
 	} else if (strcmp(*argv, "dev") == 0 && argc > 1) {
 		argc--;
 		argv++;

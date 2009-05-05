@@ -87,4 +87,6 @@ int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *gr
 
 char *reg_initiator_to_string(__u8 initiator);
 
+const char *get_reason_str(uint16_t reason);
+
 #endif /* __IW_H */

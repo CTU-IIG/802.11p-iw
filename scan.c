@@ -108,7 +108,9 @@ static int handle_scan(struct nl80211_state *state,
 	return err;
 }
 COMMAND(scan, trigger, "[freq <freq>*] [ssid <ssid>*|passive]",
-	NL80211_CMD_TRIGGER_SCAN, 0, CIB_NETDEV, handle_scan, NULL);
+	NL80211_CMD_TRIGGER_SCAN, 0, CIB_NETDEV, handle_scan,
+	 "Trigger a scan on the given frequencies with probing for the given\n"
+	 "SSIDs (or wildcard if not given) unless passive scanning is requested.");
 
 static void tab_on_first(bool *first)
 {
@@ -811,7 +813,9 @@ static int handle_scan_dump(struct nl80211_state *state,
 	return 0;
 }
 COMMAND(scan, dump, "[-u]",
-	NL80211_CMD_GET_SCAN, NLM_F_DUMP, CIB_NETDEV, handle_scan_dump, NULL);
+	NL80211_CMD_GET_SCAN, NLM_F_DUMP, CIB_NETDEV, handle_scan_dump,
+	"Dump the current scan results. If -u is specified, print unknown\n"
+	"data in scan results.");
 
 static int handle_scan_combined(struct nl80211_state *state,
 				struct nl_cb *cb,
@@ -819,11 +823,6 @@ static int handle_scan_combined(struct nl80211_state *state,
 				int argc, char **argv)
 {
 	char **trig_argv;
-/*	static char *trig_argv[] = {
-		NULL,
-		"scan",
-		"trigger",
-	};*/
 	static char *dump_argv[] = {
 		NULL,
 		"scan",
@@ -890,4 +889,8 @@ static int handle_scan_combined(struct nl80211_state *state,
 	dump_argv[0] = argv[0];
 	return handle_cmd(state, II_NETDEV, dump_argc, dump_argv);
 }
-TOPLEVEL(scan, "[-u] [freq <freq>*] [ssid <ssid>*|passive]", 0, 0, CIB_NETDEV, handle_scan_combined, NULL);
+TOPLEVEL(scan, "[-u] [freq <freq>*] [ssid <ssid>*|passive]", 0, 0,
+	 CIB_NETDEV, handle_scan_combined,
+	 "Scan on the given frequencies and probe for the given SSIDs\n"
+	 "(or wildcard if not given) unless passive scanning is requested.\n"
+	 "If -u is specified print unknown data in the scan results.");

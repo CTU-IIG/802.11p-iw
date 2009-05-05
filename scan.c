@@ -367,13 +367,53 @@ static void print_rsn_ie(const char *defcipher, const char *defauth,
 	if (len >= 2) {
 		capa = data[0] | (data[1] << 8);
 		tab_on_first(&first);
-		printf("\t * Capabilities: 0x%.4x\n", capa);
-
+		printf("\t * Capabilities:");
+		if (capa & 0x0001)
+			printf(" PreAuth");
+		if (capa & 0x0002)
+			printf(" NoPairwise");
+		switch ((capa & 0x000c) >> 2) {
+		case 0:
+			break;
+		case 1:
+			printf(" 2-PTKSA-RC");
+			break;
+		case 2:
+			printf(" 4-PTKSA-RC");
+			break;
+		case 3:
+			printf(" 16-PTKSA-RC");
+			break;
+		}
+		switch ((capa & 0x0030) >> 4) {
+		case 0:
+			break;
+		case 1:
+			printf(" 2-GTKSA-RC");
+			break;
+		case 2:
+			printf(" 4-GTKSA-RC");
+			break;
+		case 3:
+			printf(" 16-GTKSA-RC");
+			break;
+		}
+		if (capa & 0x0040)
+			printf(" MFP-required");
+		if (capa & 0x0080)
+			printf(" MFP-capable");
+		if (capa & 0x0200)
+			printf(" Peerkey-enabled");
+		if (capa & 0x0400)
+			printf(" SPP-AMSDU-capable");
+		if (capa & 0x0800)
+			printf(" SPP-AMSDU-required");
+		printf(" (0x%.4x)\n", capa);
 		data += 2;
 		len -= 2;
 	}
 
-invalid:
+ invalid:
 	if (len != 0) {
 		printf("\t\t * bogus tail data (%d):", len);
 		while (len) {

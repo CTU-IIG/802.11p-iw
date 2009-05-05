@@ -109,7 +109,7 @@ static void usage(const char *argv0)
 	fprintf(stderr, "\t--version\tshow version\n");
 	fprintf(stderr, "Commands:\n");
 	fprintf(stderr, "\thelp\n");
-	fprintf(stderr, "\tevent [-f]\n");
+	fprintf(stderr, "\tevent [-t] [-f]\n");
 	for (cmd = &__start___cmd; cmd < &__stop___cmd;
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
 		if (!cmd->handler || cmd->hidden)
@@ -330,7 +330,7 @@ static int no_seq_check(struct nl_msg *msg, void *arg)
 }
 
 struct print_event_args {
-	bool frame;
+	bool frame, time;
 };
 
 static void print_frame(struct print_event_args *args, struct nlattr *attr)
@@ -400,6 +400,12 @@ static int print_event(struct nl_msg *msg, void *arg)
 	char ifname[100];
 	char macbuf[6*3];
 	__u8 reg_type;
+
+	if (args->time) {
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		printf("%ld.%06u: ", (long) tv.tv_sec, (unsigned int) tv.tv_usec);
+	}
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
 		  genlmsg_attrlen(gnlh, 0), NULL);
@@ -591,14 +597,19 @@ static int print_events(struct nl80211_state *state, int argc, char **argv)
 
 	memset(&args, 0, sizeof(args));
 
-	if (argc > 1)
-		return 1;
-
-	if (argc > 0) {
-		if (strcmp(argv[0], "-f"))
+	while (argc > 0) {
+		if (strcmp(argv[0], "-f") == 0)
+			args.frame = true;
+		else if (strcmp(argv[0], "-t") == 0)
+			args.time = true;
+		else
 			return 1;
-		args.frame = true;
+		argc--;
+		argv++;
 	}
+
+	if (argc)
+		return 1;
 
 	return __listen_events(state, 0, NULL, &args);
 }

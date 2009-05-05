@@ -75,7 +75,9 @@ static int handle_freq(struct nl80211_state *state,
 	return handle_freqchan(msg, false, argc, argv);
 }
 COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
-	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_freq, NULL);
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_freq,
+	"Set frequency/channel the hardware is using, including HT\n"
+	"configuration.");
 COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
 	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_freq, NULL);
 

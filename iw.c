@@ -99,6 +99,27 @@ __COMMAND(NULL, NULL, "", NULL, 1, 0, 0, CIB_NONE, NULL);
 
 static int cmd_size;
 
+static void usage_cmd(struct cmd *cmd)
+{
+	switch (cmd->idby) {
+	case CIB_NONE:
+		fprintf(stderr, "\t");
+		break;
+	case CIB_PHY:
+		fprintf(stderr, "\tphy <phyname> ");
+		break;
+	case CIB_NETDEV:
+		fprintf(stderr, "\tdev <devname> ");
+		break;
+	}
+	if (cmd->section)
+		fprintf(stderr, "%s ", cmd->section);
+	fprintf(stderr, "%s", cmd->name);
+	if (cmd->args)
+		fprintf(stderr, " %s", cmd->args);
+	fprintf(stderr, "\n");
+}
+
 static void usage(const char *argv0)
 {
 	struct cmd *cmd;
@@ -114,23 +135,7 @@ static void usage(const char *argv0)
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
 		if (!cmd->handler || cmd->hidden)
 			continue;
-		switch (cmd->idby) {
-		case CIB_NONE:
-			fprintf(stderr, "\t");
-			break;
-		case CIB_PHY:
-			fprintf(stderr, "\tphy <phyname> ");
-			break;
-		case CIB_NETDEV:
-			fprintf(stderr, "\tdev <devname> ");
-			break;
-		}
-		if (cmd->section)
-			fprintf(stderr, "%s ", cmd->section);
-		fprintf(stderr, "%s", cmd->name);
-		if (cmd->args)
-			fprintf(stderr, " %s", cmd->args);
-		fprintf(stderr, "\n");
+		usage_cmd(cmd);
 	}
 }
 

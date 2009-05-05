@@ -214,7 +214,7 @@ static void print_cipher(const uint8_t *data)
 			printf("WEP-104");
 			break;
 		default:
-			printf("Unknown (%.02x-%.02x-%.02x:%d)",
+			printf("%.02x-%.02x-%.02x:%d",
 				data[0], data[1] ,data[2], data[3]);
 			break;
 		}
@@ -239,12 +239,12 @@ static void print_cipher(const uint8_t *data)
 			printf("AES-128-CMAC");
 			break;
 		default:
-			printf("Unknown (%.02x-%.02x-%.02x:%d)",
+			printf("%.02x-%.02x-%.02x:%d",
 				data[0], data[1] ,data[2], data[3]);
 			break;
 		}
 	} else
-		printf("Unknown (%.02x-%.02x-%.02x:%d)",
+		printf("%.02x-%.02x-%.02x:%d",
 			data[0], data[1] ,data[2], data[3]);
 }
 
@@ -259,7 +259,7 @@ static void print_auth(const uint8_t *data)
 			printf("PSK");
 			break;
 		default:
-			printf("Unknown (%.02x-%.02x-%.02x:%d)",
+			printf("%.02x-%.02x-%.02x:%d",
 				data[0], data[1] ,data[2], data[3]);
 			break;
 		}
@@ -272,12 +272,12 @@ static void print_auth(const uint8_t *data)
 			printf("PSK");
 			break;
 		default:
-			printf("Unknown (%.02x-%.02x-%.02x:%d)",
+			printf("%.02x-%.02x-%.02x:%d",
 				data[0], data[1] ,data[2], data[3]);
 			break;
 		}
 	} else
-		printf("Unknown (%.02x-%.02x-%.02x:%d)",
+		printf("%.02x-%.02x-%.02x:%d",
 			data[0], data[1] ,data[2], data[3]);
 }
 

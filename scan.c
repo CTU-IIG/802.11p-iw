@@ -432,10 +432,51 @@ static void print_rsn(const uint8_t type, uint8_t len, const uint8_t *data)
 
 static void print_capabilities(const uint8_t type, uint8_t len, const uint8_t *data)
 {
-	int i;
+	int i, base, bit;
+	bool first = true;
 
-	for(i = 0; i < len; i++)
-		printf(" %.02x", data[i]);
+
+	for (i = 0; i < len; i++) {
+		base = i * 8;
+
+		for (bit = 0; bit < 8; bit++) {
+			if (!(data[i] & (1 << bit)))
+				continue;
+
+			if (!first)
+				printf(",");
+			else
+				first = false;
+
+			switch (bit + base) {
+			case 0:
+				printf(" HT Information Exchange Supported");
+				break;
+			case 1:
+				printf(" On-demand Beacon");
+				break;
+			case 2:
+				printf(" Extended Channel Switching");
+				break;
+			case 3:
+				printf(" Wave Indication");
+				break;
+			case 4:
+				printf(" PSMP Capability");
+				break;
+			case 5:
+				printf(" Service Interval Granularity");
+				break;
+			case 6:
+				printf(" S-PSMP Capability");
+				break;
+			default:
+				printf(" %d", bit);
+				break;
+			}
+		}
+	}
+
 	printf("\n");
 }
 

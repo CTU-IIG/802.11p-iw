@@ -94,13 +94,15 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_socket_free(state->nl_sock);
 }
 
-__COMMAND(NULL, NULL, "", NULL, 0, 0, 0, CIB_NONE, NULL);
-__COMMAND(NULL, NULL, "", NULL, 1, 0, 0, CIB_NONE, NULL);
+__COMMAND(NULL, NULL, "", NULL, 0, 0, 0, CIB_NONE, NULL, NULL);
+__COMMAND(NULL, NULL, "", NULL, 1, 0, 0, CIB_NONE, NULL, NULL);
 
 static int cmd_size;
 
-static void __usage_cmd(struct cmd *cmd, char *indent)
+static void __usage_cmd(struct cmd *cmd, char *indent, bool full)
 {
+	const char *start, *lend, *end;
+
 	fprintf(stderr, "%s", indent);
 
 	switch (cmd->idby) {
@@ -119,6 +121,29 @@ static void __usage_cmd(struct cmd *cmd, char *indent)
 	if (cmd->args)
 		fprintf(stderr, " %s", cmd->args);
 	fprintf(stderr, "\n");
+
+	if (!full || !cmd->help)
+		return;
+
+	/* hack */
+	if (strlen(indent))
+		indent = "\t\t";
+	else
+		fprintf(stderr, "\n");
+
+	/* print line by line */
+	start = cmd->help;
+	end = strchr(start, '\0');
+	do {
+		lend = strchr(start, '\n');
+		if (!lend)
+			lend = end;
+		fprintf(stderr, "%s", indent);
+		fprintf(stderr, "%.*s\n", (int)(lend - start), start);
+		start = lend + 1;
+	} while (end != lend);
+
+	fprintf(stderr, "\n");
 }
 
 static void usage_options(void)
@@ -127,7 +152,9 @@ static void usage_options(void)
 	fprintf(stderr, "\t--debug\t\tenable netlink debugging\n");
 }
 
-static void usage(const char *argv0)
+static const char *argv0;
+
+static void usage(bool full)
 {
 	struct cmd *cmd;
 
@@ -135,19 +162,28 @@ static void usage(const char *argv0)
 	usage_options();
 	fprintf(stderr, "\t--version\tshow version\n");
 	fprintf(stderr, "Commands:\n");
-	fprintf(stderr, "\thelp\n");
 	for (cmd = &__start___cmd; cmd < &__stop___cmd;
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
 		if (!cmd->handler || cmd->hidden)
 			continue;
-		__usage_cmd(cmd, "\t");
+		__usage_cmd(cmd, "\t", full);
 	}
 }
 
-static void usage_cmd(const char *argv0, struct cmd *cmd)
+static int print_help(struct nl80211_state *state,
+		      struct nl_cb *cb,
+		      struct nl_msg *msg,
+		      int argc, char **argv)
+{
+	exit(3);
+}
+TOPLEVEL(help, NULL, 0, 0, CIB_NONE, print_help,
+	 "Print usage for each command.");
+
+static void usage_cmd(struct cmd *cmd)
 {
 	fprintf(stderr, "Usage:\t%s [options] ", argv0);
-	__usage_cmd(cmd, "");
+	__usage_cmd(cmd, "", true);
 	usage_options();
 }
 
@@ -354,7 +390,6 @@ int main(int argc, char **argv)
 {
 	struct nl80211_state nlstate;
 	int err;
-	const char *argv0;
 	struct cmd *cmd = NULL;
 
 	/* calculate command size including padding */
@@ -375,8 +410,9 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	/* need to treat "help" command specially so it works w/o nl80211 */
 	if (argc == 0 || strcmp(*argv, "help") == 0) {
-		usage(argv0);
+		usage(argc != 0);
 		return 0;
 	}
 
@@ -402,9 +438,9 @@ int main(int argc, char **argv)
 
 	if (err == 1) {
 		if (cmd)
-			usage_cmd(argv0, cmd);
+			usage_cmd(cmd);
 		else
-			usage(argv0);
+			usage(false);
 	} else if (err < 0)
 		fprintf(stderr, "command failed: %s (%d)\n", strerror(-err), err);
 

@@ -108,7 +108,7 @@ static int handle_scan(struct nl80211_state *state,
 	return err;
 }
 COMMAND(scan, trigger, "[freq <freq>*] [ssid <ssid>*|passive]",
-	NL80211_CMD_TRIGGER_SCAN, 0, CIB_NETDEV, handle_scan);
+	NL80211_CMD_TRIGGER_SCAN, 0, CIB_NETDEV, handle_scan, NULL);
 
 static void tab_on_first(bool *first)
 {
@@ -811,7 +811,7 @@ static int handle_scan_dump(struct nl80211_state *state,
 	return 0;
 }
 COMMAND(scan, dump, "[-u]",
-	NL80211_CMD_GET_SCAN, NLM_F_DUMP, CIB_NETDEV, handle_scan_dump);
+	NL80211_CMD_GET_SCAN, NLM_F_DUMP, CIB_NETDEV, handle_scan_dump, NULL);
 
 static int handle_scan_combined(struct nl80211_state *state,
 				struct nl_cb *cb,
@@ -890,4 +890,4 @@ static int handle_scan_combined(struct nl80211_state *state,
 	dump_argv[0] = argv[0];
 	return handle_cmd(state, II_NETDEV, dump_argc, dump_argv);
 }
-TOPLEVEL(scan, "[-u] [freq <freq>*] [ssid <ssid>*|passive]", 0, 0, CIB_NETDEV, handle_scan_combined);
+TOPLEVEL(scan, "[-u] [freq <freq>*] [ssid <ssid>*|passive]", 0, 0, CIB_NETDEV, handle_scan_combined, NULL);

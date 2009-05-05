@@ -182,9 +182,9 @@ static int handle_interface_add(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags ...]",
-	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add);
+	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add, NULL);
 COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags ...]",
-	NL80211_CMD_NEW_INTERFACE, 0, CIB_NETDEV, handle_interface_add);
+	NL80211_CMD_NEW_INTERFACE, 0, CIB_NETDEV, handle_interface_add, NULL);
 
 static int handle_interface_del(struct nl80211_state *state,
 				struct nl_cb *cb,
@@ -193,7 +193,7 @@ static int handle_interface_del(struct nl80211_state *state,
 {
 	return 0;
 }
-TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
+TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del, NULL);
 HIDDEN(interface, del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
 
 static int print_iface_handler(struct nl_msg *msg, void *arg)
@@ -232,7 +232,7 @@ static int handle_interface_info(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, NULL);
 	return 0;
 }
-TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info);
+TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info, NULL);
 
 static int handle_interface_set(struct nl80211_state *state,
 				struct nl_cb *cb,
@@ -260,7 +260,7 @@ static int handle_interface_set(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(set, monitor, "<flag> [...]",
-	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_set);
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_set, NULL);
 
 static int handle_interface_meshid(struct nl80211_state *state,
 				   struct nl_cb *cb,
@@ -281,7 +281,7 @@ static int handle_interface_meshid(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(set, meshid, "<meshid>",
-	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_meshid);
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_meshid, NULL);
 
 static unsigned int dev_dump_wiphy;
 
@@ -294,7 +294,7 @@ static int handle_dev_dump(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, &dev_dump_wiphy);
 	return 0;
 }
-TOPLEVEL(dev, NULL, NL80211_CMD_GET_INTERFACE, NLM_F_DUMP, CIB_NONE, handle_dev_dump);
+TOPLEVEL(dev, NULL, NL80211_CMD_GET_INTERFACE, NLM_F_DUMP, CIB_NONE, handle_dev_dump, NULL);
 
 static int handle_interface_type(struct nl80211_state *state,
 				 struct nl_cb *cb,
@@ -318,4 +318,4 @@ static int handle_interface_type(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(set, type, "<type>",
-	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_type);
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_type, NULL);

@@ -37,6 +37,7 @@ struct cmd {
 	const char *section;
 	const char *name;
 	const char *args;
+	const char *help;
 	const enum nl80211_commands cmd;
 	int nl_msg_flags;
 	int hidden;
@@ -54,7 +55,7 @@ struct cmd {
 
 #define ARRAY_SIZE(ar) (sizeof(ar)/sizeof(ar[0]))
 
-#define __COMMAND(_section, _symname, _name, _args, _nlcmd, _flags, _hidden, _idby, _handler)\
+#define __COMMAND(_section, _symname, _name, _args, _nlcmd, _flags, _hidden, _idby, _handler, _help)\
 	static const struct cmd						\
 	__cmd ## _ ## _symname ## _ ## _handler ## _ ## _nlcmd ## _ ## _idby ## _ ## _hidden\
 	__attribute__((used)) __attribute__((section("__cmd")))	= {	\
@@ -66,13 +67,14 @@ struct cmd {
 		.hidden = (_hidden),					\
 		.idby = (_idby),					\
 		.handler = (_handler),					\
+		.help = (_help),					\
 	 }
-#define COMMAND(section, name, args, cmd, flags, idby, handler)	\
-	__COMMAND(#section, name, #name, args, cmd, flags, 0, idby, handler)
-#define HIDDEN(section, name, args, cmd, flags, idby, handler)	\
-	__COMMAND(#section, name, #name, args, cmd, flags, 1, idby, handler)
-#define TOPLEVEL(name, args, cmd, flags, idby, handler)		\
-	__COMMAND(NULL, name, #name, args, cmd, flags, 0, idby, handler)
+#define COMMAND(section, name, args, cmd, flags, idby, handler, help)	\
+	__COMMAND(#section, name, #name, args, cmd, flags, 0, idby, handler, help)
+#define HIDDEN(section, name, args, cmd, flags, idby, handler)		\
+	__COMMAND(#section, name, #name, args, cmd, flags, 1, idby, handler, NULL)
+#define TOPLEVEL(name, args, cmd, flags, idby, handler, help)		\
+	__COMMAND(NULL, name, #name, args, cmd, flags, 0, idby, handler, help)
 extern struct cmd __start___cmd;
 extern struct cmd __stop___cmd;
 

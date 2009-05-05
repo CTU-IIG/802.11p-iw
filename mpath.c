@@ -123,9 +123,9 @@ static int handle_mpath_get(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(mpath, get, "<MAC address>",
-	NL80211_CMD_GET_MPATH, 0, CIB_NETDEV, handle_mpath_get);
+	NL80211_CMD_GET_MPATH, 0, CIB_NETDEV, handle_mpath_get, NULL);
 COMMAND(mpath, del, "<MAC address>",
-	NL80211_CMD_DEL_MPATH, 0, CIB_NETDEV, handle_mpath_get);
+	NL80211_CMD_DEL_MPATH, 0, CIB_NETDEV, handle_mpath_get, NULL);
 
 static int handle_mpath_set(struct nl80211_state *state,
 			    struct nl_cb *cb,
@@ -169,9 +169,9 @@ static int handle_mpath_set(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(mpath, new, "<destination MAC address> next_hop <next hop MAC address>",
-	NL80211_CMD_NEW_MPATH, 0, CIB_NETDEV, handle_mpath_set);
+	NL80211_CMD_NEW_MPATH, 0, CIB_NETDEV, handle_mpath_set, NULL);
 COMMAND(mpath, set, "<destination MAC address> next_hop <next hop MAC address>",
-	NL80211_CMD_SET_MPATH, 0, CIB_NETDEV, handle_mpath_set);
+	NL80211_CMD_SET_MPATH, 0, CIB_NETDEV, handle_mpath_set, NULL);
 
 static int handle_mpath_dump(struct nl80211_state *state,
 			     struct nl_cb *cb,
@@ -182,4 +182,4 @@ static int handle_mpath_dump(struct nl80211_state *state,
 	return 0;
 }
 COMMAND(mpath, dump, NULL,
-	NL80211_CMD_GET_MPATH, NLM_F_DUMP, CIB_NETDEV, handle_mpath_dump);
+	NL80211_CMD_GET_MPATH, NLM_F_DUMP, CIB_NETDEV, handle_mpath_dump, NULL);

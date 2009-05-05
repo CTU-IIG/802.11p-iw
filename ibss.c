@@ -63,6 +63,6 @@ static int leave_ibss(struct nl80211_state *state,
 	return 0;
 }
 COMMAND(ibss, leave, NULL,
-	NL80211_CMD_LEAVE_IBSS, 0, CIB_NETDEV, leave_ibss);
+	NL80211_CMD_LEAVE_IBSS, 0, CIB_NETDEV, leave_ibss, NULL);
 COMMAND(ibss, join, "<SSID> <freq in MHz> [fixed-freq] [<fixed bssid>]",
-	NL80211_CMD_JOIN_IBSS, 0, CIB_NETDEV, join_ibss);
+	NL80211_CMD_JOIN_IBSS, 0, CIB_NETDEV, join_ibss, NULL);

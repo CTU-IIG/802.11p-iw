@@ -188,9 +188,9 @@ static int handle_station_get(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(station, get, "<MAC address>",
-	NL80211_CMD_GET_STATION, 0, CIB_NETDEV, handle_station_get);
+	NL80211_CMD_GET_STATION, 0, CIB_NETDEV, handle_station_get, NULL);
 COMMAND(station, del, "<MAC address>",
-	NL80211_CMD_DEL_STATION, 0, CIB_NETDEV, handle_station_get);
+	NL80211_CMD_DEL_STATION, 0, CIB_NETDEV, handle_station_get, NULL);
 
 static int handle_station_set(struct nl80211_state *state,
 			      struct nl_cb *cb,
@@ -237,7 +237,7 @@ static int handle_station_set(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(station, set, "<MAC address> plink_action <open|block>",
-	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set);
+	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set, NULL);
 
 static int handle_station_dump(struct nl80211_state *state,
 			       struct nl_cb *cb,
@@ -248,4 +248,4 @@ static int handle_station_dump(struct nl80211_state *state,
 	return 0;
 }
 COMMAND(station, dump, NULL,
-	NL80211_CMD_GET_STATION, NLM_F_DUMP, CIB_NETDEV, handle_station_dump);
+	NL80211_CMD_GET_STATION, NLM_F_DUMP, CIB_NETDEV, handle_station_dump, NULL);

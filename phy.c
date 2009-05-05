@@ -25,7 +25,7 @@ static int handle_name(struct nl80211_state *state,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(set, name, "<new name>", NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_name);
+COMMAND(set, name, "<new name>", NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_name, NULL);
 
 static int handle_freqchan(struct nl_msg *msg, bool chan,
 			   int argc, char **argv)
@@ -75,9 +75,9 @@ static int handle_freq(struct nl80211_state *state,
 	return handle_freqchan(msg, false, argc, argv);
 }
 COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
-	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_freq);
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_freq, NULL);
 COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
-	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_freq);
+	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_freq, NULL);
 
 static int handle_chan(struct nl80211_state *state,
 		       struct nl_cb *cb, struct nl_msg *msg,
@@ -86,6 +86,6 @@ static int handle_chan(struct nl80211_state *state,
 	return handle_freqchan(msg, true, argc, argv);
 }
 COMMAND(set, channel, "<channel> [HT20|HT40+|HT40-]",
-	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_chan);
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_chan, NULL);
 COMMAND(set, channel, "<channel> [HT20|HT40+|HT40-]",
-	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_chan);
+	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_chan, NULL);

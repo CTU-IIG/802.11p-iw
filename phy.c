@@ -25,7 +25,8 @@ static int handle_name(struct nl80211_state *state,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(set, name, "<new name>", NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_name, NULL);
+COMMAND(set, name, "<new name>", NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_name,
+	"Rename this wireless device.");
 
 static int handle_freqchan(struct nl_msg *msg, bool chan,
 			   int argc, char **argv)

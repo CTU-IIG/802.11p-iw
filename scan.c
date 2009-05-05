@@ -271,6 +271,18 @@ static void print_auth(const uint8_t *data)
 		case 2:
 			printf("PSK");
 			break;
+		case 3:
+			printf("FT/IEEE 802.1X");
+			break;
+		case 4:
+			printf("FT/PSK");
+			break;
+		case 5:
+			printf("IEEE 802.1X/SHA-256");
+			break;
+		case 6:
+			printf("PSK/SHA-256");
+			break;
 		default:
 			printf("%.02x-%.02x-%.02x:%d",
 				data[0], data[1] ,data[2], data[3]);

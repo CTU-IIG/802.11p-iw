@@ -333,13 +333,13 @@ struct print_event_args {
 	bool frame;
 };
 
-static void print_frame(struct print_event_args *args, struct nlattr *attr,
-			bool reason)
+static void print_frame(struct print_event_args *args, struct nlattr *attr)
 {
 	uint8_t *frame;
 	size_t len;
 	int i;
 	char macbuf[6*3];
+	uint16_t tmp;
 
 	if (!attr)
 		printf(" [no frame]");
@@ -347,31 +347,46 @@ static void print_frame(struct print_event_args *args, struct nlattr *attr,
 	frame = nla_data(attr);
 	len = nla_len(attr);
 
-	if (len >= 16) {
-		mac_addr_n2a(macbuf, frame + 10);
-		printf(" %s -> ", macbuf);
-	} else
-		printf(" ??? -> ");
+	if (len < 26) {
+		printf(" [invalid frame: ");
+		goto print_frame;
+	}
 
-	if (len >= 20) {
-		mac_addr_n2a(macbuf, frame + 4);
-		printf("%s", macbuf);
-	} else
-		printf("???");
+	mac_addr_n2a(macbuf, frame + 10);
+	printf(" %s -> ", macbuf);
+	mac_addr_n2a(macbuf, frame + 4);
+	printf("%s", macbuf);
 
-	if (reason) {
-		if (len >= 26) {
-			uint16_t reason = (frame[25] << 8) + frame[24];
-			printf(" reason %d: %s",
-			       reason, get_reason_str(reason));
-		} else
-			printf(" reason ?: ???");
+	switch (frame[0] & 0xfc) {
+	case 0x10: /* assoc resp */
+	case 0x30: /* reassoc resp */
+		/* status */
+		tmp = (frame[27] << 8) + frame[26];
+		printf(" status: %d: %s", tmp, get_status_str(tmp));
+		break;
+	case 0x00: /* assoc req */
+	case 0x20: /* reassoc req */
+		break;
+	case 0xb0: /* auth */
+		/* status */
+		tmp = (frame[29] << 8) + frame[28];
+		printf(" status: %d: %s", tmp, get_status_str(tmp));
+		break;
+		break;
+	case 0xa0: /* disassoc */
+	case 0xc0: /* deauth */
+		/* reason */
+		tmp = (frame[25] << 8) + frame[24];
+		printf(" reason %d: %s", tmp, get_reason_str(tmp));
+		break;
 	}
 
 	if (!args->frame)
 		return;
 
 	printf(" [frame:");
+
+ print_frame:
 	for (i = 0; i < len; i++)
 		printf(" %.02x", frame[i]);
 	printf("]");
@@ -450,22 +465,22 @@ static int print_event(struct nl_msg *msg, void *arg)
 		break;
 	case NL80211_CMD_AUTHENTICATE:
 		printf("auth");
-		print_frame(args, tb[NL80211_ATTR_FRAME], false);
+		print_frame(args, tb[NL80211_ATTR_FRAME]);
 		printf("\n");
 		break;
 	case NL80211_CMD_ASSOCIATE:
 		printf("assoc");
-		print_frame(args, tb[NL80211_ATTR_FRAME], false);
+		print_frame(args, tb[NL80211_ATTR_FRAME]);
 		printf("\n");
 		break;
 	case NL80211_CMD_DEAUTHENTICATE:
 		printf("deauth");
-		print_frame(args, tb[NL80211_ATTR_FRAME], true);
+		print_frame(args, tb[NL80211_ATTR_FRAME]);
 		printf("\n");
 		break;
 	case NL80211_CMD_DISASSOCIATE:
 		printf("disassoc");
-		print_frame(args, tb[NL80211_ATTR_FRAME], true);
+		print_frame(args, tb[NL80211_ATTR_FRAME]);
 		printf("\n");
 		break;
 	default:

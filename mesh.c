@@ -244,7 +244,8 @@ static int set_interface_meshparam(struct nl80211_state *state,
 }
 
 COMMAND(set, mesh_param, "<param> <value>",
-	NL80211_CMD_SET_MESH_PARAMS, 0, CIB_NETDEV, set_interface_meshparam, NULL);
+	NL80211_CMD_SET_MESH_PARAMS, 0, CIB_NETDEV, set_interface_meshparam,
+	"Set mesh parameter (run command without any to see available ones).");
 
 /* Getter */
 static int print_mesh_param_handler(struct nl_msg *msg, void *arg)
@@ -290,4 +291,5 @@ static int get_interface_meshparam(struct nl80211_state *state,
 }
 
 COMMAND(get, mesh_param, "<param>",
-	NL80211_CMD_GET_MESH_PARAMS, 0, CIB_NETDEV, get_interface_meshparam, NULL);
+	NL80211_CMD_GET_MESH_PARAMS, 0, CIB_NETDEV, get_interface_meshparam,
+	"Retrieve mesh parameter (run command without any to see available ones).");

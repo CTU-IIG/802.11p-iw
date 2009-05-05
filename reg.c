@@ -91,7 +91,8 @@ static int handle_reg_set(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(reg, set, "<ISO/IEC 3166-1 alpha2>",
-	NL80211_CMD_REQ_SET_REG, 0, CIB_NONE, handle_reg_set, NULL);
+	NL80211_CMD_REQ_SET_REG, 0, CIB_NONE, handle_reg_set,
+	"Notify the kernel about the current regulatory domain.");
 
 static int print_reg_handler(struct nl_msg *msg, void *arg)
 
@@ -184,4 +185,5 @@ static int handle_reg_get(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_reg_handler, NULL);
 	return 0;
 }
-COMMAND(reg, get, NULL, NL80211_CMD_GET_REG, 0, CIB_NONE, handle_reg_get, NULL);
+COMMAND(reg, get, NULL, NL80211_CMD_GET_REG, 0, CIB_NONE, handle_reg_get,
+	"Print out the kernel's current regulatory domain information.");

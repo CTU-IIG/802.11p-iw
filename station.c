@@ -188,9 +188,11 @@ static int handle_station_get(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(station, get, "<MAC address>",
-	NL80211_CMD_GET_STATION, 0, CIB_NETDEV, handle_station_get, NULL);
+	NL80211_CMD_GET_STATION, 0, CIB_NETDEV, handle_station_get,
+	"Get information for a specific station.");
 COMMAND(station, del, "<MAC address>",
-	NL80211_CMD_DEL_STATION, 0, CIB_NETDEV, handle_station_get, NULL);
+	NL80211_CMD_DEL_STATION, 0, CIB_NETDEV, handle_station_get,
+	"Remove the given station entry (use with caution!)");
 
 static int handle_station_set(struct nl80211_state *state,
 			      struct nl_cb *cb,
@@ -237,7 +239,8 @@ static int handle_station_set(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(station, set, "<MAC address> plink_action <open|block>",
-	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set, NULL);
+	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set,
+	"Set mesh peer link action for this station (peer).");
 
 static int handle_station_dump(struct nl80211_state *state,
 			       struct nl_cb *cb,
@@ -248,4 +251,5 @@ static int handle_station_dump(struct nl80211_state *state,
 	return 0;
 }
 COMMAND(station, dump, NULL,
-	NL80211_CMD_GET_STATION, NLM_F_DUMP, CIB_NETDEV, handle_station_dump, NULL);
+	NL80211_CMD_GET_STATION, NLM_F_DUMP, CIB_NETDEV, handle_station_dump,
+	"List all stations known, e.g. the AP on managed interfaces");

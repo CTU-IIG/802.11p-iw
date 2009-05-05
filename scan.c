@@ -198,19 +198,19 @@ static void print_cipher(const uint8_t *data)
 {
 	if (memcmp(data, wifi_oui, 3) == 0) {
 		switch (data[3]) {
-		case 0x00:
+		case 0:
 			printf("Use group cipher suite");
 			break;
-		case 0x01:
+		case 1:
 			printf("WEP-40");
 			break;
-		case 0x02:
+		case 2:
 			printf("TKIP");
 			break;
-		case 0x04:
+		case 4:
 			printf("CCMP");
 			break;
-		case 0x05:
+		case 5:
 			printf("WEP-104");
 			break;
 		default:
@@ -220,22 +220,22 @@ static void print_cipher(const uint8_t *data)
 		}
 	} else if (memcmp(data, ieee80211_oui, 3) == 0) {
 		switch (data[3]) {
-		case 0x00:
+		case 0:
 			printf("Use group cipher suite");
 			break;
-		case 0x01:
+		case 1:
 			printf("WEP-40");
 			break;
-		case 0x02:
+		case 2:
 			printf("TKIP");
 			break;
-		case 0x04:
+		case 4:
 			printf("CCMP");
 			break;
-		case 0x05:
+		case 5:
 			printf("WEP-104");
 			break;
-		case 0x06:
+		case 6:
 			printf("AES-128-CMAC");
 			break;
 		default:
@@ -252,10 +252,10 @@ static void print_auth(const uint8_t *data)
 {
 	if (memcmp(data, wifi_oui, 3) == 0) {
 		switch (data[3]) {
-		case 0x01:
+		case 1:
 			printf("IEEE 802.1X");
 			break;
-		case 0x02:
+		case 2:
 			printf("PSK");
 			break;
 		default:
@@ -265,10 +265,10 @@ static void print_auth(const uint8_t *data)
 		}
 	} else if (memcmp(data, ieee80211_oui, 3) == 0) {
 		switch (data[3]) {
-		case 0x01:
+		case 1:
 			printf("IEEE 802.1X");
 			break;
-		case 0x02:
+		case 2:
 			printf("PSK");
 			break;
 		default:

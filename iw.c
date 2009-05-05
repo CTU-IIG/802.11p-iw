@@ -160,7 +160,7 @@ static void usage(bool full)
 
 	fprintf(stderr, "Usage:\t%s [options] command\n", argv0);
 	usage_options();
-	fprintf(stderr, "\t--version\tshow version\n");
+	fprintf(stderr, "\t--version\tshow version (%s)\n", iw_version);
 	fprintf(stderr, "Commands:\n");
 	for (cmd = &__start___cmd; cmd < &__stop___cmd;
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {

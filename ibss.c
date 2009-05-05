@@ -63,6 +63,12 @@ static int leave_ibss(struct nl80211_state *state,
 	return 0;
 }
 COMMAND(ibss, leave, NULL,
-	NL80211_CMD_LEAVE_IBSS, 0, CIB_NETDEV, leave_ibss, NULL);
+	NL80211_CMD_LEAVE_IBSS, 0, CIB_NETDEV, leave_ibss,
+	"Leave the current IBSS cell.");
 COMMAND(ibss, join, "<SSID> <freq in MHz> [fixed-freq] [<fixed bssid>]",
-	NL80211_CMD_JOIN_IBSS, 0, CIB_NETDEV, join_ibss, NULL);
+	NL80211_CMD_JOIN_IBSS, 0, CIB_NETDEV, join_ibss,
+	"Join the IBSS cell with the given SSID, if it doesn't exist create\n"
+	"it on the given frequency. When fixed frequency is requested, don't\n"
+	"join/create a cell on a different frequency. When a fixed BSSID is\n"
+	"requested use that BSSID and do not adopt another cell's BSSID even\n"
+	"if it has higher TSF and the same SSID.");

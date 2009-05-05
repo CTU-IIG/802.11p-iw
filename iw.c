@@ -99,17 +99,18 @@ __COMMAND(NULL, NULL, "", NULL, 1, 0, 0, CIB_NONE, NULL);
 
 static int cmd_size;
 
-static void usage_cmd(struct cmd *cmd)
+static void __usage_cmd(struct cmd *cmd, char *indent)
 {
+	fprintf(stderr, "%s", indent);
+
 	switch (cmd->idby) {
 	case CIB_NONE:
-		fprintf(stderr, "\t");
 		break;
 	case CIB_PHY:
-		fprintf(stderr, "\tphy <phyname> ");
+		fprintf(stderr, "phy <phyname> ");
 		break;
 	case CIB_NETDEV:
-		fprintf(stderr, "\tdev <devname> ");
+		fprintf(stderr, "dev <devname> ");
 		break;
 	}
 	if (cmd->section)
@@ -120,13 +121,18 @@ static void usage_cmd(struct cmd *cmd)
 	fprintf(stderr, "\n");
 }
 
+static void usage_options(void)
+{
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "\t--debug\t\tenable netlink debugging\n");
+}
+
 static void usage(const char *argv0)
 {
 	struct cmd *cmd;
 
 	fprintf(stderr, "Usage:\t%s [options] command\n", argv0);
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "\t--debug\t\tenable netlink debugging\n");
+	usage_options();
 	fprintf(stderr, "\t--version\tshow version\n");
 	fprintf(stderr, "Commands:\n");
 	fprintf(stderr, "\thelp\n");
@@ -134,8 +140,15 @@ static void usage(const char *argv0)
 	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
 		if (!cmd->handler || cmd->hidden)
 			continue;
-		usage_cmd(cmd);
+		__usage_cmd(cmd, "\t");
 	}
+}
+
+static void usage_cmd(const char *argv0, struct cmd *cmd)
+{
+	fprintf(stderr, "Usage:\t%s [options] ", argv0);
+	__usage_cmd(cmd, "");
+	usage_options();
 }
 
 static void version(void)
@@ -182,8 +195,8 @@ static int ack_handler(struct nl_msg *msg, void *arg)
 	return NL_STOP;
 }
 
-int handle_cmd(struct nl80211_state *state, enum id_input idby,
-	       int argc, char **argv)
+static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
+			int argc, char **argv, struct cmd **cmdout)
 {
 	struct cmd *cmd, *match = NULL;
 	struct nl_cb *cb;
@@ -269,6 +282,9 @@ int handle_cmd(struct nl80211_state *state, enum id_input idby,
 	if (!cmd)
 		return 1;
 
+	if (cmdout)
+		*cmdout = cmd;
+
 	if (!cmd->cmd) {
 		argc = o_argc;
 		argv = o_argv;
@@ -328,11 +344,18 @@ int handle_cmd(struct nl80211_state *state, enum id_input idby,
 	return 2;
 }
 
+int handle_cmd(struct nl80211_state *state, enum id_input idby,
+	       int argc, char **argv)
+{
+	return __handle_cmd(state, idby, argc, argv, NULL);
+}
+
 int main(int argc, char **argv)
 {
 	struct nl80211_state nlstate;
 	int err;
 	const char *argv0;
+	struct cmd *cmd = NULL;
 
 	/* calculate command size including padding */
 	cmd_size = abs((long)&__cmd_NULL_NULL_1_CIB_NONE_0
@@ -364,22 +387,25 @@ int main(int argc, char **argv)
 	if (strcmp(*argv, "dev") == 0 && argc > 1) {
 		argc--;
 		argv++;
-		err = handle_cmd(&nlstate, II_NETDEV, argc, argv);
+		err = __handle_cmd(&nlstate, II_NETDEV, argc, argv, &cmd);
 	} else if (strncmp(*argv, "phy", 3) == 0 && argc > 1) {
 		if (strlen(*argv) == 3) {
 			argc--;
 			argv++;
-			err = handle_cmd(&nlstate, II_PHY_NAME, argc, argv);
+			err = __handle_cmd(&nlstate, II_PHY_NAME, argc, argv, &cmd);
 		} else if (*(*argv + 3) == '#')
-			err = handle_cmd(&nlstate, II_PHY_IDX, argc, argv);
+			err = __handle_cmd(&nlstate, II_PHY_IDX, argc, argv, &cmd);
 		else
 			err = 1;
 	} else
-		err = handle_cmd(&nlstate, II_NONE, argc, argv);
+		err = __handle_cmd(&nlstate, II_NONE, argc, argv, &cmd);
 
-	if (err == 1)
-		usage(argv0);
-	if (err < 0)
+	if (err == 1) {
+		if (cmd)
+			usage_cmd(argv0, cmd);
+		else
+			usage(argv0);
+	} else if (err < 0)
 		fprintf(stderr, "command failed: %s (%d)\n", strerror(-err), err);
 
 	nl80211_cleanup(&nlstate);

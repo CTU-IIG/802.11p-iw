@@ -70,6 +70,8 @@ extern struct cmd __stop___cmd;
 
 extern const char iw_version[];
 
+extern int iw_debug;
+
 int handle_cmd(struct nl80211_state *state, enum id_input idby,
 	       int argc, char **argv);
 __u32 listen_events(struct nl80211_state *state,

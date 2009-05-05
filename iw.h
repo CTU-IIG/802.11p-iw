@@ -54,11 +54,19 @@ struct cmd {
 
 #define ARRAY_SIZE(ar) (sizeof(ar)/sizeof(ar[0]))
 
-#define __COMMAND(sect, symname, name, args, nlcmd, flags, hidden, idby, handler)\
+#define __COMMAND(_section, _symname, _name, _args, _nlcmd, _flags, _hidden, _idby, _handler)\
 	static const struct cmd						\
-	__cmd ## _ ## symname ## _ ## handler ## _ ## nlcmd ## _ ## idby ## _ ## hidden\
-	__attribute__((used)) __attribute__((section("__cmd")))		\
-	= { sect, name, args, nlcmd, flags, hidden, idby, handler }
+	__cmd ## _ ## _symname ## _ ## _handler ## _ ## _nlcmd ## _ ## _idby ## _ ## _hidden\
+	__attribute__((used)) __attribute__((section("__cmd")))	= {	\
+		.section = (_section),					\
+		.name = (_name),					\
+		.args = (_args),					\
+		.cmd = (_nlcmd),					\
+		.nl_msg_flags = (_flags),				\
+		.hidden = (_hidden),					\
+		.idby = (_idby),					\
+		.handler = (_handler),					\
+	 }
 #define COMMAND(section, name, args, cmd, flags, idby, handler)	\
 	__COMMAND(#section, name, #name, args, cmd, flags, 0, idby, handler)
 #define HIDDEN(section, name, args, cmd, flags, idby, handler)	\

@@ -12,6 +12,12 @@
 #include "nl80211.h"
 #include "iw.h"
 
+#define VALID_FLAGS	"none:     no special flags\n"\
+			"fcsfail:  show frames with FCS errors\n"\
+			"control:  show control frames\n"\
+			"otherbss: show frames from other BSSes\n"\
+			"cook:     use cooked mode"
+
 static char *mntr_flags[NL80211_MNTR_FLAG_MAX + 1] = {
 	"none",
 	"fcsfail",
@@ -70,6 +76,9 @@ static int parse_mntr_flags(int *_argc, char ***_argv,
 
 	return err;
 }
+
+/* for help */
+#define IFACE_TYPES "Valid interface types are: managed, ibss, monitor, mesh, wds."
 
 /* return 0 if ok, internal error otherwise */
 static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type,
@@ -181,9 +190,14 @@ static int handle_interface_add(struct nl80211_state *state,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags ...]",
-	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add, NULL);
-COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags ...]",
+COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags <flag>*]",
+	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add,
+	"Add a new virtual interface with the given configuration.\n"
+	IFACE_TYPES "\n\n"
+	"The flags are only used for monitor interfaces, valid flags are:\n"
+	VALID_FLAGS "\n\n"
+	"The mesh_id is used only for mesh mode.");
+COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags <flag>*]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_NETDEV, handle_interface_add, NULL);
 
 static int handle_interface_del(struct nl80211_state *state,
@@ -193,7 +207,8 @@ static int handle_interface_del(struct nl80211_state *state,
 {
 	return 0;
 }
-TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del, NULL);
+TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del,
+	 "Remove this virtual interface");
 HIDDEN(interface, del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
 
 static int print_iface_handler(struct nl_msg *msg, void *arg)
@@ -232,7 +247,8 @@ static int handle_interface_info(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, NULL);
 	return 0;
 }
-TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info, NULL);
+TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_info,
+	 "Show information for this interface.");
 
 static int handle_interface_set(struct nl80211_state *state,
 				struct nl_cb *cb,
@@ -259,8 +275,10 @@ static int handle_interface_set(struct nl80211_state *state,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(set, monitor, "<flag> [...]",
-	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_set, NULL);
+COMMAND(set, monitor, "<flag>*",
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_set,
+	"Set monitor flags. Valid flags are:\n"
+	VALID_FLAGS);
 
 static int handle_interface_meshid(struct nl80211_state *state,
 				   struct nl_cb *cb,
@@ -294,7 +312,8 @@ static int handle_dev_dump(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, &dev_dump_wiphy);
 	return 0;
 }
-TOPLEVEL(dev, NULL, NL80211_CMD_GET_INTERFACE, NLM_F_DUMP, CIB_NONE, handle_dev_dump, NULL);
+TOPLEVEL(dev, NULL, NL80211_CMD_GET_INTERFACE, NLM_F_DUMP, CIB_NONE, handle_dev_dump,
+	 "List all network interfaces for wireless hardware.");
 
 static int handle_interface_type(struct nl80211_state *state,
 				 struct nl_cb *cb,
@@ -318,4 +337,6 @@ static int handle_interface_type(struct nl80211_state *state,
 	return -ENOBUFS;
 }
 COMMAND(set, type, "<type>",
-	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_type, NULL);
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_type,
+	"Set interface type/mode.\n"
+	IFACE_TYPES);

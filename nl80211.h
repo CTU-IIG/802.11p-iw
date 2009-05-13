@@ -203,8 +203,12 @@
  *	frame, i.e., it was for the local STA and was received in correct
  *	state. This is similar to MLME-AUTHENTICATE.confirm primitive in the
  *	MLME SAP interface (kernel providing MLME, userspace SME). The
- *	included NL80211_ATTR_FRAME attribute contains the management frame
- *	(including both the header and frame body, but not FCS).
+ *	included %NL80211_ATTR_FRAME attribute contains the management frame
+ *	(including both the header and frame body, but not FCS). This event is
+ *	also used to indicate if the authentication attempt timed out. In that
+ *	case the %NL80211_ATTR_FRAME attribute is replaced with a
+ *	%NL80211_ATTR_TIMED_OUT flag (and %NL80211_ATTR_MAC to indicate which
+ *	pending authentication timed out).
  * @NL80211_CMD_ASSOCIATE: association request and notification; like
  *	NL80211_CMD_AUTHENTICATE but for Association and Reassociation
  *	(similar to MLME-ASSOCIATE.request, MLME-REASSOCIATE.request,
@@ -230,7 +234,9 @@
  *	and optionally a MAC (as BSSID) and FREQ_FIXED attribute if those
  *	should be fixed rather than automatically determined. Can only be
  *	executed on a network interface that is UP, and fixed BSSID/FREQ
- *	may be rejected.
+ *	may be rejected. Another optional parameter is the beacon interval,
+ *	given in the %NL80211_ATTR_BEACON_INTERVAL attribute, which if not
+ *	given defaults to 100 TU (102.4ms).
  * @NL80211_CMD_LEAVE_IBSS: Leave the IBSS -- no special arguments, the IBSS is
  *	determined by the network interface.
  *
@@ -485,6 +491,14 @@ enum nl80211_commands {
  * @NL80211_ATTR_FREQ_FIXED: a flag indicating the IBSS should not try to look
  *	for other networks on different channels
  *
+ * @NL80211_ATTR_TIMED_OUT: a flag indicating than an operation timed out; this
+ *	is used, e.g., with %NL80211_CMD_AUTHENTICATE event
+ *
+ * @NL80211_ATTR_USE_MFP: Whether management frame protection (IEEE 802.11w) is
+ *	used for the association (&enum nl80211_mfp, represented as a u32);
+ *	this attribute can be used
+ *	with %NL80211_CMD_ASSOCIATE request
+ *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
@@ -584,6 +598,10 @@ enum nl80211_attrs {
 	NL80211_ATTR_WIPHY_RETRY_LONG,
 	NL80211_ATTR_WIPHY_FRAG_THRESHOLD,
 	NL80211_ATTR_WIPHY_RTS_THRESHOLD,
+
+	NL80211_ATTR_TIMED_OUT,
+
+	NL80211_ATTR_USE_MFP,
 
 	/* add attributes here, update the policy in nl80211.c */
 
@@ -1166,6 +1184,16 @@ enum nl80211_key_type {
 	NL80211_KEYTYPE_GROUP,
 	NL80211_KEYTYPE_PAIRWISE,
 	NL80211_KEYTYPE_PEERKEY,
+};
+
+/**
+ * enum nl80211_mfp - Management frame protection state
+ * @NL80211_MFP_NO: Management frame protection not used
+ * @NL80211_MFP_REQUIRED: Management frame protection required
+ */
+enum nl80211_mfp {
+	NL80211_MFP_NO,
+	NL80211_MFP_REQUIRED,
 };
 
 #endif /* __LINUX_NL80211_H */

@@ -95,6 +95,8 @@ const char *iftype_name(enum nl80211_iftype iftype);
 int ieee80211_channel_to_frequency(int chan);
 int ieee80211_frequency_to_channel(int freq);
 
+void print_ssid_escaped(const uint8_t len, const uint8_t *data);
+
 int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *group);
 
 char *reg_initiator_to_string(__u8 initiator);

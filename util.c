@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "iw.h"
 #include "nl80211.h"
 
@@ -88,4 +89,16 @@ int ieee80211_frequency_to_channel(int freq)
 
 	/* FIXME: dot11ChannelStartingFactor (802.11-2007 17.3.8.3.2) */
 	return freq/5 - 1000;
+}
+
+void print_ssid_escaped(const uint8_t len, const uint8_t *data)
+{
+	int i;
+
+	for (i = 0; i < len; i++) {
+		if (isprint(data[i]))
+			printf("%c", data[i]);
+		else
+			printf("\\x%.2x", data[i]);
+	}
 }

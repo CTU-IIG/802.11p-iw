@@ -75,11 +75,12 @@ static void print_frame(struct print_event_args *args, struct nlattr *attr)
 static int print_event(struct nl_msg *msg, void *arg)
 {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
-	struct nlattr *tb[NL80211_ATTR_MAX + 1];
+	struct nlattr *tb[NL80211_ATTR_MAX + 1], *nst;
 	struct print_event_args *args = arg;
 	char ifname[100];
 	char macbuf[6*3];
 	__u8 reg_type;
+	int rem_nst;
 
 	if (args->time) {
 		struct timeval tv;
@@ -105,10 +106,23 @@ static int print_event(struct nl_msg *msg, void *arg)
 		printf("renamed to %s\n", nla_get_string(tb[NL80211_ATTR_WIPHY_NAME]));
 		break;
 	case NL80211_CMD_NEW_SCAN_RESULTS:
-		printf("scan finished\n");
-		break;
+		printf("scan finished:");
 	case NL80211_CMD_SCAN_ABORTED:
-		printf("scan aborted\n");
+		if (gnlh->cmd == NL80211_CMD_SCAN_ABORTED)
+			printf("scan aborted:");
+		if (tb[NL80211_ATTR_SCAN_FREQUENCIES]) {
+			nla_for_each_nested(nst, tb[NL80211_ATTR_SCAN_FREQUENCIES], rem_nst)
+				printf(" %d", nla_get_u32(nst));
+			printf(",");
+		}
+		if (tb[NL80211_ATTR_SCAN_SSIDS]) {
+			nla_for_each_nested(nst, tb[NL80211_ATTR_SCAN_SSIDS], rem_nst) {
+				printf(" \"");
+				print_ssid_escaped(nla_len(nst), nla_data(nst));
+				printf("\"");
+			}
+		}
+		printf("\n");
 		break;
 	case NL80211_CMD_REG_CHANGE:
 		printf("regulatory domain change: ");

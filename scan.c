@@ -122,16 +122,8 @@ static void tab_on_first(bool *first)
 
 static void print_ssid(const uint8_t type, uint8_t len, const uint8_t *data)
 {
-	int i;
-
 	printf(" ");
-
-	for (i = 0; i < len; i++) {
-		if (isprint(data[i]))
-			printf("%c", data[i]);
-		else
-			printf("\\x%.2x", data[i]);
-	}
+	print_ssid_escaped(len, data);
 	printf("\n");
 }
 

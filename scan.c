@@ -580,9 +580,9 @@ static void print_wifi_wps(const uint8_t type, uint8_t len, const uint8_t *data)
 			printf("\t * Model: %.*s\n", sublen, data + 4);
 			break;
 		case 0x1057: {
-			__u16 val = (data[4] << 8) | data[5];
+			__u8 val = data[4];
 			tab_on_first(&first);
-			printf("\t * AP setup locked: 0x%.4x\n", val);
+			printf("\t * AP setup locked: 0x%.2x\n", val);
 			break;
 		}
 		case 0x1008: {

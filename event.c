@@ -165,12 +165,22 @@ static int print_event(struct nl_msg *msg, void *arg)
 		break;
 	case NL80211_CMD_AUTHENTICATE:
 		printf("auth");
-		print_frame(args, tb[NL80211_ATTR_FRAME]);
+		if (tb[NL80211_ATTR_FRAME])
+			print_frame(args, tb[NL80211_ATTR_FRAME]);
+		else if (tb[NL80211_ATTR_TIMED_OUT])
+			printf(": timed out");
+		else
+			printf(": unknown event");
 		printf("\n");
 		break;
 	case NL80211_CMD_ASSOCIATE:
 		printf("assoc");
-		print_frame(args, tb[NL80211_ATTR_FRAME]);
+		if (tb[NL80211_ATTR_FRAME])
+			print_frame(args, tb[NL80211_ATTR_FRAME]);
+		else if (tb[NL80211_ATTR_TIMED_OUT])
+			printf(": timed out");
+		else
+			printf(": unknown event");
 		printf("\n");
 		break;
 	case NL80211_CMD_DEAUTHENTICATE:

@@ -105,6 +105,9 @@ static int print_event(struct nl_msg *msg, void *arg)
 	case NL80211_CMD_NEW_WIPHY:
 		printf("renamed to %s\n", nla_get_string(tb[NL80211_ATTR_WIPHY_NAME]));
 		break;
+	case NL80211_CMD_TRIGGER_SCAN:
+		printf("scan started\n");
+		break;
 	case NL80211_CMD_NEW_SCAN_RESULTS:
 		printf("scan finished:");
 	case NL80211_CMD_SCAN_ABORTED:

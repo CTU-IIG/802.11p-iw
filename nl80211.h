@@ -242,6 +242,22 @@
  * @NL80211_CMD_LEAVE_IBSS: Leave the IBSS -- no special arguments, the IBSS is
  *	determined by the network interface.
  *
+ * @NL80211_CMD_CONNECT: connection request and notification; this command
+ *	requests to connect to a specified network but without separating
+ *	auth and assoc steps. For this, you need to specify the SSID in a
+ *	%NL80211_ATTR_SSID attribute, and can optionally specify the association
+ *	IEs in %NL80211_ATTR_IE, %NL80211_ATTR_AUTH_TYPE, %NL80211_ATTR_MAC,
+ *	%NL80211_ATTR_WIPHY_FREQ and %NL80211_ATTR_CONTROL_PORT.
+ *	It is also sent as an event, with the BSSID and response IEs when the
+ *	connection is established or failed to be established. This can be
+ *	determined by the STATUS_CODE attribute.
+ * @NL80211_CMD_ROAM: request that the card roam (currently not implemented),
+ *	sent as an event when the card/driver roamed by itself.
+ * @NL80211_CMD_DISCONNECT: drop a given connection; also used to notify
+ *	userspace that a connection was dropped by the AP or due to other
+ *	reasons, for this the %NL80211_ATTR_DISCONNECTED_BY_AP and
+ *	%NL80211_ATTR_REASON_CODE attributes are used.
+ *
  * @NL80211_CMD_MAX: highest used command number
  * @__NL80211_CMD_AFTER_LAST: internal use
  */
@@ -309,6 +325,10 @@ enum nl80211_commands {
 
 	NL80211_CMD_JOIN_IBSS,
 	NL80211_CMD_LEAVE_IBSS,
+
+	NL80211_CMD_CONNECT,
+	NL80211_CMD_ROAM,
+	NL80211_CMD_DISCONNECT,
 
 	/* add new commands above here */
 
@@ -511,6 +531,12 @@ enum nl80211_commands {
  *	authorized by user space. Otherwise, port is marked authorized by
  *	default in station mode.
  *
+ * @NL80211_ATTR_DISCONNECTED_BY_AP: A flag indicating that the DISCONNECT
+ *	event was due to the AP disconnecting the station, and not due to
+ *	a local disconnect request.
+ * @NL80211_ATTR_STATUS_CODE: StatusCode for the %NL80211_CMD_CONNECT
+ *	event (u16)
+ *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
@@ -618,6 +644,9 @@ enum nl80211_attrs {
 	NL80211_ATTR_STA_FLAGS2,
 
 	NL80211_ATTR_CONTROL_PORT,
+
+	NL80211_ATTR_DISCONNECTED_BY_AP,
+	NL80211_ATTR_STATUS_CODE,
 
 	/* add attributes here, update the policy in nl80211.c */
 

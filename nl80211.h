@@ -536,6 +536,8 @@ enum nl80211_commands {
  *	a local disconnect request.
  * @NL80211_ATTR_STATUS_CODE: StatusCode for the %NL80211_CMD_CONNECT
  *	event (u16)
+ * @NL80211_ATTR_PRIVACY: Flag attribute, used with connect(), indicating
+ *	that protected APs should be used.
  *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
@@ -644,6 +646,7 @@ enum nl80211_attrs {
 	NL80211_ATTR_STA_FLAGS2,
 
 	NL80211_ATTR_CONTROL_PORT,
+	NL80211_ATTR_PRIVACY,
 
 	NL80211_ATTR_DISCONNECTED_BY_AP,
 	NL80211_ATTR_STATUS_CODE,

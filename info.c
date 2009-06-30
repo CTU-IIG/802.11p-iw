@@ -226,7 +226,7 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			printf("\n");
 		}
 
-		printf("\t\tBitrates:\n");
+		printf("\t\tBitrates (non-HT):\n");
 
 		nla_for_each_nested(nl_rate, tb_band[NL80211_BAND_ATTR_RATES], rem_rate) {
 			nla_parse(tb_rate, NL80211_BITRATE_ATTR_MAX, nla_data(nl_rate),

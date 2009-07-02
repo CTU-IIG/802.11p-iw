@@ -81,6 +81,7 @@ static int print_event(struct nl_msg *msg, void *arg)
 	char macbuf[6*3];
 	__u8 reg_type;
 	int rem_nst;
+	__u16 status;
 
 	if (args->time) {
 		struct timeval tv;
@@ -194,6 +195,43 @@ static int print_event(struct nl_msg *msg, void *arg)
 	case NL80211_CMD_DISASSOCIATE:
 		printf("disassoc");
 		print_frame(args, tb[NL80211_ATTR_FRAME]);
+		printf("\n");
+		break;
+	case NL80211_CMD_CONNECT:
+		status = 0;
+		if (!tb[NL80211_ATTR_STATUS_CODE])
+			printf("unknown connect status");
+		else if (nla_get_u16(tb[NL80211_ATTR_STATUS_CODE]) == 0)
+			printf("connected");
+		else {
+			status = nla_get_u16(tb[NL80211_ATTR_STATUS_CODE]);
+			printf("failed to connect");
+		}
+		if (tb[NL80211_ATTR_MAC]) {
+			mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+			printf(" to %s", macbuf);
+		}
+		if (status)
+			printf(", status: %d: %s", status, get_status_str(status));
+		printf("\n");
+		break;
+	case NL80211_CMD_ROAM:
+		printf("roamed");
+		if (tb[NL80211_ATTR_MAC]) {
+			mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+			printf(" to %s", macbuf);
+		}
+		printf("\n");
+		break;
+	case NL80211_CMD_DISCONNECT:
+		printf("disconnected");
+		if (tb[NL80211_ATTR_DISCONNECTED_BY_AP])
+			printf(" (by AP)");
+		else
+			printf(" (local request)");
+		if (tb[NL80211_ATTR_REASON_CODE])
+			printf(" reason: %d: %s", nla_get_u16(tb[NL80211_ATTR_REASON_CODE]),
+				get_reason_str(nla_get_u16(tb[NL80211_ATTR_REASON_CODE])));
 		printf("\n");
 		break;
 	default:

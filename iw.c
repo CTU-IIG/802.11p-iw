@@ -168,6 +168,9 @@ static void usage(bool full)
 			continue;
 		__usage_cmd(cmd, "\t", full);
 	}
+	fprintf(stderr, "\nYou can omit the 'phy' or 'dev' if "
+			"the identification is unique,\n"
+			"e.g. \"iw wlan0 info\" or \"iw phy0 info\".\n\n");
 }
 
 static int print_help(struct nl80211_state *state,
@@ -432,9 +435,17 @@ int main(int argc, char **argv)
 		} else if (*(*argv + 3) == '#')
 			err = __handle_cmd(&nlstate, II_PHY_IDX, argc, argv, &cmd);
 		else
-			err = 1;
-	} else
-		err = __handle_cmd(&nlstate, II_NONE, argc, argv, &cmd);
+			goto detect;
+	} else {
+		int idx;
+		enum id_input idby = II_NONE;
+ detect:
+		if ((idx = if_nametoindex(argv[0])) != 0)
+			idby = II_NETDEV;
+		else if ((idx = phy_lookup(argv[0])) > 0)
+			idby = II_PHY_NAME;
+		err = __handle_cmd(&nlstate, idby, argc, argv, &cmd);
+	}
 
 	if (err == 1) {
 		if (cmd)

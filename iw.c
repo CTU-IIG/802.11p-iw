@@ -170,7 +170,8 @@ static void usage(bool full)
 	}
 	fprintf(stderr, "\nYou can omit the 'phy' or 'dev' if "
 			"the identification is unique,\n"
-			"e.g. \"iw wlan0 info\" or \"iw phy0 info\".\n\n");
+			"e.g. \"iw wlan0 info\" or \"iw phy0 info\". "
+			"(Don't when scripting.)\n\n");
 }
 
 static int print_help(struct nl80211_state *state,

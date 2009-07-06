@@ -63,6 +63,6 @@ static int disconnect(struct nl80211_state *state,
 TOPLEVEL(disconnect, NULL,
 	NL80211_CMD_DISCONNECT, 0, CIB_NETDEV, disconnect,
 	"Disconnect from the current network.");
-TOPLEVEL(connect, "<SSID> <freq in MHz> [<bssid>]",
+TOPLEVEL(connect, "<SSID> [<freq in MHz>] [<bssid>]",
 	NL80211_CMD_CONNECT, 0, CIB_NETDEV, iw_connect,
 	"Join the network with the given SSID (and frequency, BSSID).");

@@ -15,7 +15,7 @@ static int iw_connect(struct nl80211_state *state,
 		      int argc, char **argv)
 {
 	char *end;
-	unsigned char abssid[6];
+	unsigned char bssid[6];
 	int freq;
 
 	if (argc < 1)
@@ -38,17 +38,23 @@ static int iw_connect(struct nl80211_state *state,
 
 	/* bssid */
 	if (argc) {
-		if (mac_addr_a2n(abssid, argv[0]))
-			return 1;
-		NLA_PUT(msg, NL80211_ATTR_MAC, 6, abssid);
-		argv++;
-		argc--;
+		if (mac_addr_a2n(bssid, argv[0]) == 0) {
+			NLA_PUT(msg, NL80211_ATTR_MAC, 6, bssid);
+			argv++;
+			argc--;
+		}
 	}
 
-	if (argc)
+	if (!argc)
+		return 0;
+
+	if (strcmp(*argv, "key") != 0 && strcmp(*argv, "keys") != 0)
 		return 1;
 
-	return 0;
+	argv++;
+	argc--;
+
+	return parse_keys(msg, argv, argc);
  nla_put_failure:
 	return -ENOSPC;
 }
@@ -63,6 +69,6 @@ static int disconnect(struct nl80211_state *state,
 TOPLEVEL(disconnect, NULL,
 	NL80211_CMD_DISCONNECT, 0, CIB_NETDEV, disconnect,
 	"Disconnect from the current network.");
-TOPLEVEL(connect, "<SSID> [<freq in MHz>] [<bssid>]",
+TOPLEVEL(connect, "<SSID> [<freq in MHz>] [<bssid>] [key 0:abcde d:1:6162636465]",
 	NL80211_CMD_CONNECT, 0, CIB_NETDEV, iw_connect,
 	"Join the network with the given SSID (and frequency, BSSID).");

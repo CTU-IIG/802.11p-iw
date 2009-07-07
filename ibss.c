@@ -40,17 +40,23 @@ static int join_ibss(struct nl80211_state *state,
 	}
 
 	if (argc) {
-		if (mac_addr_a2n(abssid, argv[0]))
-			return 1;
-		NLA_PUT(msg, NL80211_ATTR_MAC, 6, abssid);
-		argv++;
-		argc--;
+		if (mac_addr_a2n(abssid, argv[0]) == 0) {
+			NLA_PUT(msg, NL80211_ATTR_MAC, 6, abssid);
+			argv++;
+			argc--;
+		}
 	}
 
-	if (argc)
+	if (!argc)
+		return 0;
+
+	if (strcmp(*argv, "key") != 0 && strcmp(*argv, "keys") != 0)
 		return 1;
 
-	return 0;
+	argv++;
+	argc--;
+
+	return parse_keys(msg, argv, argc);
  nla_put_failure:
 	return -ENOSPC;
 }
@@ -65,7 +71,7 @@ static int leave_ibss(struct nl80211_state *state,
 COMMAND(ibss, leave, NULL,
 	NL80211_CMD_LEAVE_IBSS, 0, CIB_NETDEV, leave_ibss,
 	"Leave the current IBSS cell.");
-COMMAND(ibss, join, "<SSID> <freq in MHz> [fixed-freq] [<fixed bssid>]",
+COMMAND(ibss, join, "<SSID> <freq in MHz> [fixed-freq] [<fixed bssid>] [key d:0:abcde]",
 	NL80211_CMD_JOIN_IBSS, 0, CIB_NETDEV, join_ibss,
 	"Join the IBSS cell with the given SSID, if it doesn't exist create\n"
 	"it on the given frequency. When fixed frequency is requested, don't\n"

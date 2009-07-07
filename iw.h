@@ -91,6 +91,8 @@ __u32 listen_events(struct nl80211_state *state,
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);
 int mac_addr_n2a(char *mac_addr, unsigned char *arg);
 
+int parse_keys(struct nl_msg *msg, char **argv, int argc);
+
 const char *iftype_name(enum nl80211_iftype iftype);
 int ieee80211_channel_to_frequency(int chan);
 int ieee80211_frequency_to_channel(int freq);

@@ -443,7 +443,7 @@ int main(int argc, char **argv)
  detect:
 		if ((idx = if_nametoindex(argv[0])) != 0)
 			idby = II_NETDEV;
-		else if ((idx = phy_lookup(argv[0])) > 0)
+		else if ((idx = phy_lookup(argv[0])) >= 0)
 			idby = II_PHY_NAME;
 		err = __handle_cmd(&nlstate, idby, argc, argv, &cmd);
 	}

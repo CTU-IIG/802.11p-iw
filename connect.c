@@ -9,10 +9,8 @@
 #include "nl80211.h"
 #include "iw.h"
 
-static int iw_connect(struct nl80211_state *state,
-		      struct nl_cb *cb,
-		      struct nl_msg *msg,
-		      int argc, char **argv)
+static int iw_conn(struct nl80211_state *state, struct nl_cb *cb,
+		   struct nl_msg *msg, int argc, char **argv)
 {
 	char *end;
 	unsigned char bssid[6];
@@ -69,6 +67,74 @@ static int disconnect(struct nl80211_state *state,
 TOPLEVEL(disconnect, NULL,
 	NL80211_CMD_DISCONNECT, 0, CIB_NETDEV, disconnect,
 	"Disconnect from the current network.");
-TOPLEVEL(connect, "<SSID> [<freq in MHz>] [<bssid>] [key 0:abcde d:1:6162636465]",
-	NL80211_CMD_CONNECT, 0, CIB_NETDEV, iw_connect,
-	"Join the network with the given SSID (and frequency, BSSID).");
+HIDDEN(conn, establish, "", NL80211_CMD_CONNECT, 0, CIB_NETDEV, iw_conn);
+
+static int iw_connect(struct nl80211_state *state, struct nl_cb *cb,
+		      struct nl_msg *msg, int argc, char **argv)
+{
+	char **conn_argv, *dev = argv[0];
+	static const __u32 cmds[] = {
+		NL80211_CMD_CONNECT,
+	};
+	struct print_event_args printargs = { };
+	int conn_argc, err;
+	bool wait = false;
+	int i;
+
+	/* strip "wlan0 connect" */
+	argc -= 2;
+	argv += 2;
+
+	/* check -w */
+	if (argc && strcmp(argv[0], "-w") == 0) {
+		wait = true;
+		argc--;
+		argv++;
+	}
+
+	conn_argc = 3 + argc;
+	conn_argv = calloc(conn_argc, sizeof(*conn_argv));
+	if (!conn_argv)
+		return -ENOMEM;
+	conn_argv[0] = dev;
+	conn_argv[1] = "conn";
+	conn_argv[2] = "establish";
+	for (i = 0; i < argc; i++)
+		conn_argv[i + 3] = argv[i];
+	err = handle_cmd(state, II_NETDEV, conn_argc, conn_argv);
+	free(conn_argv);
+	if (err)
+		return err;
+
+	if (!wait)
+		return 0;
+
+	/*
+	 * WARNING: DO NOT COPY THIS CODE INTO YOUR APPLICATION
+	 *
+	 * This code has a bug, which requires creating a separate
+	 * nl80211 socket to fix:
+	 * It is possible for a NL80211_CMD_NEW_SCAN_RESULTS or
+	 * NL80211_CMD_SCAN_ABORTED message to be sent by the kernel
+	 * before (!) we listen to it, because we only start listening
+	 * after we send our scan request.
+	 *
+	 * Doing it the other way around has a race condition as well,
+	 * if you first open the events socket you may get a notification
+	 * for a previous scan.
+	 *
+	 * The only proper way to fix this would be to listen to events
+	 * before sending the command, and for the kernel to send the
+	 * connect request along with the event, so that you can match
+	 * up whether the connect _you_ requested was finished or aborted.
+	 *
+	 * Alas, the kernel doesn't do that (yet).
+	 */
+
+	__listen_events(state, ARRAY_SIZE(cmds), cmds, &printargs);
+	return 0;
+}
+TOPLEVEL(connect, "[-w] <SSID> [<freq in MHz>] [<bssid>] [key 0:abcde d:1:6162636465]",
+	0, 0, CIB_NETDEV, iw_connect,
+	"Join the network with the given SSID (and frequency, BSSID).\n"
+	"With -w, wait for the connect to finish or fail.");

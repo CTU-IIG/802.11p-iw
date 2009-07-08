@@ -9,10 +9,6 @@ static int no_seq_check(struct nl_msg *msg, void *arg)
 	return NL_OK;
 }
 
-struct print_event_args {
-	bool frame, time;
-};
-
 static void print_frame(struct print_event_args *args, struct nlattr *attr)
 {
 	uint8_t *frame;
@@ -246,6 +242,7 @@ struct wait_event {
 	int n_cmds;
 	const __u32 *cmds;
 	__u32 cmd;
+	struct print_event_args *pargs;
 };
 
 static int wait_event(struct nl_msg *msg, void *arg)
@@ -257,15 +254,17 @@ static int wait_event(struct nl_msg *msg, void *arg)
 	for (i = 0; i < wait->n_cmds; i++) {
 		if (gnlh->cmd == wait->cmds[i]) {
 			wait->cmd = gnlh->cmd;
+		if (wait->pargs)
+			print_event(msg, wait->pargs);
 		}
 	}
 
 	return NL_SKIP;
 }
 
-static __u32 __listen_events(struct nl80211_state *state,
-			     const int n_waits, const __u32 *waits,
-			     struct print_event_args *args)
+__u32 __listen_events(struct nl80211_state *state,
+		      const int n_waits, const __u32 *waits,
+		      struct print_event_args *args)
 {
 	int mcid, ret;
 	struct nl_cb *cb = nl_cb_alloc(iw_debug ? NL_CB_DEBUG : NL_CB_DEFAULT);
@@ -315,10 +314,10 @@ static __u32 __listen_events(struct nl80211_state *state,
 	if (n_waits && waits) {
 		wait_ev.cmds = waits;
 		wait_ev.n_cmds = n_waits;
+		wait_ev.pargs = args;
 		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, wait_event, &wait_ev);
-	} else {
+	} else
 		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_event, args);
-	}
 
 	wait_ev.cmd = 0;
 

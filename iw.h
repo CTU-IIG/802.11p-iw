@@ -1,6 +1,7 @@
 #ifndef __IW_H
 #define __IW_H
 
+#include <stdbool.h>
 #include <netlink/netlink.h>
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
@@ -84,8 +85,16 @@ extern int iw_debug;
 
 int handle_cmd(struct nl80211_state *state, enum id_input idby,
 	       int argc, char **argv);
+
+struct print_event_args {
+	bool frame, time;
+};
+
 __u32 listen_events(struct nl80211_state *state,
 		    const int n_waits, const __u32 *waits);
+__u32 __listen_events(struct nl80211_state *state,
+		      const int n_waits, const __u32 *waits,
+		      struct print_event_args *args);
 
 
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);

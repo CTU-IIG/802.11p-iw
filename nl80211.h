@@ -262,9 +262,6 @@
  *	reasons, for this the %NL80211_ATTR_DISCONNECTED_BY_AP and
  *	%NL80211_ATTR_REASON_CODE attributes are used.
  *
- * @NL80211_CMD_SET_WIPHY_NETNS: Set a wiphy's netns. Note that all devices
- *	associated with this wiphy must be down and will follow.
- *
  * @NL80211_CMD_MAX: highest used command number
  * @__NL80211_CMD_AFTER_LAST: internal use
  */
@@ -338,8 +335,6 @@ enum nl80211_commands {
 	NL80211_CMD_CONNECT,
 	NL80211_CMD_ROAM,
 	NL80211_CMD_DISCONNECT,
-
-	NL80211_CMD_SET_WIPHY_NETNS,
 
 	/* add new commands above here */
 
@@ -572,8 +567,6 @@ enum nl80211_commands {
  * @NL80211_ATTR_PREV_BSSID: previous BSSID, to be used by in ASSOCIATE
  *	commands to specify using a reassociate frame
  *
- * @NL80211_ATTR_PID: Process ID of a network namespace.
- *
  * @NL80211_ATTR_KEY: key information in a nested attribute with
  *	%NL80211_KEY_* sub-attributes
  * @NL80211_ATTR_KEYS: array of keys for static WEP keys for connect()
@@ -705,8 +698,6 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_PREV_BSSID,
 
-	NL80211_ATTR_PID,
-
 	NL80211_ATTR_KEY,
 	NL80211_ATTR_KEYS,
 
@@ -738,6 +729,8 @@ enum nl80211_attrs {
 #define NL80211_ATTR_CIPHER_SUITE_GROUP NL80211_ATTR_CIPHER_SUITE_GROUP
 #define NL80211_ATTR_WPA_VERSIONS NL80211_ATTR_WPA_VERSIONS
 #define NL80211_ATTR_AKM_SUITES NL80211_ATTR_AKM_SUITES
+#define NL80211_ATTR_KEY NL80211_ATTR_KEY
+#define NL80211_ATTR_KEYS NL80211_ATTR_KEYS
 
 #define NL80211_MAX_SUPP_RATES			32
 #define NL80211_MAX_SUPP_REG_RULES		32

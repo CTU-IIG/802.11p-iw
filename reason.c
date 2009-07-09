@@ -26,7 +26,7 @@ static const char *reason_table[] = {
 	[23] = "IEEE 802.1X authentication failed",
 	[24] = "Cipher Suite rejected per security policy",
 	[31] = "TS deleted because QoS AP lacks sufficient bandwidth for this QoS STA due to a change in BSS service characteristics or operational mode",
-	[32] = "Disassociated for unspecified] =  QoS-related reason",
+	[32] = "Disassociated for unspecified QoS-related reason",
 	[33] = "Disassociated because QAP lacks sufficient bandwidth for this STA",
 	[34] = "Disassociated because of excessive frame losses and/or poor channel conditions",
 	[35] = "Disassociated because QSTA is transmitting outside the limits of its polled TXOPs",

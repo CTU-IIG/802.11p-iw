@@ -707,6 +707,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		[NL80211_BSS_INFORMATION_ELEMENTS] = { },
 		[NL80211_BSS_SIGNAL_MBM] = { .type = NLA_U32 },
 		[NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
+		[NL80211_BSS_STATUS] = { .type = NLA_U32 },
 	};
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -728,7 +729,26 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 
 	mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
 	if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
-	printf("BSS %s (on %s)\n", mac_addr, dev);
+	printf("BSS %s (on %s)", mac_addr, dev);
+
+	if (bss[NL80211_BSS_STATUS]) {
+		switch (nla_get_u32(bss[NL80211_BSS_STATUS])) {
+		case NL80211_BSS_STATUS_AUTHENTICATED:
+			printf(" -- authenticated");
+			break;
+		case NL80211_BSS_STATUS_ASSOCIATED:
+			printf(" -- associated");
+			break;
+		case NL80211_BSS_STATUS_IBSS_JOINED:
+			printf(" -- joined");
+			break;
+		default:
+			printf(" -- unknown status: %d",
+				nla_get_u32(bss[NL80211_BSS_STATUS]));
+			break;
+		}
+	}
+	printf("\n");
 
 	if (bss[NL80211_BSS_TSF]) {
 		unsigned long long tsf;

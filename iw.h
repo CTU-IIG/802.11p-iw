@@ -19,6 +19,8 @@ struct nl80211_state {
 	struct nl_sock *nl_sock;
 	struct nl_cache *nl_cache;
 	struct genl_family *nl80211;
+
+	const char *ifname;
 };
 
 enum command_identify_by {
@@ -114,5 +116,7 @@ char *reg_initiator_to_string(__u8 initiator);
 
 const char *get_reason_str(uint16_t reason);
 const char *get_status_str(uint16_t status);
+
+int set_interface_up(const char *ifname);
 
 #endif /* __IW_H */

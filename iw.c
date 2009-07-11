@@ -253,6 +253,8 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 	o_argc = argc;
 	o_argv = argv;
 
+	state->ifname = NULL;
+
 	switch (idby) {
 	case II_PHY_IDX:
 		command_idby = CIB_PHY;
@@ -270,6 +272,7 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 		break;
 	case II_NETDEV:
 		command_idby = CIB_NETDEV;
+		state->ifname = *argv;
 		devidx = if_nametoindex(*argv);
 		if (devidx == 0)
 			devidx = -1;

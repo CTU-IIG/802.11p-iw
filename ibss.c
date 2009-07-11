@@ -16,6 +16,7 @@ static int join_ibss(struct nl80211_state *state,
 {
 	char *end;
 	unsigned char abssid[6];
+	int err;
 
 	if (argc < 2)
 		return 1;
@@ -47,16 +48,20 @@ static int join_ibss(struct nl80211_state *state,
 		}
 	}
 
-	if (!argc)
-		return 0;
+	if (argc) {
+		if (strcmp(*argv, "key") != 0 && strcmp(*argv, "keys") != 0)
+			return 1;
 
-	if (strcmp(*argv, "key") != 0 && strcmp(*argv, "keys") != 0)
-		return 1;
+		argv++;
+		argc--;
 
-	argv++;
-	argc--;
+		err = parse_keys(msg, argv, argc);
+		if (err)
+			return err;
+	}
 
-	return parse_keys(msg, argv, argc);
+	return set_interface_up(state->ifname);
+
  nla_put_failure:
 	return -ENOSPC;
 }

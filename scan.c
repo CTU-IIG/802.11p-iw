@@ -32,6 +32,7 @@ static unsigned char ieee80211_oui[3] = { 0x00, 0x0f, 0xac };
 
 struct scan_params {
 	bool unknown;
+	enum print_ie_type type;
 };
 
 static int handle_scan(struct nl80211_state *state,
@@ -478,6 +479,7 @@ struct ie_print {
 	const char *name;
 	void (*print)(const uint8_t type, uint8_t len, const uint8_t *data);
 	uint8_t minlen, maxlen;
+	uint8_t flags;
 };
 
 static void print_ie(const struct ie_print *p, const uint8_t type,
@@ -513,16 +515,16 @@ static void print_ie(const struct ie_print *p, const uint8_t type,
 }
 
 static const struct ie_print ieprinters[] = {
-	[0] = { "SSID", print_ssid, 0, 32, },
-	[1] = { "Supported rates", print_supprates, 0, 255, },
-	[3] = { "DS Paramater set", print_ds, 1, 1, },
+	[0] = { "SSID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
+	[1] = { "Supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
+	[3] = { "DS Paramater set", print_ds, 1, 1, BIT(PRINT_SCAN), },
 	[5] = PRINT_IGN,
-	[7] = { "Country", print_country, 3, 255, },
-	[32] = { "Power constraint", print_powerconstraint, 1, 1, },
-	[42] = { "ERP", print_erp, 1, 255, },
-	[48] = { "RSN", print_rsn, 2, 255, },
-	[50] = { "Extended supported rates", print_supprates, 0, 255, },
-	[127] = { "Extended capabilities", print_capabilities, 0, 255, },
+	[7] = { "Country", print_country, 3, 255, BIT(PRINT_SCAN), },
+	[32] = { "Power constraint", print_powerconstraint, 1, 1, BIT(PRINT_SCAN), },
+	[42] = { "ERP", print_erp, 1, 255, BIT(PRINT_SCAN), },
+	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
+	[50] = { "Extended supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
+	[127] = { "Extended capabilities", print_capabilities, 0, 255, BIT(PRINT_SCAN), },
 };
 
 static void print_wifi_wpa(const uint8_t type, uint8_t len, const uint8_t *data)
@@ -630,13 +632,13 @@ static void print_wifi_wps(const uint8_t type, uint8_t len, const uint8_t *data)
 }
 
 static const struct ie_print wifiprinters[] = {
-	[1] = { "WPA", print_wifi_wpa, 2, 255, },
-	[2] = { "WMM", print_wifi_wmm, 1, 255, },
-	[4] = { "WPS", print_wifi_wps, 0, 255, },
+	[1] = { "WPA", print_wifi_wpa, 2, 255, BIT(PRINT_SCAN), },
+	[2] = { "WMM", print_wifi_wmm, 1, 255, BIT(PRINT_SCAN), },
+	[4] = { "WPS", print_wifi_wps, 0, 255, BIT(PRINT_SCAN), },
 };
 
 static void print_vendor(unsigned char len, unsigned char *data,
-			 struct scan_params *params)
+			 bool unknown, enum print_ie_type ptype)
 {
 	int i;
 
@@ -649,11 +651,13 @@ static void print_vendor(unsigned char len, unsigned char *data,
 	}
 
 	if (len >= 4 && memcmp(data, wifi_oui, 3) == 0) {
-		if (data[3] < ARRAY_SIZE(wifiprinters) && wifiprinters[data[3]].name) {
+		if (data[3] < ARRAY_SIZE(wifiprinters) &&
+		    wifiprinters[data[3]].name &&
+		    wifiprinters[data[3]].flags & BIT(ptype)) {
 			print_ie(&wifiprinters[data[3]], data[3], len - 4, data + 4);
 			return;
 		}
-		if (!params->unknown)
+		if (!unknown)
 			return;
 		printf("\tWiFi OUI %#.2x, data:", data[3]);
 		for(i = 0; i < len - 4; i++)
@@ -662,7 +666,7 @@ static void print_vendor(unsigned char len, unsigned char *data,
 		return;
 	}
 
-	if (!params->unknown)
+	if (!unknown)
 		return;
 
 	printf("\tVendor specific: OUI %.2x:%.2x:%.2x, data:",
@@ -672,14 +676,17 @@ static void print_vendor(unsigned char len, unsigned char *data,
 	printf("\n");
 }
 
-static void print_ies(unsigned char *ie, int ielen, struct scan_params *params)
+void print_ies(unsigned char *ie, int ielen, bool unknown,
+	       enum print_ie_type ptype)
 {
 	while (ielen >= 2 && ielen >= ie[1]) {
-		if (ie[0] < ARRAY_SIZE(ieprinters) && ieprinters[ie[0]].name) {
+		if (ie[0] < ARRAY_SIZE(ieprinters) &&
+		    ieprinters[ie[0]].name &&
+		    ieprinters[ie[0]].flags & BIT(ptype)) {
 			print_ie(&ieprinters[ie[0]], ie[0], ie[1], ie + 2);
 		} else if (ie[0] == 221 /* vendor */) {
-			print_vendor(ie[1], ie + 2, params);
-		} else if (params->unknown) {
+			print_vendor(ie[1], ie + 2, unknown, ptype);
+		} else if (unknown) {
 			int i;
 
 			printf("\tUnknown IE (%d):", ie[0]);
@@ -709,6 +716,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		[NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
 		[NL80211_BSS_STATUS] = { .type = NLA_U32 },
 	};
+	struct scan_params *params = arg;
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
 		  genlmsg_attrlen(gnlh, 0), NULL);
@@ -801,7 +809,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 	if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
 		print_ies(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]),
 			  nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]),
-			  arg);
+			  params->unknown, params->type);
 
 	return NL_SKIP;
 }
@@ -819,6 +827,8 @@ static int handle_scan_dump(struct nl80211_state *state,
 	scan_params.unknown = false;
 	if (argc == 1 && !strcmp(argv[0], "-u"))
 		scan_params.unknown = true;
+
+	scan_params.type = PRINT_SCAN;
 
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_bss_handler,
 		  &scan_params);

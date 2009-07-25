@@ -9,7 +9,7 @@
 #include "iw.h"
 #include "nl80211.h"
 
-int mac_addr_n2a(char *mac_addr, unsigned char *arg)
+void mac_addr_n2a(char *mac_addr, unsigned char *arg)
 {
 	int i, l;
 
@@ -23,7 +23,6 @@ int mac_addr_n2a(char *mac_addr, unsigned char *arg)
 			l += 3;
 		}
 	}
-	return 0;
 }
 
 int mac_addr_a2n(unsigned char *mac_addr, char *arg)

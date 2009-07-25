@@ -100,7 +100,7 @@ __u32 __listen_events(struct nl80211_state *state,
 
 
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);
-int mac_addr_n2a(char *mac_addr, unsigned char *arg);
+void mac_addr_n2a(char *mac_addr, unsigned char *arg);
 
 int parse_keys(struct nl_msg *msg, char **argv, int argc);
 
@@ -118,5 +118,15 @@ const char *get_reason_str(uint16_t reason);
 const char *get_status_str(uint16_t status);
 
 int set_interface_up(const char *ifname);
+
+enum print_ie_type {
+	PRINT_SCAN,
+	PRINT_LINK,
+};
+
+#define BIT(x) (1ULL<<(x))
+
+void print_ies(unsigned char *ie, int ielen, bool unknown,
+	       enum print_ie_type ptype);
 
 #endif /* __IW_H */

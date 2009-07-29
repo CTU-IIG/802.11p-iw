@@ -242,7 +242,7 @@ static int handle_link(struct nl80211_state *state, struct nl_cb *cb,
 
 	if (!lr.link_found) {
 		if (!lr.anything_found)
-			printf("Not connected.");
+			printf("Not connected.\n");
 		return 0;
 	}
 

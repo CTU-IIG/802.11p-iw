@@ -9,6 +9,38 @@ static int no_seq_check(struct nl_msg *msg, void *arg)
 	return NL_OK;
 }
 
+struct ieee80211_beacon_channel {
+	__u16 center_freq;
+	bool passive_scan;
+	bool no_ibss;
+};
+
+static int parse_beacon_hint_chan(struct nlattr *tb,
+				  struct ieee80211_beacon_channel *chan)
+{
+	struct nlattr *tb_freq[NL80211_FREQUENCY_ATTR_MAX + 1];
+	static struct nla_policy beacon_freq_policy[NL80211_FREQUENCY_ATTR_MAX + 1] = {
+		[NL80211_FREQUENCY_ATTR_FREQ] = { .type = NLA_U32 },
+		[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN] = { .type = NLA_FLAG },
+		[NL80211_FREQUENCY_ATTR_NO_IBSS] = { .type = NLA_FLAG },
+	};
+
+	if (nla_parse_nested(tb_freq,
+			     NL80211_FREQUENCY_ATTR_MAX,
+			     tb,
+			     beacon_freq_policy))
+		return -EINVAL;
+
+	chan->center_freq = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_FREQ]);
+
+	if (tb_freq[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN])
+		chan->passive_scan = true;
+	if (tb_freq[NL80211_FREQUENCY_ATTR_NO_IBSS])
+		chan->no_ibss = true;
+
+	return 0;
+}
+
 static void print_frame(struct print_event_args *args, struct nlattr *attr)
 {
 	uint8_t *frame;
@@ -70,12 +102,21 @@ static void print_frame(struct print_event_args *args, struct nlattr *attr)
 
 static int print_event(struct nl_msg *msg, void *arg)
 {
+#define PARSE_BEACON_CHAN(_attr, _chan) do { \
+	r = parse_beacon_hint_chan(tb[_attr], \
+				   &_chan); \
+	if (r) \
+		return NL_SKIP; \
+} while (0)
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1], *nst;
 	struct print_event_args *args = arg;
 	char ifname[100];
 	char macbuf[6*3];
 	__u8 reg_type;
+	struct ieee80211_beacon_channel chan_before_beacon,  chan_after_beacon;
+	__u32 wiphy_idx = 0;
+	int r;
 	int rem_nst;
 	__u16 status;
 
@@ -159,6 +200,33 @@ static int print_event(struct nl_msg *msg, void *arg)
 
 		printf("\n");
 		break;
+	case NL80211_CMD_REG_BEACON_HINT:
+
+		wiphy_idx = nla_get_u32(tb[NL80211_ATTR_WIPHY]);
+
+		memset(&chan_before_beacon, 0, sizeof(chan_before_beacon));
+		memset(&chan_after_beacon, 0, sizeof(chan_after_beacon));
+
+		PARSE_BEACON_CHAN(NL80211_ATTR_FREQ_BEFORE, chan_before_beacon);
+		PARSE_BEACON_CHAN(NL80211_ATTR_FREQ_AFTER, chan_after_beacon);
+
+		if (chan_before_beacon.center_freq != chan_after_beacon.center_freq)
+			break;
+
+		/* A beacon hint is sent _only_ if something _did_ change */
+		printf("beacon hint:\n");
+
+		printf("phy%d %d MHz [%d]:\n",
+		       wiphy_idx,
+		       chan_before_beacon.center_freq,
+		       ieee80211_frequency_to_channel(chan_before_beacon.center_freq));
+
+		if (chan_before_beacon.passive_scan && !chan_after_beacon.passive_scan)
+			printf("\to active scanning enabled\n");
+		if (chan_before_beacon.no_ibss && !chan_after_beacon.no_ibss)
+			printf("\to beaconing enabled\n");
+
+		break;
 	case NL80211_CMD_JOIN_IBSS:
 		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
 		printf("IBSS %s joined\n", macbuf);
@@ -236,6 +304,7 @@ static int print_event(struct nl_msg *msg, void *arg)
 	}
 
 	return NL_SKIP;
+#undef PARSE_BEACON_CHAN
 }
 
 struct wait_event {

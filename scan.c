@@ -541,11 +541,11 @@ static bool print_wifi_wmm_param(const uint8_t *data, uint8_t len)
 		goto invalid;
 
 	if (data[0] != 1) {
-		printf("not version 1: ");
+		printf("Parameter: not version 1: ");
 		return false;
 	}
 
-	printf("\t* Version 1");
+	printf("\t* Parameter version 1");
 
 	data++;
 
@@ -561,7 +561,7 @@ static bool print_wifi_wmm_param(const uint8_t *data, uint8_t len)
 		printf(" CW %d-%d", (1 << (data[1] & 0xf)) - 1,
 				    (1 << (data[1] >> 4)) - 1);
 		if (data[2] | data[3])
-			printf(", TXOP %d", (data[2] + (data[3] << 8)) * 32);
+			printf(", TXOP %d usec", (data[2] + (data[3] << 8)) * 32);
 		data += 4;
 	}
 

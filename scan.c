@@ -560,6 +560,7 @@ static bool print_wifi_wmm_param(const uint8_t *data, uint8_t len)
 			printf(" acm");
 		printf(" CW %d-%d", (1 << (data[1] & 0xf)) - 1,
 				    (1 << (data[1] >> 4)) - 1);
+		printf(", AIFSN %d", data[0] & 0xf);
 		if (data[2] | data[3])
 			printf(", TXOP %d usec", (data[2] + (data[3] << 8)) * 32);
 		data += 4;

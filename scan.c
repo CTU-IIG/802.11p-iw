@@ -532,6 +532,47 @@ static void print_wifi_wpa(const uint8_t type, uint8_t len, const uint8_t *data)
 	print_rsn_ie("TKIP", "IEEE 802.1X", len, data);
 }
 
+static bool print_wifi_wmm_param(const uint8_t *data, uint8_t len)
+{
+	int i;
+	static const char *aci_tbl[] = { "BE", "BK", "VI", "VO" };
+
+	if (len < 19)
+		goto invalid;
+
+	if (data[0] != 1) {
+		printf("not version 1: ");
+		return false;
+	}
+
+	printf("\t* Version 1");
+
+	data++;
+
+	if (data[0] & 0x80)
+		printf("\n\t\t* u-APSD");
+
+	data += 2;
+
+	for (i = 0; i < 4; i++) {
+		printf("\n\t\t* %s:", aci_tbl[data[0] & 3]);
+		if (data[4] & 0x10)
+			printf(" acm");
+		printf(" CW %d-%d", (1 << (data[1] & 0xf)) - 1,
+				    (1 << (data[1] >> 4)) - 1);
+		if (data[2] | data[3])
+			printf(", TXOP %d", (data[2] + (data[3] << 8)) * 32);
+		data += 4;
+	}
+
+	printf("\n");
+	return true;
+
+ invalid:
+ 	printf("invalid: ");
+ 	return false;
+}
+
 static void print_wifi_wmm(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	int i;
@@ -541,15 +582,16 @@ static void print_wifi_wmm(const uint8_t type, uint8_t len, const uint8_t *data)
 		printf(" information:");
 		break;
 	case 0x01:
-		printf(" parameter:");
+		if (print_wifi_wmm_param(data + 1, len - 1))
+			return;
 		break;
 	default:
 		printf(" type %d:", data[0]);
 		break;
 	}
 
-	for(i = 0; i < len - 1; i++)
-		printf(" %.02x", data[i + 1]);
+	for(i = 1; i < len; i++)
+		printf(" %.02x", data[i]);
 	printf("\n");
 }
 

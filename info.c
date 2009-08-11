@@ -159,8 +159,8 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			max_rx_supp_data_rate = ((mcs[10] >> 8) & ((mcs[11] & 0x3) << 8));
 			tx_mcs_set_defined = !!(mcs[12] & (1 << 0));
 			tx_mcs_set_equal = !(mcs[12] & (1 << 1));
-			tx_max_num_spatial_streams = (mcs[12] | ((1 << 3) | (1 << 4))) + 1;
-			tx_unequal_modulation = !!(mcs[12] & (1 << 5));
+			tx_max_num_spatial_streams = (mcs[12] & ((1 << 2) | (1 << 3))) + 1;
+			tx_unequal_modulation = !!(mcs[12] & (1 << 4));
 
 			if (max_rx_supp_data_rate)
 				printf("\t\tHT Max RX data rate: %d Mbps\n", max_rx_supp_data_rate);

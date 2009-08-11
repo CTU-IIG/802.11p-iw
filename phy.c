@@ -92,3 +92,51 @@ COMMAND(set, channel, "<channel> [HT20|HT40+|HT40-]",
 	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_chan, NULL);
 COMMAND(set, channel, "<channel> [HT20|HT40+|HT40-]",
 	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_chan, NULL);
+
+static int handle_fragmentation(struct nl80211_state *state,
+				struct nl_cb *cb, struct nl_msg *msg,
+				int argc, char **argv)
+{
+	unsigned int frag;
+
+	if (argc != 1)
+		return 1;
+
+	if (strcmp("off", argv[0]) == 0)
+		frag = -1;
+	else
+		frag = strtoul(argv[0], NULL, 10);
+
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FRAG_THRESHOLD, frag);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, frag, "<fragmentation threshold|off>",
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_fragmentation,
+	"Set fragmentation threshold.");
+
+static int handle_rts(struct nl80211_state *state,
+		      struct nl_cb *cb, struct nl_msg *msg,
+		      int argc, char **argv)
+{
+	unsigned int rts;
+
+	if (argc != 1)
+		return 1;
+
+	if (strcmp("off", argv[0]) == 0)
+		rts = -1;
+	else
+		rts = strtoul(argv[0], NULL, 10);
+
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_RTS_THRESHOLD, rts);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, rts, "<rts threshold|off>",
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_rts,
+	"Set rts threshold.");

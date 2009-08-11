@@ -247,6 +247,22 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		printf("\tmax # scan SSIDs: %d\n",
 		       nla_get_u8(tb_msg[NL80211_ATTR_MAX_NUM_SCAN_SSIDS]));
 
+	if (tb_msg[NL80211_ATTR_WIPHY_FRAG_THRESHOLD]) {
+		unsigned int frag;
+
+		frag = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_FRAG_THRESHOLD]);
+		if (frag != (unsigned int)-1)
+			printf("\tFragmentation threshold: %d\n", frag);
+	}
+
+	if (tb_msg[NL80211_ATTR_WIPHY_RTS_THRESHOLD]) {
+		unsigned int rts;
+
+		rts = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_RTS_THRESHOLD]);
+		if (rts != (unsigned int)-1)
+			printf("\tRTS threshold: %d\n", rts);
+	}
+
 	if (!tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES])
 		return NL_SKIP;
 

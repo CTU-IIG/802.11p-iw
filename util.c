@@ -152,6 +152,7 @@ int parse_keys(struct nl_msg *msg, char **argv, int argc)
 {
 	struct nlattr *keys;
 	int i = 0;
+	bool have_default = false;
 	char keybuf[13];
 
 	if (!argc)
@@ -177,6 +178,7 @@ int parse_keys(struct nl_msg *msg, char **argv, int argc)
 			pos++;
 			if (arg[pos] == ':')
 				pos++;
+			have_default = true;
 		}
 
 		if (!isdigit(arg[pos]))
@@ -207,9 +209,14 @@ int parse_keys(struct nl_msg *msg, char **argv, int argc)
 
 		NLA_PUT(msg, NL80211_KEY_DATA, keylen, keydata);
 
-		nla_nest_end(msg, key);
 		argv++;
 		argc--;
+
+		/* one key should be TX key */
+		if (!have_default && !argc)
+			NLA_PUT_FLAG(msg, NL80211_KEY_DEFAULT);
+
+		nla_nest_end(msg, key);
 	} while (argc);
 
 	nla_nest_end(msg, keys);

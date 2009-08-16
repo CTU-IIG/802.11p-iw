@@ -14,7 +14,7 @@ static int iw_conn(struct nl80211_state *state, struct nl_cb *cb,
 {
 	char *end;
 	unsigned char bssid[6];
-	int freq, err;
+	int freq;
 
 	if (argc < 1)
 		return 1;
@@ -43,20 +43,16 @@ static int iw_conn(struct nl80211_state *state, struct nl_cb *cb,
 		}
 	}
 
-	if (argc) {
-		if (strcmp(*argv, "key") != 0 && strcmp(*argv, "keys") != 0)
-			return 1;
+	if (!argc)
+		return 0;
 
-		argv++;
-		argc--;
+	if (strcmp(*argv, "key") != 0 && strcmp(*argv, "keys") != 0)
+		return 1;
 
-		err = parse_keys(msg, argv, argc);
-		if (err)
-			return err;
-	}
+	argv++;
+	argc--;
 
-	return set_interface_up(state->ifname);
-
+	return parse_keys(msg, argv, argc);
  nla_put_failure:
 	return -ENOSPC;
 }

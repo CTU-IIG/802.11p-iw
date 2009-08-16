@@ -2,10 +2,6 @@
 #include <netlink/attr.h>
 #include <errno.h>
 #include <stdbool.h>
-#include <net/if.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 #include "iw.h"
 #include "nl80211.h"
 
@@ -232,32 +228,4 @@ int parse_keys(struct nl_msg *msg, char **argv, int argc)
 			"           or 10 or 26 hex digits\n"
 			"for example: d:2:6162636465 is the same as d:2:abcde\n");
 	return 2;
-}
-
-int set_interface_up(const char *ifname)
-{
-	struct ifreq ifr;
-	int fd = socket(PF_INET, SOCK_DGRAM, 0);
-	int err = 0;
-
-	if (fd < 0)
-		return -errno;
-
-	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
-	if (ioctl(fd, SIOCGIFFLAGS, &ifr)) {
-		err = -errno;
-		goto out;
-	}
-
-	if (ifr.ifr_flags & IFF_UP)
-		goto out;
-
-	ifr.ifr_flags |= IFF_UP;
-	if (ioctl(fd, SIOCSIFFLAGS, &ifr))
-		err = -errno;
-
- out:
-	close(fd);
-	return err;
 }

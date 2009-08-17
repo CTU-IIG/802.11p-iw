@@ -80,19 +80,19 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	printf("Station %s (on %s)", mac_addr, dev);
 
 	if (sinfo[NL80211_STA_INFO_INACTIVE_TIME])
-		printf("\n\tinactive time:\t%d ms",
+		printf("\n\tinactive time:\t%u ms",
 			nla_get_u32(sinfo[NL80211_STA_INFO_INACTIVE_TIME]));
 	if (sinfo[NL80211_STA_INFO_RX_BYTES])
-		printf("\n\trx bytes:\t%d",
+		printf("\n\trx bytes:\t%u",
 			nla_get_u32(sinfo[NL80211_STA_INFO_RX_BYTES]));
 	if (sinfo[NL80211_STA_INFO_RX_PACKETS])
-		printf("\n\trx packets:\t%d",
+		printf("\n\trx packets:\t%u",
 			nla_get_u32(sinfo[NL80211_STA_INFO_RX_PACKETS]));
 	if (sinfo[NL80211_STA_INFO_TX_BYTES])
-		printf("\n\ttx bytes:\t%d",
+		printf("\n\ttx bytes:\t%u",
 			nla_get_u32(sinfo[NL80211_STA_INFO_TX_BYTES]));
 	if (sinfo[NL80211_STA_INFO_TX_PACKETS])
-		printf("\n\ttx packets:\t%d",
+		printf("\n\ttx packets:\t%u",
 			nla_get_u32(sinfo[NL80211_STA_INFO_TX_PACKETS]));
 	if (sinfo[NL80211_STA_INFO_SIGNAL])
 		printf("\n\tsignal:  \t%d dBm",

@@ -149,11 +149,11 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 	}
 
 	if (sinfo[NL80211_STA_INFO_RX_BYTES] && sinfo[NL80211_STA_INFO_RX_PACKETS])
-		printf("\tRX: %d bytes (%d packets)\n",
+		printf("\tRX: %u bytes (%u packets)\n",
 			nla_get_u32(sinfo[NL80211_STA_INFO_RX_BYTES]),
 			nla_get_u32(sinfo[NL80211_STA_INFO_RX_PACKETS]));
 	if (sinfo[NL80211_STA_INFO_TX_BYTES] && sinfo[NL80211_STA_INFO_TX_PACKETS])
-		printf("\tTX: %d bytes (%d packets)\n",
+		printf("\tTX: %u bytes (%u packets)\n",
 			nla_get_u32(sinfo[NL80211_STA_INFO_TX_BYTES]),
 			nla_get_u32(sinfo[NL80211_STA_INFO_TX_PACKETS]));
 	if (sinfo[NL80211_STA_INFO_SIGNAL])

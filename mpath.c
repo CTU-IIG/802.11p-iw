@@ -11,6 +11,8 @@
 #include "nl80211.h"
 #include "iw.h"
 
+SECTION(mpath);
+
 enum plink_state {
 	LISTEN,
 	OPN_SNT,

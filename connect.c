@@ -67,7 +67,6 @@ static int disconnect(struct nl80211_state *state,
 TOPLEVEL(disconnect, NULL,
 	NL80211_CMD_DISCONNECT, 0, CIB_NETDEV, disconnect,
 	"Disconnect from the current network.");
-HIDDEN(conn, establish, "", NL80211_CMD_CONNECT, 0, CIB_NETDEV, iw_conn);
 
 static int iw_connect(struct nl80211_state *state, struct nl_cb *cb,
 		      struct nl_msg *msg, int argc, char **argv)
@@ -97,7 +96,7 @@ static int iw_connect(struct nl80211_state *state, struct nl_cb *cb,
 	if (!conn_argv)
 		return -ENOMEM;
 	conn_argv[0] = dev;
-	conn_argv[1] = "conn";
+	conn_argv[1] = "connect";
 	conn_argv[2] = "establish";
 	for (i = 0; i < argc; i++)
 		conn_argv[i + 3] = argv[i];
@@ -138,3 +137,4 @@ TOPLEVEL(connect, "[-w] <SSID> [<freq in MHz>] [<bssid>] [key 0:abcde d:1:616263
 	0, 0, CIB_NETDEV, iw_connect,
 	"Join the network with the given SSID (and frequency, BSSID).\n"
 	"With -w, wait for the connect to finish or fail.");
+HIDDEN(connect, establish, "", NL80211_CMD_CONNECT, 0, CIB_NETDEV, iw_conn);

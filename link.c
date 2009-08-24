@@ -105,8 +105,6 @@ static int handle_scan_for_link(struct nl80211_state *state,
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, link_bss_handler, &lr);
 	return 0;
 }
-HIDDEN(link, get_bss, NULL, NL80211_CMD_GET_SCAN, NLM_F_DUMP,
-	CIB_NETDEV, handle_scan_for_link);
 
 static int print_link_sta(struct nl_msg *msg, void *arg)
 {
@@ -213,8 +211,6 @@ static int handle_link_sta(struct nl80211_state *state,
  nla_put_failure:
 	return -ENOBUFS;
 }
-HIDDEN(link, get_sta, "", NL80211_CMD_GET_STATION, 0,
-	CIB_NETDEV, handle_link_sta);
 
 static int handle_link(struct nl80211_state *state, struct nl_cb *cb,
 		       struct nl_msg *msg, int argc, char **argv)
@@ -255,3 +251,7 @@ static int handle_link(struct nl80211_state *state, struct nl_cb *cb,
 }
 TOPLEVEL(link, NULL, 0, 0, CIB_NETDEV, handle_link,
 	 "Print information about the current link, if any.");
+HIDDEN(link, get_sta, "", NL80211_CMD_GET_STATION, 0,
+	CIB_NETDEV, handle_link_sta);
+HIDDEN(link, get_bss, NULL, NL80211_CMD_GET_SCAN, NLM_F_DUMP,
+	CIB_NETDEV, handle_scan_for_link);

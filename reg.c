@@ -12,6 +12,8 @@
 #include "nl80211.h"
 #include "iw.h"
 
+SECTION(reg);
+
 #define MHZ_TO_KHZ(freq) ((freq) * 1000)
 #define KHZ_TO_MHZ(freq) ((freq) / 1000)
 #define DBI_TO_MBI(gain) ((gain) * 100)

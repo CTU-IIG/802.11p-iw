@@ -9,6 +9,8 @@
 #include "nl80211.h"
 #include "iw.h"
 
+SECTION(ibss);
+
 static int join_ibss(struct nl80211_state *state,
 		     struct nl_cb *cb,
 		     struct nl_msg *msg,

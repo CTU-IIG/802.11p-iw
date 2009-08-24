@@ -18,6 +18,8 @@
 			"otherbss: show frames from other BSSes\n"\
 			"cook:     use cooked mode"
 
+SECTION(interface);
+
 static char *mntr_flags[NL80211_MNTR_FLAG_MAX + 1] = {
 	"none",
 	"fcsfail",

@@ -94,12 +94,17 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_socket_free(state->nl_sock);
 }
 
-__COMMAND(NULL, NULL, "", NULL, 0, 0, 0, CIB_NONE, NULL, NULL);
-__COMMAND(NULL, NULL, "", NULL, 1, 0, 0, CIB_NONE, NULL, NULL);
-
 static int cmd_size;
 
-static void __usage_cmd(struct cmd *cmd, char *indent, bool full)
+extern struct cmd __start___cmd;
+extern struct cmd __stop___cmd;
+
+#define for_each_cmd(_cmd)					\
+	for (_cmd = &__start___cmd; _cmd < &__stop___cmd;		\
+	     _cmd = (const struct cmd *)((char *)_cmd + cmd_size))
+
+
+static void __usage_cmd(const struct cmd *cmd, char *indent, bool full)
 {
 	const char *start, *lend, *end;
 
@@ -115,8 +120,8 @@ static void __usage_cmd(struct cmd *cmd, char *indent, bool full)
 		printf("dev <devname> ");
 		break;
 	}
-	if (cmd->section)
-		printf("%s ", cmd->section);
+	if (cmd->parent && cmd->parent->name)
+		printf("%s ", cmd->parent->name);
 	printf("%s", cmd->name);
 	if (cmd->args)
 		printf(" %s", cmd->args);
@@ -156,17 +161,26 @@ static const char *argv0;
 
 static void usage(bool full)
 {
-	struct cmd *cmd;
+	const struct cmd *section, *cmd;
 
 	printf("Usage:\t%s [options] command\n", argv0);
 	usage_options();
 	printf("\t--version\tshow version (%s)\n", iw_version);
 	printf("Commands:\n");
-	for (cmd = &__start___cmd; cmd < &__stop___cmd;
-	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
-		if (!cmd->handler || cmd->hidden)
+	for_each_cmd(section) {
+		if (section->parent)
 			continue;
-		__usage_cmd(cmd, "\t", full);
+
+		if (section->handler && !section->hidden)
+			__usage_cmd(section, "\t", full);
+
+		for_each_cmd(cmd) {
+			if (section != cmd->parent)
+				continue;
+			if (!cmd->handler || cmd->hidden)
+				continue;
+			__usage_cmd(cmd, "\t", full);
+		}
 	}
 	printf("\nYou can omit the 'phy' or 'dev' if "
 			"the identification is unique,\n"
@@ -186,7 +200,7 @@ static int print_help(struct nl80211_state *state,
 TOPLEVEL(help, NULL, 0, 0, CIB_NONE, print_help,
 	 "Print usage for each command.");
 
-static void usage_cmd(struct cmd *cmd)
+static void usage_cmd(const struct cmd *cmd)
 {
 	printf("Usage:\t%s [options] ", argv0);
 	__usage_cmd(cmd, "", true);
@@ -238,9 +252,9 @@ static int ack_handler(struct nl_msg *msg, void *arg)
 }
 
 static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
-			int argc, char **argv, struct cmd **cmdout)
+			int argc, char **argv, const struct cmd **cmdout)
 {
-	struct cmd *cmd, *match = NULL;
+	const struct cmd *cmd, *match = NULL, *sectcmd;
 	struct nl_cb *cb;
 	struct nl_msg *msg;
 	int devidx = 0;
@@ -285,44 +299,61 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 	if (devidx < 0)
 		return -errno;
 
-	section = command = *argv;
+	section = *argv;
 	argc--;
 	argv++;
 
-	for (cmd = &__start___cmd; cmd < &__stop___cmd;
-	     cmd = (struct cmd *)((char *)cmd + cmd_size)) {
-		if (!cmd->handler)
+	for_each_cmd(sectcmd) {
+		if (sectcmd->parent)
 			continue;
-		if (cmd->idby != command_idby)
+		/* ok ... bit of a hack for the dupe 'info' section */
+		if (match && sectcmd->idby != command_idby)
 			continue;
-		if (cmd->section) {
-			if (strcmp(cmd->section, section))
-				continue;
-			/* this is a bit icky ... */
-			if (command == section) {
-				if (argc <= 0) {
-					if (match)
-						break;
-					return 1;
-				}
-				command = *argv;
-				argc--;
-				argv++;
-			}
-		} else if (section != command)
-			continue;
-		if (strcmp(cmd->name, command))
-			continue;
-		if (argc && !cmd->args)
-			continue;
-
-		match = cmd;
+		if (strcmp(sectcmd->name, section) == 0)
+			match = sectcmd;
 	}
 
-	cmd = match;
-
-	if (!cmd)
+	sectcmd = match;
+	match = NULL;
+	if (!sectcmd)
 		return 1;
+
+	if (argc > 0) {
+		command = *argv;
+
+		for_each_cmd(cmd) {
+			if (!cmd->handler)
+				continue;
+			if (cmd->parent != sectcmd)
+				continue;
+			if (cmd->idby != command_idby)
+				continue;
+			if (strcmp(cmd->name, command))
+				continue;
+			if (argc > 1 && !cmd->args)
+				continue;
+			match = cmd;
+			break;
+		}
+
+		if (match) {
+			argc--;
+			argv++;
+		}
+	}
+
+	if (match)
+		cmd = match;
+	else {
+		/* Use the section itself, if possible. */
+		cmd = sectcmd;
+		if (argc && !cmd->args)
+			return 1;
+		if (cmd->idby != command_idby)
+			return 1;
+		if (!cmd->handler)
+			return 1;
+	}
 
 	if (cmdout)
 		*cmdout = cmd;
@@ -396,11 +427,10 @@ int main(int argc, char **argv)
 {
 	struct nl80211_state nlstate;
 	int err;
-	struct cmd *cmd = NULL;
+	const struct cmd *cmd = NULL;
 
 	/* calculate command size including padding */
-	cmd_size = abs((long)&__cmd_NULL_NULL_1_CIB_NONE_0
-	             - (long)&__cmd_NULL_NULL_0_CIB_NONE_0);
+	cmd_size = abs((long)&__section_set - (long)&__section_get);
 	/* strip off self */
 	argc--;
 	argv0 = *argv++;

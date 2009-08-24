@@ -35,7 +35,6 @@ enum id_input {
 };
 
 struct cmd {
-	const char *section;
 	const char *name;
 	const char *args;
 	const char *help;
@@ -52,6 +51,7 @@ struct cmd {
 		       struct nl_cb *cb,
 		       struct nl_msg *msg,
 		       int argc, char **argv);
+	const struct cmd *parent;
 };
 
 #define ARRAY_SIZE(ar) (sizeof(ar)/sizeof(ar[0]))
@@ -60,7 +60,6 @@ struct cmd {
 	static const struct cmd						\
 	__cmd ## _ ## _symname ## _ ## _handler ## _ ## _nlcmd ## _ ## _idby ## _ ## _hidden\
 	__attribute__((used)) __attribute__((section("__cmd")))	= {	\
-		.section = (_section),					\
 		.name = (_name),					\
 		.args = (_args),					\
 		.cmd = (_nlcmd),					\
@@ -69,15 +68,34 @@ struct cmd {
 		.idby = (_idby),					\
 		.handler = (_handler),					\
 		.help = (_help),					\
+		.parent = _section,					\
 	 }
 #define COMMAND(section, name, args, cmd, flags, idby, handler, help)	\
-	__COMMAND(#section, name, #name, args, cmd, flags, 0, idby, handler, help)
+	__COMMAND(&(__section ## _ ## section), name, #name, args, cmd, flags, 0, idby, handler, help)
 #define HIDDEN(section, name, args, cmd, flags, idby, handler)		\
-	__COMMAND(#section, name, #name, args, cmd, flags, 1, idby, handler, NULL)
-#define TOPLEVEL(name, args, cmd, flags, idby, handler, help)		\
-	__COMMAND(NULL, name, #name, args, cmd, flags, 0, idby, handler, help)
-extern struct cmd __start___cmd;
-extern struct cmd __stop___cmd;
+	__COMMAND(&(__section ## _ ## section), name, #name, args, cmd, flags, 1, idby, handler, NULL)
+
+#define TOPLEVEL(_name, _args, _nlcmd, _flags, _idby, _handler, _help)	\
+	const struct cmd						\
+	__section ## _ ## _name						\
+	__attribute__((used)) __attribute__((section("__cmd")))	= {	\
+		.name = (#_name),					\
+		.args = (_args),					\
+		.cmd = (_nlcmd),					\
+		.nl_msg_flags = (_flags),				\
+		.idby = (_idby),					\
+		.handler = (_handler),					\
+		.help = (_help),					\
+	 }
+#define SECTION(_name)							\
+	const struct cmd __section ## _ ## _name			\
+	__attribute__((used)) __attribute__((section("__cmd"))) = {	\
+		.name = (#_name),					\
+		.hidden = 1,						\
+	}
+
+#define DECLARE_SECTION(_name)						\
+	extern const struct cmd __section ## _ ## _name;
 
 extern const char iw_version[];
 
@@ -124,5 +142,9 @@ enum print_ie_type {
 
 void print_ies(unsigned char *ie, int ielen, bool unknown,
 	       enum print_ie_type ptype);
+
+
+DECLARE_SECTION(set);
+DECLARE_SECTION(get);
 
 #endif /* __IW_H */

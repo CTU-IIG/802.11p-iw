@@ -127,7 +127,7 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		printf("\n\tmesh plid:\t%d",
 			nla_get_u16(sinfo[NL80211_STA_INFO_PLID]));
 	if (sinfo[NL80211_STA_INFO_PLINK_STATE]) {
-		switch (nla_get_u16(sinfo[NL80211_STA_INFO_PLINK_STATE])) {
+		switch (nla_get_u8(sinfo[NL80211_STA_INFO_PLINK_STATE])) {
 		case LISTEN:
 			strcpy(state_name, "LISTEN");
 			break;

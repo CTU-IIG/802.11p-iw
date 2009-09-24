@@ -140,3 +140,27 @@ static int handle_rts(struct nl80211_state *state,
 COMMAND(set, rts, "<rts threshold|off>",
 	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_rts,
 	"Set rts threshold.");
+
+static int handle_netns(struct nl80211_state *state,
+			struct nl_cb *cb,
+			struct nl_msg *msg,
+			int argc, char **argv)
+{
+	char *end;
+
+	if (argc != 1)
+		return 1;
+
+	NLA_PUT_U32(msg, NL80211_ATTR_PID,
+		    strtoul(argv[0], &end, 10)); 
+
+	if (*end != '\0')
+		return 1;
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, netns, "<pid>",
+	NL80211_CMD_SET_WIPHY_NETNS, 0, CIB_PHY, handle_netns,
+	"Put this wireless device into a different network namespace");

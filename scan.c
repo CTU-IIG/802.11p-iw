@@ -754,6 +754,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		[NL80211_BSS_SIGNAL_MBM] = { .type = NLA_U32 },
 		[NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
 		[NL80211_BSS_STATUS] = { .type = NLA_U32 },
+		[NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
 	};
 	struct scan_params *params = arg;
 
@@ -844,6 +845,10 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 	if (bss[NL80211_BSS_SIGNAL_UNSPEC]) {
 		unsigned char s = nla_get_u8(bss[NL80211_BSS_SIGNAL_UNSPEC]);
 		printf("\tsignal: %d/100\n", s);
+	}
+	if (bss[NL80211_BSS_SEEN_MS_AGO]) {
+		int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
+		printf("\tlast seen: %d ms ago\n", age);
 	}
 	if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
 		print_ies(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]),

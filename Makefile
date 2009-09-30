@@ -3,7 +3,7 @@
 MAKEFLAGS += --no-print-directory
 
 PREFIX ?= /usr
-BINDIR ?= $(PREFIX)/bin
+SBINDIR ?= $(PREFIX)/sbin
 MANDIR ?= $(PREFIX)/share/man
 PKG_CONFIG ?= pkg-config
 
@@ -85,8 +85,8 @@ check:
 
 install: iw iw.8.gz
 	@$(NQ) ' INST iw'
-	$(Q)$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(Q)$(INSTALL) -m 755 -t $(DESTDIR)$(BINDIR) iw
+	$(Q)$(MKDIR) $(DESTDIR)$(SBINDIR)
+	$(Q)$(INSTALL) -m 755 -t $(DESTDIR)$(SBINDIR) iw
 	@$(NQ) ' INST iw.8'
 	$(Q)$(MKDIR) $(DESTDIR)$(MANDIR)/man8/
 	$(Q)$(INSTALL) -m 644 -t $(DESTDIR)$(MANDIR)/man8/ iw.8.gz

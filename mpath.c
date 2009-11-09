@@ -184,6 +184,8 @@ static int handle_mpath_dump(struct nl80211_state *state,
 			     struct nl_msg *msg,
 			     int argc, char **argv)
 {
+	printf("DEST ADDR         NEXT HOP          IFACE\tDSN\tMETRIC\tQLEN\t"
+	       "EXPTIME\t\tDTIM\tDRET\tFLAGS\n");
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_mpath_handler, NULL);
 	return 0;
 }

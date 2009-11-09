@@ -165,6 +165,8 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 	{"mesh_hwmp_net_diameter_traversal_time",
 	NL80211_MESHCONF_HWMP_NET_DIAM_TRVS_TIME,
 	_my_nla_put_u16, _parse_u16, _print_u16_in_TUs},
+	{"mesh_hwmp_rootmode", NL80211_MESHCONF_HWMP_ROOTMODE,
+	_my_nla_put_u8, _parse_u8, _print_u8},
 };
 
 static void print_all_mesh_param_descr(void)

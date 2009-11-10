@@ -38,8 +38,8 @@ ifeq ($(NLLIBNAME),)
 $(error Cannot find development files for any supported version of libnl)
 endif
 
-LIBS += $(shell pkg-config --libs $(NLLIBNAME))
-CFLAGS += $(shell pkg-config --cflags $(NLLIBNAME))
+LIBS += $(shell $(PKG_CONFIG) --libs $(NLLIBNAME))
+CFLAGS += $(shell $(PKG_CONFIG) --cflags $(NLLIBNAME))
 
 ifeq ($(V),1)
 Q=

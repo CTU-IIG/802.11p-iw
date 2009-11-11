@@ -56,13 +56,13 @@ static int print_mpath_handler(struct nl_msg *msg, void *arg)
 	 */
 
 	if (!tb[NL80211_ATTR_MPATH_INFO]) {
-		fprintf(stderr, "mpath info missing!");
+		fprintf(stderr, "mpath info missing!\n");
 		return NL_SKIP;
 	}
 	if (nla_parse_nested(pinfo, NL80211_MPATH_INFO_MAX,
 			     tb[NL80211_ATTR_MPATH_INFO],
 			     mpath_policy)) {
-		fprintf(stderr, "failed to parse nested attributes!");
+		fprintf(stderr, "failed to parse nested attributes!\n");
 		return NL_SKIP;
 	}
 

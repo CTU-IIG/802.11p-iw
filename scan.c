@@ -762,13 +762,13 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		  genlmsg_attrlen(gnlh, 0), NULL);
 
 	if (!tb[NL80211_ATTR_BSS]) {
-		fprintf(stderr, "bss info missing!");
+		fprintf(stderr, "bss info missing!\n");
 		return NL_SKIP;
 	}
 	if (nla_parse_nested(bss, NL80211_BSS_MAX,
 			     tb[NL80211_ATTR_BSS],
 			     bss_policy)) {
-		fprintf(stderr, "failed to parse nested attributes!");
+		fprintf(stderr, "failed to parse nested attributes!\n");
 		return NL_SKIP;
 	}
 

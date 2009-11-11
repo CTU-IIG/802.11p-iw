@@ -44,13 +44,13 @@ static int link_bss_handler(struct nl_msg *msg, void *arg)
 		  genlmsg_attrlen(gnlh, 0), NULL);
 
 	if (!tb[NL80211_ATTR_BSS]) {
-		fprintf(stderr, "bss info missing!");
+		fprintf(stderr, "bss info missing!\n");
 		return NL_SKIP;
 	}
 	if (nla_parse_nested(bss, NL80211_BSS_MAX,
 			     tb[NL80211_ATTR_BSS],
 			     bss_policy)) {
-		fprintf(stderr, "failed to parse nested attributes!");
+		fprintf(stderr, "failed to parse nested attributes!\n");
 		return NL_SKIP;
 	}
 
@@ -136,13 +136,13 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 		  genlmsg_attrlen(gnlh, 0), NULL);
 
 	if (!tb[NL80211_ATTR_STA_INFO]) {
-		fprintf(stderr, "sta stats missing!");
+		fprintf(stderr, "sta stats missing!\n");
 		return NL_SKIP;
 	}
 	if (nla_parse_nested(sinfo, NL80211_STA_INFO_MAX,
 			     tb[NL80211_ATTR_STA_INFO],
 			     stats_policy)) {
-		fprintf(stderr, "failed to parse nested attributes!");
+		fprintf(stderr, "failed to parse nested attributes!\n");
 		return NL_SKIP;
 	}
 
@@ -161,7 +161,7 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 	if (sinfo[NL80211_STA_INFO_TX_BITRATE]) {
 		if (nla_parse_nested(rinfo, NL80211_RATE_INFO_MAX,
 				     sinfo[NL80211_STA_INFO_TX_BITRATE], rate_policy)) {
-			fprintf(stderr, "failed to parse nested rate attributes!");
+			fprintf(stderr, "failed to parse nested rate attributes!\n");
 		} else {
 			printf("\ttx bitrate: ");
 			if (rinfo[NL80211_RATE_INFO_BITRATE]) {

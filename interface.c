@@ -137,6 +137,20 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type,
 	return 2;
 }
 
+static int parse_4addr_flag(const char *value, struct nl_msg *msg)
+{
+	if (strcmp(value, "on") == 0)
+		NLA_PUT_U8(msg, NL80211_ATTR_4ADDR, 1);
+	else if (strcmp(value, "off") == 0)
+		NLA_PUT_U8(msg, NL80211_ATTR_4ADDR, 0);
+	else
+		return 1;
+	return 0;
+
+nla_put_failure:
+	return 1;
+}
+
 static int handle_interface_add(struct nl80211_state *state,
 				struct nl_cb *cb,
 				struct nl_msg *msg,
@@ -168,6 +182,15 @@ static int handle_interface_add(struct nl80211_state *state,
 			mesh_id = argv[0];
 			argc--;
 			argv++;
+		} else if (strcmp(argv[0], "4addr") == 0) {
+			argc--;
+			argv++;
+			if (parse_4addr_flag(argv[0], msg)) {
+				fprintf(stderr, "4addr error\n");
+				return 2;
+			}
+			argc--;
+			argv++;
 		} else if (strcmp(argv[0], "flags") == 0) {
 			argc--;
 			argv++;
@@ -192,14 +215,14 @@ static int handle_interface_add(struct nl80211_state *state,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags <flag>*]",
+COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [4addr on|off] [flags <flag>*]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_PHY, handle_interface_add,
 	"Add a new virtual interface with the given configuration.\n"
 	IFACE_TYPES "\n\n"
 	"The flags are only used for monitor interfaces, valid flags are:\n"
 	VALID_FLAGS "\n\n"
 	"The mesh_id is used only for mesh mode.");
-COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [flags <flag>*]",
+COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [4addr on|off] [flags <flag>*]",
 	NL80211_CMD_NEW_INTERFACE, 0, CIB_NETDEV, handle_interface_add, NULL);
 
 static int handle_interface_del(struct nl80211_state *state,

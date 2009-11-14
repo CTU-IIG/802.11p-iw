@@ -69,6 +69,69 @@ const char *iftype_name(enum nl80211_iftype iftype)
 	return modebuf;
 }
 
+static const char *commands[NL80211_CMD_MAX + 1] = {
+	"unspecified",
+	"get_wiphy",
+	"set_wiphy",
+	"new_wiphy",
+	"del_wiphy",
+	"get_interface",
+	"set_interface",
+	"new_interface",
+	"del_interface",
+	"get_key",
+	"set_key",
+	"new_key",
+	"del_key",
+	"get_beacon",
+	"set_beacon",
+	"new_beacon",
+	"del_beacon",
+	"get_station",
+	"set_station",
+	"new_station",
+	"del_station",
+	"get_mpath",
+	"set_mpath",
+	"new_mpath",
+	"del_mpath",
+	"set_bss",
+	"set_reg",
+	"reg_set_reg",
+	"get_mesh_params",
+	"set_mesh_params",
+	"set_mgmt_extra_ie",
+	"get_reg",
+	"get_scan",
+	"trigger_scan",
+	"new_scan_results",
+	"scan_aborted",
+	"reg_change",
+	"authenticate",
+	"associate",
+	"deauthenticate",
+	"disassociate",
+	"michael_mic_failure",
+	"reg_beacon_hint",
+	"join_ibss",
+	"leave_ibss",
+	"testmode",
+	"connect",
+	"roam",
+	"disconnect",
+	"set_wiphy_netns"
+};
+
+static char cmdbuf[100];
+
+const char *command_name(enum nl80211_commands cmd)
+{
+	if (cmd <= NL80211_CMD_MAX)
+		return commands[cmd];
+	sprintf(cmdbuf, "Unknown command (%d)", cmd);
+	return cmdbuf;
+}
+
 int ieee80211_channel_to_frequency(int chan)
 {
 	if (chan < 14)

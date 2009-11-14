@@ -66,8 +66,9 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	struct nlattr *nl_freq;
 	struct nlattr *nl_rate;
 	struct nlattr *nl_mode;
+	struct nlattr *nl_cmd;
 	int bandidx = 1;
-	int rem_band, rem_freq, rem_rate, rem_mode;
+	int rem_band, rem_freq, rem_rate, rem_mode, rem_cmd;
 	int open;
 
 	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -264,11 +265,19 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	}
 
 	if (!tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES])
-		return NL_SKIP;
+		goto commands;
 
 	printf("\tSupported interface modes:\n");
 	nla_for_each_nested(nl_mode, tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES], rem_mode)
 		printf("\t\t * %s\n", iftype_name(nl_mode->nla_type));
+
+ commands:
+	if (!tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS])
+		return NL_SKIP;
+
+	printf("\tSupported commands:\n");
+	nla_for_each_nested(nl_cmd, tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS], rem_cmd)
+		printf("\t\t * %s\n", command_name(nla_get_u32(nl_cmd)));
 
 	return NL_SKIP;
 }

@@ -38,7 +38,7 @@ static int print_mpath_handler(struct nl_msg *msg, void *arg)
 	char dst[20], next_hop[20], dev[20];
 	static struct nla_policy mpath_policy[NL80211_MPATH_INFO_MAX + 1] = {
 		[NL80211_MPATH_INFO_FRAME_QLEN] = { .type = NLA_U32 },
-		[NL80211_MPATH_INFO_DSN] = { .type = NLA_U32 },
+		[NL80211_MPATH_INFO_SN] = { .type = NLA_U32 },
 		[NL80211_MPATH_INFO_METRIC] = { .type = NLA_U32 },
 		[NL80211_MPATH_INFO_EXPTIME] = { .type = NLA_U32 },
 		[NL80211_MPATH_INFO_DISCOVERY_TIMEOUT] = { .type = NLA_U32 },
@@ -70,9 +70,9 @@ static int print_mpath_handler(struct nl_msg *msg, void *arg)
 	mac_addr_n2a(next_hop, nla_data(tb[NL80211_ATTR_MPATH_NEXT_HOP]));
 	if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
 	printf("%s %s %s", dst, next_hop, dev);
-	if (pinfo[NL80211_MPATH_INFO_DSN])
+	if (pinfo[NL80211_MPATH_INFO_SN])
 		printf("\t%u",
-			nla_get_u32(pinfo[NL80211_MPATH_INFO_DSN]));
+			nla_get_u32(pinfo[NL80211_MPATH_INFO_SN]));
 	if (pinfo[NL80211_MPATH_INFO_METRIC])
 		printf("\t%u",
 			nla_get_u32(pinfo[NL80211_MPATH_INFO_METRIC]));

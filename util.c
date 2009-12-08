@@ -449,7 +449,7 @@ void print_ht_mcs(const __u8 *mcs)
 
 	if (tx_mcs_set_defined) {
 		if (tx_mcs_set_equal) {
-			printf("\t\tHT TX/RX MCS rate indexes supported:\n");
+			printf("\t\tHT TX/RX MCS rate indexes supported:");
 			print_mcs_index(mcs);
 		} else {
 			printf("\t\tHT RX MCS rate indexes supported:");

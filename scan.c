@@ -458,45 +458,9 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 
 	memcpy(&ht_cap, data, 26);
 
-	printf("\n\t\tCapabilities: %#.4x\n", htc->cap);
+	printf("\n");
+	print_ht_capability(htc->cap);
 
-	PRINT_HT_CAP((htc->cap & BIT(0)), "RX LDCP");
-	PRINT_HT_CAP((htc->cap & BIT(1)), "HT20/HT40");
-	PRINT_HT_CAP(!(htc->cap & BIT(1)), "HT20");
-
-	PRINT_HT_CAP(((htc->cap >> 2) & 0x3) == 0, "Static SM Power Save");
-	PRINT_HT_CAP(((htc->cap >> 2) & 0x3) == 1, "Dynamic SM Power Save");
-	PRINT_HT_CAP(((htc->cap >> 2) & 0x3) == 3, "SM Power Save disabled");
-
-	PRINT_HT_CAP((htc->cap & BIT(4)), "RX Greenfield");
-	PRINT_HT_CAP((htc->cap & BIT(5)), "RX HT20 SGI");
-	PRINT_HT_CAP((htc->cap & BIT(6)), "RX HT40 SGI");
-	PRINT_HT_CAP((htc->cap & BIT(7)), "TX STBC");
-
-	PRINT_HT_CAP(((htc->cap >> 8) & 0x3) == 0, "No RX STBC");
-	PRINT_HT_CAP(((htc->cap >> 8) & 0x3) == 1, "RX STBC 1-stream");
-	PRINT_HT_CAP(((htc->cap >> 8) & 0x3) == 2, "RX STBC 2-streams");
-	PRINT_HT_CAP(((htc->cap >> 8) & 0x3) == 3, "RX STBC 3-streams");
-
-	PRINT_HT_CAP((htc->cap & BIT(10)), "HT Delayed Block Ack");
-
-	PRINT_HT_CAP((htc->cap & BIT(11)), "Max AMSDU length: 3839 bytes");
-        PRINT_HT_CAP(!(htc->cap & BIT(11)), "Max AMSDU length: 7935 bytes");
-
-	/*
-	 * For beacons and probe response this would mean the BSS
-	 * does or does not allow the usage of DSSS/CCK HT40.
-	 * Otherwise it means the STA does or does not use
-	 * DSSS/CCK HT40.
-	 */
-	PRINT_HT_CAP((htc->cap & BIT(12)), "DSSS/CCK HT40");
-	PRINT_HT_CAP(!(htc->cap & BIT(12)), "No DSSS/CCK HT40");
-
-	/* BIT(13) is reserved */
-
-	PRINT_HT_CAP((htc->cap & BIT(14)), "40 MHz Intolerant");
-
-	PRINT_HT_CAP((htc->cap & BIT(15)), "L-SIG TXOP protection");
 
 	ampdu_exponent = htc->ampdu_params & 0x3;
 	print_ampdu_length(ampdu_exponent);

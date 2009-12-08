@@ -355,3 +355,53 @@ void print_ampdu_spacing(__u8 spacing)
         printf("\t\tMinimum RX AMPDU time spacing: %s (0x%02x)\n",
                print_ampdu_space(spacing), spacing);
 }
+
+void print_ht_capability(__u16 cap)
+{
+#define PRINT_HT_CAP(_cond, _str) \
+	do { \
+		if (_cond) \
+			printf("\t\t\t" _str "\n"); \
+	} while (0)
+
+	printf("\t\tCapabilities: 0x%02x\n", cap);
+
+	PRINT_HT_CAP((cap & BIT(0)), "RX LDCP");
+	PRINT_HT_CAP((cap & BIT(1)), "HT20/HT40");
+	PRINT_HT_CAP(!(cap & BIT(1)), "HT20");
+
+	PRINT_HT_CAP(((cap >> 2) & 0x3) == 0, "Static SM Power Save");
+	PRINT_HT_CAP(((cap >> 2) & 0x3) == 1, "Dynamic SM Power Save");
+	PRINT_HT_CAP(((cap >> 2) & 0x3) == 3, "SM Power Save disabled");
+
+	PRINT_HT_CAP((cap & BIT(4)), "RX Greenfield");
+	PRINT_HT_CAP((cap & BIT(5)), "RX HT20 SGI");
+	PRINT_HT_CAP((cap & BIT(6)), "RX HT40 SGI");
+	PRINT_HT_CAP((cap & BIT(7)), "TX STBC");
+
+	PRINT_HT_CAP(((cap >> 8) & 0x3) == 0, "No RX STBC");
+	PRINT_HT_CAP(((cap >> 8) & 0x3) == 1, "RX STBC 1-stream");
+	PRINT_HT_CAP(((cap >> 8) & 0x3) == 2, "RX STBC 2-streams");
+	PRINT_HT_CAP(((cap >> 8) & 0x3) == 3, "RX STBC 3-streams");
+
+	PRINT_HT_CAP((cap & BIT(10)), "HT Delayed Block Ack");
+
+	PRINT_HT_CAP((cap & BIT(11)), "Max AMSDU length: 3839 bytes");
+        PRINT_HT_CAP(!(cap & BIT(11)), "Max AMSDU length: 7935 bytes");
+
+	/*
+	 * For beacons and probe response this would mean the BSS
+	 * does or does not allow the usage of DSSS/CCK HT40.
+	 * Otherwise it means the STA does or does not use
+	 * DSSS/CCK HT40.
+	 */
+	PRINT_HT_CAP((cap & BIT(12)), "DSSS/CCK HT40");
+	PRINT_HT_CAP(!(cap & BIT(12)), "No DSSS/CCK HT40");
+
+	/* BIT(13) is reserved */
+
+	PRINT_HT_CAP((cap & BIT(14)), "40 MHz Intolerant");
+
+	PRINT_HT_CAP((cap & BIT(15)), "L-SIG TXOP protection");
+#undef PRINT_HT_CAP
+}

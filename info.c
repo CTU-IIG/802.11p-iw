@@ -89,41 +89,8 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 
 #ifdef NL80211_BAND_ATTR_HT_CAPA
 		if (tb_band[NL80211_BAND_ATTR_HT_CAPA]) {
-			unsigned short cap = nla_get_u16(tb_band[NL80211_BAND_ATTR_HT_CAPA]);
-#define PCOM(fmt, args...) do { printf("\t\t\t* " fmt "\n", ##args); } while (0)
-#define PBCOM(bit, args...) if (cap & (bit)) PCOM(args)
-			printf("\t\tHT capabilities: 0x%.4x\n", cap);
-			PBCOM(0x0001, "LPDC coding");
-			if (cap & 0x0002)
-				PCOM("20/40 MHz operation");
-			else
-				PCOM("20 MHz operation");
-			switch ((cap & 0x000c) >> 2) {
-			case 0:
-				PCOM("static SM PS");
-				break;
-			case 1:
-				PCOM("dynamic SM PS");
-				break;
-			case 2:
-				PCOM("reserved SM PS");
-				break;
-			case 3:
-				PCOM("SM PS disabled");
-				break;
-			}
-			PBCOM(0x0010, "HT-greenfield");
-			PBCOM(0x0020, "20 MHz short GI");
-			PBCOM(0x0040, "40 MHz short GI");
-			PBCOM(0x0080, "TX STBC");
-			if (cap & 0x300)
-				PCOM("RX STBC %d streams", (cap & 0x0300) >> 8);
-			PBCOM(0x0400, "HT-delayed block-ack");
-			PCOM("max A-MSDU len %d", 0xeff + ((cap & 0x0800) << 1));
-			PBCOM(0x1000, "DSSS/CCK 40 MHz");
-			PBCOM(0x2000, "PSMP support");
-			PBCOM(0x4000, "40 MHz intolerant");
-			PBCOM(0x8000, "L-SIG TXOP protection support");
+			__u16 cap = nla_get_u16(tb_band[NL80211_BAND_ATTR_HT_CAPA]);
+			print_ht_capability(cap);
 		}
 		if (tb_band[NL80211_BAND_ATTR_HT_AMPDU_FACTOR]) {
 			__u8 exponent = nla_get_u8(tb_band[NL80211_BAND_ATTR_HT_AMPDU_FACTOR]);

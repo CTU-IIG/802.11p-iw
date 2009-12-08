@@ -447,8 +447,7 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 		__u8 asel_cap;
 	} __attribute__((packed)) ht_cap;
 	struct ht_cap_data *htc = &ht_cap;
-	__u8 ampdu_exponent, ampdu_spacing, bit;
-	__u32 i;
+	__u8 ampdu_exponent, ampdu_spacing;
 	bool tx_rx_mcs_equal = false;
 
 	if (len != 26) {
@@ -468,32 +467,14 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 	ampdu_spacing = (htc->ampdu_params >> 2) & 0x3;
 	print_ampdu_spacing(ampdu_spacing);
 
-	/* This is the whole MCS set, which is 16 bytes */
-	printf("\t\tMCS set:");
-	data+=2;
-	print_mcs_set(data);
-	printf("\n");
-
 	if (htc->mcs_set.tx_rx_mcs_defined && htc->mcs_set.tx_rx_mcs_not_equal)
 		tx_rx_mcs_equal = true;
 	if (tx_rx_mcs_equal)
-		printf("\t\tSupported TX/RX MCS Indexes:\n");
+		printf("\t\tSupported TX/RX MCS Indexes:");
 	else
-		printf("\t\tSupported RX MCS Indexes:\n");
-	/*
-	 * Parses the RX MCS rates. Only 10 bits correspond to actual MCS rates
-	 * MCS [0-76]
-	 */
-	for (i = 0; i < 10; i++) {
-		for (bit = 0; bit < 8; bit++) {
-			/* Only bits 0-76 are valid, bits 76-79 are reserved */
-			if (((i * 8) + bit) > 76)
-				break;
-			if (htc->mcs_set.rx_mcs_bitmask[i] & BIT(bit))
-				printf("\t\t\tMCS Index %d\n",
-				       (i * 8) + bit);
-		}
-	}
+		printf("\t\tSupported RX MCS Indexes:");
+
+	print_mcs_index(htc->mcs_set.rx_mcs_bitmask);
 
 	if (!htc->mcs_set.tx_rx_mcs_defined) {
 		/* This is actually quite common */

@@ -21,24 +21,6 @@ static void print_flag(const char *name, int *open)
 	*open = 1;
 }
 
-static void print_mcs_index(unsigned char *mcs)
-{
-	unsigned int mcs_bit;
-
-	for (mcs_bit = 0; mcs_bit <= 76; mcs_bit++) {
-		unsigned int mcs_octet = mcs_bit/8;
-		unsigned int MCS_RATE_BIT = 1 << mcs_bit % 8;
-		bool mcs_rate_idx_set;
-
-		mcs_rate_idx_set = !!(mcs[mcs_octet] & MCS_RATE_BIT);
-
-		if (!mcs_rate_idx_set)
-			continue;
-
-		printf("\t\t\tMCS index %d\n", mcs_bit);
-	}
-}
-
 static int print_phy_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
@@ -107,14 +89,10 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			unsigned char *mcs = nla_data(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]);
 			bool tx_mcs_set_defined, tx_mcs_set_equal, tx_unequal_modulation;
 
-			printf("\t\tHT MCS set:");
-			print_mcs_set(mcs);
-			printf("\n");
-
 			max_rx_supp_data_rate = ((mcs[10] >> 8) & ((mcs[11] & 0x3) << 8));
 			tx_mcs_set_defined = !!(mcs[12] & (1 << 0));
 			tx_mcs_set_equal = !(mcs[12] & (1 << 1));
-			tx_max_num_spatial_streams = (mcs[12] & ((1 << 2) | (1 << 3))) + 1;
+			tx_max_num_spatial_streams = ((mcs[12] >> 2) & 3) + 1;
 			tx_unequal_modulation = !!(mcs[12] & (1 << 4));
 
 			if (max_rx_supp_data_rate)
@@ -126,22 +104,22 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 					printf("\t\tHT TX/RX MCS rate indexes supported:\n");
 					print_mcs_index(&mcs[0]);
 				} else {
-					printf("\t\tHT RX MCS rate indexes supported:\n");
+					printf("\t\tHT RX MCS rate indexes supported:");
 					print_mcs_index(&mcs[0]);
 
 					if (tx_unequal_modulation)
-						printf("TX unequal modulation supported\n");
+						printf("\t\tTX unequal modulation supported\n");
 					else
-						printf("TX unequal modulation not supported\n");
+						printf("\t\tTX unequal modulation not supported\n");
 
-					printf("\t\tHT TX Max spatiel streams: %d\n",
+					printf("\t\tHT TX Max spatial streams: %d\n",
 						tx_max_num_spatial_streams);
 
 					printf("\t\tHT TX MCS rate indexes supported may differ\n");
 				}
 			}
 			else {
-				printf("\t\tHT RX MCS rate indexes supported:\n");
+				printf("\t\tHT RX MCS rate indexes supported:");
 				print_mcs_index(&mcs[0]);
 				printf("\t\tHT TX MCS rates indexes are undefined\n");
 			}

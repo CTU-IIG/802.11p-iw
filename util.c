@@ -293,7 +293,7 @@ int parse_keys(struct nl_msg *msg, char **argv, int argc)
 	return 2;
 }
 
-void print_mcs_index(__u8 *mcs)
+static void print_mcs_index(const __u8 *mcs)
 {
 	unsigned int mcs_bit, prev_bit = -2, prev_cont = 0;
 
@@ -429,4 +429,45 @@ void print_ht_capability(__u16 cap)
 
 	PRINT_HT_CAP((cap & BIT(15)), "L-SIG TXOP protection");
 #undef PRINT_HT_CAP
+}
+
+void print_ht_mcs(const __u8 *mcs)
+{
+	/* As defined in 7.3.2.57.4 Supported MCS Set field */
+	unsigned int tx_max_num_spatial_streams, max_rx_supp_data_rate;
+	bool tx_mcs_set_defined, tx_mcs_set_equal, tx_unequal_modulation;
+
+	max_rx_supp_data_rate = ((mcs[10] >> 8) & ((mcs[11] & 0x3) << 8));
+	tx_mcs_set_defined = !!(mcs[12] & (1 << 0));
+	tx_mcs_set_equal = !(mcs[12] & (1 << 1));
+	tx_max_num_spatial_streams = ((mcs[12] >> 2) & 3) + 1;
+	tx_unequal_modulation = !!(mcs[12] & (1 << 4));
+
+	if (max_rx_supp_data_rate)
+		printf("\t\tHT Max RX data rate: %d Mbps\n", max_rx_supp_data_rate);
+	/* XXX: else see 9.6.0e.5.3 how to get this I think */
+
+	if (tx_mcs_set_defined) {
+		if (tx_mcs_set_equal) {
+			printf("\t\tHT TX/RX MCS rate indexes supported:\n");
+			print_mcs_index(mcs);
+		} else {
+			printf("\t\tHT RX MCS rate indexes supported:");
+			print_mcs_index(mcs);
+
+			if (tx_unequal_modulation)
+				printf("\t\tTX unequal modulation supported\n");
+			else
+				printf("\t\tTX unequal modulation not supported\n");
+
+			printf("\t\tHT TX Max spatial streams: %d\n",
+				tx_max_num_spatial_streams);
+
+			printf("\t\tHT TX MCS rate indexes supported may differ\n");
+		}
+	} else {
+		printf("\t\tHT RX MCS rate indexes supported:");
+		print_mcs_index(mcs);
+		printf("\t\tHT TX MCS rates indexes are undefined\n");
+	}
 }

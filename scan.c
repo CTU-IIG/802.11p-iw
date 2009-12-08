@@ -423,77 +423,15 @@ static void print_rsn(const uint8_t type, uint8_t len, const uint8_t *data)
 
 static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 {
-#define PRINT_HT_CAP(_cond, _str) \
-	do { \
-		if (_cond) \
-			printf("\t\t\t" _str "\n"); \
-	} while (0)
-	struct ht_cap_data {
-		__u16 cap;
-		__u8 ampdu_params;
-		struct {
-			__u8 rx_mcs_bitmask[10]; /* last 3 bits reserved */
-			__u16 max_rx_rate_1mbps: 10,
-			      reserved_0: 6;
-			__u8 tx_rx_mcs_defined:1,
-			     tx_rx_mcs_not_equal:1,
-			     tx_max_streams:2,
-			     tx_unequal_modulation:1,
-			     reserved_1:3; /* 3 reserved bits here */
-			__u8 reserved_2[3]; /* 24 reserved bits here = 27 */
-		} mcs_set;
-		__u16 ht_extend_cap;
-		__u32 tx_beamform_cap;
-		__u8 asel_cap;
-	} __attribute__((packed)) ht_cap;
-	struct ht_cap_data *htc = &ht_cap;
-	__u8 ampdu_exponent, ampdu_spacing;
-	bool tx_rx_mcs_equal = false;
-
 	if (len != 26) {
 		printf("\n\t\tHT Capability IE len != expected 26 bytes, skipping parse\n");
 		return;
 	}
-
-	memcpy(&ht_cap, data, 26);
-
 	printf("\n");
-	print_ht_capability(htc->cap);
-
-
-	ampdu_exponent = htc->ampdu_params & 0x3;
-	print_ampdu_length(ampdu_exponent);
-
-	ampdu_spacing = (htc->ampdu_params >> 2) & 0x3;
-	print_ampdu_spacing(ampdu_spacing);
-
-	if (htc->mcs_set.tx_rx_mcs_defined && htc->mcs_set.tx_rx_mcs_not_equal)
-		tx_rx_mcs_equal = true;
-	if (tx_rx_mcs_equal)
-		printf("\t\tSupported TX/RX MCS Indexes:");
-	else
-		printf("\t\tSupported RX MCS Indexes:");
-
-	print_mcs_index(htc->mcs_set.rx_mcs_bitmask);
-
-	if (!htc->mcs_set.tx_rx_mcs_defined) {
-		/* This is actually quite common */
-		printf("\t\tNo TX MCS set defined\n");
-		goto out;
-	}
-
-	if (htc->mcs_set.tx_rx_mcs_not_equal) {
-		printf("\t\tMaximum supported TX spatial streams: %d\n",
-		       htc->mcs_set.tx_max_streams);
-		printf("\t\tTX unequal modulation ");
-		if (htc->mcs_set.tx_unequal_modulation)
-			printf("supported\n");
-		else
-			printf("unsupported\n");
-	}
-
-out:
-	return;
+	print_ht_capability(data[0] | (data[1] << 8));
+	print_ampdu_length(data[2] & 3);
+	print_ampdu_spacing((data[2] >> 2) & 3);
+	print_ht_mcs(data + 3);
 }
 
 static void print_capabilities(const uint8_t type, uint8_t len, const uint8_t *data)

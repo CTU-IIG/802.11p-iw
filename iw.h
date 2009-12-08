@@ -120,7 +120,7 @@ void mac_addr_n2a(char *mac_addr, unsigned char *arg);
 
 int parse_keys(struct nl_msg *msg, char **argv, int argc);
 
-void print_mcs_index(__u8 *mcs);
+void print_ht_mcs(const __u8 *mcs);
 void print_ampdu_length(__u8 exponent);
 void print_ampdu_spacing(__u8 spacing);
 void print_ht_capability(__u16 cap);

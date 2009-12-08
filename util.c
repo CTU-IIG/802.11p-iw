@@ -301,3 +301,57 @@ void print_mcs_set(const uint8_t *data)
                 printf(" %.2x", data[i]);
         }
 }
+
+/*
+ * There are only 4 possible values, we just use a case instead of computing it,
+ * but technically this can also be computed through the formula:
+ *
+ * Max AMPDU length = (2 ^ (13 + exponent)) - 1 bytes
+ */
+static __u32 compute_ampdu_length(__u8 exponent)
+{
+	switch (exponent) {
+	case 0: return 8191;  /* (2 ^(13 + 0)) -1 */
+	case 1: return 16383; /* (2 ^(13 + 1)) -1 */
+	case 2: return 32767; /* (2 ^(13 + 2)) -1 */
+	case 3: return 65535; /* (2 ^(13 + 3)) -1 */
+	default: return 0;
+	}
+}
+
+static const char *print_ampdu_space(__u8 space)
+{
+	switch (space) {
+	case 0: return "No restriction";
+	case 1: return "1/4 usec";
+	case 2: return "1/2 usec";
+	case 3: return "1 usec";
+	case 4: return "2 usec";
+	case 5: return "4 usec";
+	case 6: return "8 usec";
+	case 7: return "16 usec";
+	default:
+		return "Uknown";
+	}
+}
+
+void print_ampdu_length(__u8 exponent)
+{
+	__u8 max_ampdu_length;
+
+	max_ampdu_length = compute_ampdu_length(exponent);
+
+	if (max_ampdu_length) {
+		printf("\t\tMaximum RX AMPDU length %d bytes (exponent: 0x0%02x)\n",
+		       max_ampdu_length, exponent);
+        } else {
+		printf("\t\tMaximum RX AMPDU length: unrecognized bytes "
+		       "(exponent: %d)\n", exponent);
+	}
+}
+
+void print_ampdu_spacing(__u8 spacing)
+{
+        printf("\t\tMinimum RX AMPDU time spacing: %s (0x%02x)\n",
+               print_ampdu_space(spacing), spacing);
+}

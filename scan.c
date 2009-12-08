@@ -421,39 +421,6 @@ static void print_rsn(const uint8_t type, uint8_t len, const uint8_t *data)
 	print_rsn_ie("CCMP", "IEEE 802.1X", len, data);
 }
 
-/*
- * There are only 4 possible values, we just use a case instead of computing it,
- * but technically this can also be computed through the formula:
- *
- * Max AMPDU length = (2 ^ (13 + exponent)) - 1 bytes
- */
-__u32 compute_ampdu_length(__u8 exponent)
-{
-	switch (exponent) {
-	case 0: return 8191;  /* (2 ^(13 + 0)) -1 */
-	case 1: return 16383; /* (2 ^(13 + 1)) -1 */
-	case 2: return 32767; /* (2 ^(13 + 2)) -1 */
-	case 3: return 65535; /* (2 ^(13 + 3)) -1 */
-	default: return 0;
-	}
-}
-
-const char *print_ampdu_space(__u8 space)
-{
-	switch (space) {
-	case 0: return "No restriction";
-	case 1: return "1/4 usec";
-	case 2: return "1/2 usec";
-	case 3: return "1 usec";
-	case 4: return "2 usec";
-	case 5: return "4 usec";
-	case 6: return "8 usec";
-	case 7: return "16 usec";
-	default:
-		return "Uknown";
-	}
-}
-
 static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 #define PRINT_HT_CAP(_cond, _str) \
@@ -481,7 +448,7 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 	} __attribute__((packed)) ht_cap;
 	struct ht_cap_data *htc = &ht_cap;
 	__u8 ampdu_exponent, ampdu_spacing, bit;
-	__u32 max_ampdu_length, i;
+	__u32 i;
 	bool tx_rx_mcs_equal = false;
 
 	if (len != 26) {
@@ -532,19 +499,10 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 	PRINT_HT_CAP((htc->cap & BIT(15)), "L-SIG TXOP protection");
 
 	ampdu_exponent = htc->ampdu_params & 0x3;
-	max_ampdu_length = compute_ampdu_length(ampdu_exponent);
-	if (max_ampdu_length) {
-		printf("\t\tMaximum RX AMPDU length %d bytes (exponent: 0x0%02x)\n",
-		       compute_ampdu_length(ampdu_exponent), ampdu_exponent);
-	}
-	else
-		printf("\t\tMaximum RX AMPDU length: unrecognized bytes "
-		       "(exponent: %d)\n", ampdu_exponent);
+	print_ampdu_length(ampdu_exponent);
 
-
-	ampdu_spacing = (htc->ampdu_params >> 2) & 0x3 ;
-	printf("\t\tMinimum RX AMPDU time spacing: %s (0x%02x)\n",
-	       print_ampdu_space(ampdu_spacing), ampdu_spacing);
+	ampdu_spacing = (htc->ampdu_params >> 2) & 0x3;
+	print_ampdu_spacing(ampdu_spacing);
 
 	/* This is the whole MCS set, which is 16 bytes */
 	printf("\t\tMCS set:");

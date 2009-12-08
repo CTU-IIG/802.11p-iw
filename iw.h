@@ -121,6 +121,8 @@ void mac_addr_n2a(char *mac_addr, unsigned char *arg);
 int parse_keys(struct nl_msg *msg, char **argv, int argc);
 
 void print_mcs_set(const uint8_t *data);
+void print_ampdu_length(__u8 exponent);
+void print_ampdu_spacing(__u8 spacing);
 
 const char *iftype_name(enum nl80211_iftype iftype);
 const char *command_name(enum nl80211_commands cmd);

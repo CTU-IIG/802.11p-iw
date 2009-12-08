@@ -126,25 +126,12 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			PBCOM(0x8000, "L-SIG TXOP protection support");
 		}
 		if (tb_band[NL80211_BAND_ATTR_HT_AMPDU_FACTOR]) {
-			unsigned char factor = nla_get_u8(tb_band[NL80211_BAND_ATTR_HT_AMPDU_FACTOR]);
-			printf("\t\tHT A-MPDU factor: 0x%.4x (%d bytes)\n", factor, (1<<(13+factor))-1);
+			__u8 exponent = nla_get_u8(tb_band[NL80211_BAND_ATTR_HT_AMPDU_FACTOR]);
+			print_ampdu_length(exponent);
 		}
 		if (tb_band[NL80211_BAND_ATTR_HT_AMPDU_DENSITY]) {
-			unsigned char dens = nla_get_u8(tb_band[NL80211_BAND_ATTR_HT_AMPDU_DENSITY]);
-			printf("\t\tHT A-MPDU density: 0x%.4x (", dens);
-			switch (dens) {
-			case 0:
-				printf("no restriction)\n");
-				break;
-			case 1:
-				printf("1/4 usec)\n");
-				break;
-			case 2:
-				printf("1/2 usec)\n");
-				break;
-			default:
-				printf("%d usec)\n", 1<<(dens - 3));
-			}
+			__u8 spacing = nla_get_u8(tb_band[NL80211_BAND_ATTR_HT_AMPDU_DENSITY]);
+			print_ampdu_spacing(spacing);
 		}
 		if (tb_band[NL80211_BAND_ATTR_HT_MCS_SET] &&
 		    nla_len(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]) == 16) {

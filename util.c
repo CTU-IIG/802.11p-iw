@@ -356,7 +356,7 @@ static const char *print_ampdu_space(__u8 space)
 	case 6: return "8 usec";
 	case 7: return "16 usec";
 	default:
-		return "Uknown";
+		return "BUG (spacing more than 3 bits!)";
 	}
 }
 

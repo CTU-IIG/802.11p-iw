@@ -468,6 +468,6 @@ void print_ht_mcs(const __u8 *mcs)
 	} else {
 		printf("\t\tHT RX MCS rate indexes supported:");
 		print_mcs_index(mcs);
-		printf("\t\tHT TX MCS rates indexes are undefined\n");
+		printf("\t\tHT TX MCS rate indexes are undefined\n");
 	}
 }

@@ -292,3 +292,12 @@ int parse_keys(struct nl_msg *msg, char **argv, int argc)
 			"for example: d:2:6162636465 is the same as d:2:abcde\n");
 	return 2;
 }
+
+void print_mcs_set(const uint8_t *data)
+{
+	unsigned int i;
+
+        for (i = 15; i != 0; i--) {
+                printf(" %.2x", data[i]);
+        }
+}

@@ -120,6 +120,8 @@ void mac_addr_n2a(char *mac_addr, unsigned char *arg);
 
 int parse_keys(struct nl_msg *msg, char **argv, int argc);
 
+void print_mcs_set(const uint8_t *data);
+
 const char *iftype_name(enum nl80211_iftype iftype);
 const char *command_name(enum nl80211_commands cmd);
 int ieee80211_channel_to_frequency(int chan);

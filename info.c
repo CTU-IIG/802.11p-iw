@@ -153,9 +153,9 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			unsigned char *mcs = nla_data(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]);
 			bool tx_mcs_set_defined, tx_mcs_set_equal, tx_unequal_modulation;
 
-			printf("\t\tHT MCS set: %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x\n",
-				mcs[0], mcs[1], mcs[2], mcs[3], mcs[4], mcs[5], mcs[6], mcs[7],
-				mcs[8], mcs[9], mcs[10], mcs[11], mcs[12], mcs[13], mcs[14], mcs[15]);
+			printf("\t\tHT MCS set:");
+			print_mcs_set(mcs);
+			printf("\n");
 
 			max_rx_supp_data_rate = ((mcs[10] >> 8) & ((mcs[11] & 0x3) << 8));
 			tx_mcs_set_defined = !!(mcs[12] & (1 << 0));

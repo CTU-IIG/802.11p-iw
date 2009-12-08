@@ -547,11 +547,9 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 	       print_ampdu_space(ampdu_spacing), ampdu_spacing);
 
 	/* This is the whole MCS set, which is 16 bytes */
-	printf("\t\tMCS set: ");
+	printf("\t\tMCS set:");
 	data+=2;
-	for (i = 15; i != 0; i--) {
-		printf(" %.2x", data[i]);
-	}
+	print_mcs_set(data);
 	printf("\n");
 
 	if (htc->mcs_set.tx_rx_mcs_defined && htc->mcs_set.tx_rx_mcs_not_equal)

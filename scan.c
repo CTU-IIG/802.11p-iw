@@ -555,17 +555,17 @@ static bool print_wifi_wmm_param(const uint8_t *data, uint8_t len)
 		return false;
 	}
 
-	printf("\t* Parameter version 1");
+	printf("\t * Parameter version 1");
 
 	data++;
 
 	if (data[0] & 0x80)
-		printf("\n\t\t* u-APSD");
+		printf("\n\t\t * u-APSD");
 
 	data += 2;
 
 	for (i = 0; i < 4; i++) {
-		printf("\n\t\t* %s:", aci_tbl[(data[0] >> 5) & 3]);
+		printf("\n\t\t * %s:", aci_tbl[(data[0] >> 5) & 3]);
 		if (data[4] & 0x10)
 			printf(" acm");
 		printf(" CW %d-%d", (1 << (data[1] & 0xf)) - 1,

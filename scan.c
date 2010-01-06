@@ -33,6 +33,7 @@ static unsigned char ieee80211_oui[3] = { 0x00, 0x0f, 0xac };
 struct scan_params {
 	bool unknown;
 	enum print_ie_type type;
+	bool show_both_ie_sets;
 };
 
 static int handle_scan(struct nl80211_state *state,
@@ -484,6 +485,16 @@ static void print_capabilities(const uint8_t type, uint8_t len, const uint8_t *d
 	printf("\n");
 }
 
+static void print_tim(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	printf(" DTIM Count %u DTIM Period %u Bitmap Control 0x%x "
+	       "Bitmap[0] 0x%x",
+	       data[0], data[1], data[2], data[3]);
+	if (len - 4)
+		printf(" (+ %u octet%s)", len - 4, len - 4 == 1 ? "" : "s");
+	printf("\n");
+}
+
 struct ie_print {
 	const char *name;
 	void (*print)(const uint8_t type, uint8_t len, const uint8_t *data);
@@ -527,7 +538,7 @@ static const struct ie_print ieprinters[] = {
 	[0] = { "SSID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
 	[1] = { "Supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
 	[3] = { "DS Parameter set", print_ds, 1, 1, BIT(PRINT_SCAN), },
-	[5] = PRINT_IGN,
+	[5] = { "TIM", print_tim, 4, 255, BIT(PRINT_SCAN), },
 	[7] = { "Country", print_country, 3, 255, BIT(PRINT_SCAN), },
 	[32] = { "Power constraint", print_powerconstraint, 1, 1, BIT(PRINT_SCAN), },
 	[42] = { "ERP", print_erp, 1, 255, BIT(PRINT_SCAN), },
@@ -769,6 +780,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		[NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
 		[NL80211_BSS_STATUS] = { .type = NLA_U32 },
 		[NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
+		[NL80211_BSS_BEACON_IES] = { },
 	};
 	struct scan_params *params = arg;
 
@@ -864,10 +876,20 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
 		printf("\tlast seen: %d ms ago\n", age);
 	}
-	if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
+	if (bss[NL80211_BSS_INFORMATION_ELEMENTS]) {
+		if (bss[NL80211_BSS_BEACON_IES])
+			printf("\tInformation elements from Probe Response "
+			       "frame:\n");
 		print_ies(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]),
 			  nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]),
 			  params->unknown, params->type);
+	}
+	if (bss[NL80211_BSS_BEACON_IES]) {
+		printf("\tInformation elements from Beacon frame:\n");
+		print_ies(nla_data(bss[NL80211_BSS_BEACON_IES]),
+			  nla_len(bss[NL80211_BSS_BEACON_IES]),
+			  params->unknown, params->type);
+	}
 
 	return NL_SKIP;
 }
@@ -885,6 +907,8 @@ static int handle_scan_dump(struct nl80211_state *state,
 	scan_params.unknown = false;
 	if (argc == 1 && !strcmp(argv[0], "-u"))
 		scan_params.unknown = true;
+	else if (argc == 1 && !strcmp(argv[0], "-b"))
+		scan_params.show_both_ie_sets = true;
 
 	scan_params.type = PRINT_SCAN;
 
@@ -914,6 +938,9 @@ static int handle_scan_combined(struct nl80211_state *state,
 	if (argc >= 3 && !strcmp(argv[2], "-u")) {
 		dump_argc = 4;
 		dump_argv[3] = "-u";
+	} else if (argc >= 3 && !strcmp(argv[2], "-b")) {
+		dump_argc = 4;
+		dump_argv[3] = "-b";
 	} else
 		dump_argc = 3;
 

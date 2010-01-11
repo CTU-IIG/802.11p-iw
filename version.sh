@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="0.9.18"
+VERSION="0.9.19"
 OUT="$1"
 
 echo '#include "iw.h"' > "$OUT"

@@ -57,7 +57,7 @@ struct cmd {
 #define ARRAY_SIZE(ar) (sizeof(ar)/sizeof(ar[0]))
 
 #define __COMMAND(_section, _symname, _name, _args, _nlcmd, _flags, _hidden, _idby, _handler, _help)\
-	static const struct cmd						\
+	static struct cmd						\
 	__cmd ## _ ## _symname ## _ ## _handler ## _ ## _nlcmd ## _ ## _idby ## _ ## _hidden\
 	__attribute__((used)) __attribute__((section("__cmd")))	= {	\
 		.name = (_name),					\
@@ -76,7 +76,7 @@ struct cmd {
 	__COMMAND(&(__section ## _ ## section), name, #name, args, cmd, flags, 1, idby, handler, NULL)
 
 #define TOPLEVEL(_name, _args, _nlcmd, _flags, _idby, _handler, _help)	\
-	const struct cmd						\
+	struct cmd							\
 	__section ## _ ## _name						\
 	__attribute__((used)) __attribute__((section("__cmd")))	= {	\
 		.name = (#_name),					\
@@ -88,14 +88,14 @@ struct cmd {
 		.help = (_help),					\
 	 }
 #define SECTION(_name)							\
-	const struct cmd __section ## _ ## _name			\
+	struct cmd __section ## _ ## _name				\
 	__attribute__((used)) __attribute__((section("__cmd"))) = {	\
 		.name = (#_name),					\
 		.hidden = 1,						\
 	}
 
 #define DECLARE_SECTION(_name)						\
-	extern const struct cmd __section ## _ ## _name;
+	extern struct cmd __section ## _ ## _name;
 
 extern const char iw_version[];
 

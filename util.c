@@ -126,7 +126,7 @@ static char cmdbuf[100];
 
 const char *command_name(enum nl80211_commands cmd)
 {
-	if (cmd <= NL80211_CMD_MAX)
+	if (cmd <= NL80211_CMD_MAX && commands[cmd])
 		return commands[cmd];
 	sprintf(cmdbuf, "Unknown command (%d)", cmd);
 	return cmdbuf;

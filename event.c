@@ -302,6 +302,17 @@ static int print_event(struct nl_msg *msg, void *arg)
 				get_reason_str(nla_get_u16(tb[NL80211_ATTR_REASON_CODE])));
 		printf("\n");
 		break;
+	case NL80211_CMD_REMAIN_ON_CHANNEL:
+		printf("remain on freq %d (%dms, cookie %llx)\n",
+			nla_get_u32(tb[NL80211_ATTR_WIPHY_FREQ]),
+			nla_get_u32(tb[NL80211_ATTR_DURATION]),
+			(unsigned long long)nla_get_u64(tb[NL80211_ATTR_COOKIE]));
+		break;
+	case NL80211_CMD_CANCEL_REMAIN_ON_CHANNEL:
+		printf("done with remain on freq %d (cookie %llx)\n",
+			nla_get_u32(tb[NL80211_ATTR_WIPHY_FREQ]),
+			(unsigned long long)nla_get_u64(tb[NL80211_ATTR_COOKIE]));
+		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);
 		break;

@@ -783,6 +783,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		[NL80211_BSS_BEACON_IES] = { },
 	};
 	struct scan_params *params = arg;
+	int show = params->show_both_ie_sets ? 2 : 1;
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
 		  genlmsg_attrlen(gnlh, 0), NULL);
@@ -876,7 +877,8 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
 		printf("\tlast seen: %d ms ago\n", age);
 	}
-	if (bss[NL80211_BSS_INFORMATION_ELEMENTS]) {
+	
+	if (bss[NL80211_BSS_INFORMATION_ELEMENTS] && show--) {
 		if (bss[NL80211_BSS_BEACON_IES])
 			printf("\tInformation elements from Probe Response "
 			       "frame:\n");
@@ -884,7 +886,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 			  nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]),
 			  params->unknown, params->type);
 	}
-	if (bss[NL80211_BSS_BEACON_IES]) {
+	if (bss[NL80211_BSS_BEACON_IES] && show--) {
 		printf("\tInformation elements from Beacon frame:\n");
 		print_ies(nla_data(bss[NL80211_BSS_BEACON_IES]),
 			  nla_len(bss[NL80211_BSS_BEACON_IES]),
@@ -904,7 +906,8 @@ static int handle_scan_dump(struct nl80211_state *state,
 	if (argc > 1)
 		return 1;
 
-	scan_params.unknown = false;
+	memset(&scan_params, 0, sizeof(scan_params));
+
 	if (argc == 1 && !strcmp(argv[0], "-u"))
 		scan_params.unknown = true;
 	else if (argc == 1 && !strcmp(argv[0], "-b"))

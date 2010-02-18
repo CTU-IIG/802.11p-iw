@@ -156,6 +156,14 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			printf("\tRTS threshold: %d\n", rts);
 	}
 
+	if (tb_msg[NL80211_ATTR_WIPHY_COVERAGE_CLASS]) {
+		unsigned char coverage;
+
+		coverage = nla_get_u8(tb_msg[NL80211_ATTR_WIPHY_COVERAGE_CLASS]);
+		/* See handle_distance() for an explanation where the '450' comes from */
+		printf("\tCoverage class: %d (up to %dm)\n", coverage, 450 * coverage);
+	}
+
 	if (!tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES])
 		goto commands;
 

@@ -164,3 +164,61 @@ static int handle_netns(struct nl80211_state *state,
 COMMAND(set, netns, "<pid>",
 	NL80211_CMD_SET_WIPHY_NETNS, 0, CIB_PHY, handle_netns,
 	"Put this wireless device into a different network namespace");
+
+static int handle_coverage(struct nl80211_state *state,
+			struct nl_cb *cb,
+			struct nl_msg *msg,
+			int argc, char **argv)
+{
+	unsigned int coverage;
+
+	if (argc != 1)
+		return 1;
+
+	coverage = strtoul(argv[0], NULL, 10);
+	if (coverage > 255)
+		return 1;
+
+	NLA_PUT_U8(msg, NL80211_ATTR_WIPHY_COVERAGE_CLASS, coverage);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, coverage, "<coverage class>",
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_coverage,
+	"Set coverage class (1 for every 3 usec of air propagation time).\n"
+	"Valid values: 0 - 255.");
+
+static int handle_distance(struct nl80211_state *state,
+			struct nl_cb *cb,
+			struct nl_msg *msg,
+			int argc, char **argv)
+{
+	unsigned int distance, coverage;
+
+	if (argc != 1)
+		return 1;
+
+	distance = strtoul(argv[0], NULL, 10);
+
+	/*
+	 * Divide double the distance by the speed of light in m/usec (300) to
+	 * get round-trip time in microseconds and then divide the result by
+	 * three to get coverage class as specified in IEEE 802.11-2007 table
+	 * 7-27. Values are rounded upwards.
+	 */
+	coverage = (distance + 449) / 450;
+	if (coverage > 255)
+		return 1;
+
+	NLA_PUT_U8(msg, NL80211_ATTR_WIPHY_COVERAGE_CLASS, coverage);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, distance, "<distance>",
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_distance,
+	"Set appropriate coverage class for given link distance in meters.\n"
+	"Valid values: 0 - 114750");

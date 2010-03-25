@@ -728,8 +728,21 @@ static void print_wifi_wps(const uint8_t type, uint8_t len, const uint8_t *data)
 			break;
 #undef T
 		}
-		default:
+		default: {
+			const __u8 *subdata = data + 4;
+			__u16 tmplen = sublen;
+
+			tab_on_first(&first);
+			printf("\t * Unknown TLV (%#.4x, %d bytes):",
+			       subtype, tmplen);
+			while (tmplen) {
+				printf(" %.2x", *subdata);
+				subdata++;
+				tmplen--;
+			}
+			printf("\n");
 			break;
+		}
 		}
 
 		data += sublen + 4;

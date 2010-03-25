@@ -65,11 +65,14 @@ static int handle_scan(struct nl80211_state *state,
 	enum {
 		NONE,
 		FREQ,
+		IES,
 		SSID,
 		DONE,
 	} parse = NONE;
 	int freq;
 	bool passive = false, have_ssids = false, have_freqs = false;
+	size_t tmp;
+	unsigned char *ies;
 
 	ssids = nlmsg_alloc();
 	if (!ssids)
@@ -82,22 +85,24 @@ static int handle_scan(struct nl80211_state *state,
 	}
 
 	for (i = 0; i < argc; i++) {
-		if (parse == NONE && strcmp(argv[i], "freq") == 0) {
-			parse = FREQ;
-			have_freqs = true;
-			continue;
-		} else if (parse < SSID && strcmp(argv[i], "ssid") == 0) {
-			parse = SSID;
-			have_ssids = true;
-			continue;
-		} else if (parse < SSID && strcmp(argv[i], "passive") == 0) {
-			parse = DONE;
-			passive = true;
-			continue;
-		}
-
 		switch (parse) {
 		case NONE:
+			if (strcmp(argv[i], "freq") == 0) {
+				parse = FREQ;
+				have_freqs = true;
+				break;
+			} else if (strcmp(argv[i], "ies") == 0) {
+				parse = IES;
+				break;
+			} else if (strcmp(argv[i], "ssid") == 0) {
+				parse = SSID;
+				have_ssids = true;
+				break;
+			} else if (strcmp(argv[i], "passive") == 0) {
+				parse = DONE;
+				passive = true;
+				break;
+			}
 		case DONE:
 			return 1;
 		case FREQ:
@@ -105,6 +110,15 @@ static int handle_scan(struct nl80211_state *state,
 			if (eptr != argv[i] + strlen(argv[i]))
 				return 1;
 			NLA_PUT_U32(freqs, i, freq);
+			parse = NONE;
+			break;
+		case IES:
+			ies = parse_hex(argv[i], &tmp);
+			if (!ies)
+				goto nla_put_failure;
+			NLA_PUT(msg, NL80211_ATTR_IE, tmp, ies);
+			free(ies);
+			parse = NONE;
 			break;
 		case SSID:
 			NLA_PUT(ssids, i, strlen(argv[i]), argv[i]);
@@ -1060,16 +1074,17 @@ static int handle_scan_combined(struct nl80211_state *state,
 	dump_argv[0] = argv[0];
 	return handle_cmd(state, II_NETDEV, dump_argc, dump_argv);
 }
-TOPLEVEL(scan, "[-u] [freq <freq>*] [ssid <ssid>*|passive]", 0, 0,
+TOPLEVEL(scan, "[-u] [freq <freq>*] [ies <hex as 00:11:..>] [ssid <ssid>*|passive]", 0, 0,
 	 CIB_NETDEV, handle_scan_combined,
 	 "Scan on the given frequencies and probe for the given SSIDs\n"
 	 "(or wildcard if not given) unless passive scanning is requested.\n"
-	 "If -u is specified print unknown data in the scan results.");
+	 "If -u is specified print unknown data in the scan results.\n"
+	 "Specified (vendor) IEs must be well-formed.");
 COMMAND(scan, dump, "[-u]",
 	NL80211_CMD_GET_SCAN, NLM_F_DUMP, CIB_NETDEV, handle_scan_dump,
 	"Dump the current scan results. If -u is specified, print unknown\n"
 	"data in scan results.");
-COMMAND(scan, trigger, "[freq <freq>*] [ssid <ssid>*|passive]",
+COMMAND(scan, trigger, "[freq <freq>*] [ies <hex as 00:11:..>] [ssid <ssid>*|passive]",
 	NL80211_CMD_TRIGGER_SCAN, 0, CIB_NETDEV, handle_scan,
 	 "Trigger a scan on the given frequencies with probing for the given\n"
 	 "SSIDs (or wildcard if not given) unless passive scanning is requested.");

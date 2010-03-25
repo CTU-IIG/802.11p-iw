@@ -48,6 +48,43 @@ int mac_addr_a2n(unsigned char *mac_addr, char *arg)
 	return 0;
 }
 
+unsigned char *parse_hex(char *hex, size_t *outlen)
+{
+	size_t len = strlen(hex);
+	unsigned char *result = calloc(len/2 + 2, 1);
+	int pos = 0;
+
+	if (!result)
+		return NULL;
+
+	*outlen = 0;
+
+	while (1) {
+		int temp;
+		char *cp = strchr(hex, ':');
+		if (cp) {
+			*cp = 0;
+			cp++;
+		}
+		if (sscanf(hex, "%x", &temp) != 1)
+			goto error;
+		if (temp < 0 || temp > 255)
+			goto error;
+
+		(*outlen)++;
+
+		result[pos++] = temp;
+		if (!cp)
+			break;
+		hex = cp;
+	}
+
+	return result;
+ error:
+	free(result);
+	return NULL;
+}
+
 static const char *ifmodes[NL80211_IFTYPE_MAX + 1] = {
 	"unspecified",
 	"IBSS",

@@ -117,6 +117,7 @@ __u32 __listen_events(struct nl80211_state *state,
 
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);
 void mac_addr_n2a(char *mac_addr, unsigned char *arg);
+unsigned char *parse_hex(char *hex, size_t *outlen);
 
 int parse_keys(struct nl_msg *msg, char **argv, int argc);
 

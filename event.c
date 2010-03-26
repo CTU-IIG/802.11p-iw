@@ -100,6 +100,34 @@ static void print_frame(struct print_event_args *args, struct nlattr *attr)
 	printf("]");
 }
 
+static void parse_cqm_event(struct nlattr *tb)
+{
+	static struct nla_policy cqm_policy[NL80211_ATTR_CQM_MAX + 1] = {
+		[NL80211_ATTR_CQM_RSSI_THOLD] = { .type = NLA_U32 },
+		[NL80211_ATTR_CQM_RSSI_HYST] = { .type = NLA_U32 },
+		[NL80211_ATTR_CQM_RSSI_THRESHOLD_EVENT] = { .type = NLA_U32 },
+	};
+	struct nlattr *cqm[NL80211_ATTR_CQM_MAX + 1];
+
+	printf("connection quality monitor event: ");
+
+	if (!tb || nla_parse_nested(cqm, NL80211_ATTR_CQM_MAX, tb, cqm_policy)) {
+		printf("missing data!\n");
+		return;
+	}
+
+	if (cqm[NL80211_ATTR_CQM_RSSI_THRESHOLD_EVENT]) {
+		enum nl80211_cqm_rssi_threshold_event rssi_event;
+		rssi_event = nla_get_u32(cqm[NL80211_ATTR_CQM_RSSI_THRESHOLD_EVENT]);
+		if (rssi_event == NL80211_CQM_RSSI_THRESHOLD_EVENT_HIGH)
+			printf("RSSI went above threshold");
+		else
+			printf("RSSI went below threshold");
+	}
+	printf("\n");
+}
+
+
 static int print_event(struct nl_msg *msg, void *arg)
 {
 #define PARSE_BEACON_CHAN(_attr, _chan) do { \
@@ -312,6 +340,9 @@ static int print_event(struct nl_msg *msg, void *arg)
 		printf("done with remain on freq %d (cookie %llx)\n",
 			nla_get_u32(tb[NL80211_ATTR_WIPHY_FREQ]),
 			(unsigned long long)nla_get_u64(tb[NL80211_ATTR_COOKIE]));
+		break;
+	case NL80211_CMD_NOTIFY_CQM:
+		parse_cqm_event(tb[NL80211_ATTR_CQM]);
 		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);

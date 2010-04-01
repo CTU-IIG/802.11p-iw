@@ -31,6 +31,7 @@ COMMAND(set, name, "<new name>", NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_name,
 static int handle_freqchan(struct nl_msg *msg, bool chan,
 			   int argc, char **argv)
 {
+	char *end;
 	static const struct {
 		const char *name;
 		unsigned int val;
@@ -57,7 +58,12 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 			return 1;
 	}
 
-	freq = strtoul(argv[0], NULL, 10);
+	if (!*argv[0])
+		return 1;
+	freq = strtoul(argv[0], &end, 10);
+	if (*end)
+		return 1;
+
 	if (chan)
 		freq = ieee80211_channel_to_frequency(freq);
 
@@ -104,8 +110,15 @@ static int handle_fragmentation(struct nl80211_state *state,
 
 	if (strcmp("off", argv[0]) == 0)
 		frag = -1;
-	else
-		frag = strtoul(argv[0], NULL, 10);
+	else {
+		char *end;
+
+		if (!*argv[0])
+			return 1;
+		frag = strtoul(argv[0], &end, 10);
+		if (*end != '\0')
+			return 1;
+	}
 
 	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FRAG_THRESHOLD, frag);
 
@@ -128,8 +141,15 @@ static int handle_rts(struct nl80211_state *state,
 
 	if (strcmp("off", argv[0]) == 0)
 		rts = -1;
-	else
-		rts = strtoul(argv[0], NULL, 10);
+	else {
+		char *end;
+
+		if (!*argv[0])
+			return 1;
+		rts = strtoul(argv[0], &end, 10);
+		if (*end != '\0')
+			return 1;
+	}
 
 	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_RTS_THRESHOLD, rts);
 
@@ -151,6 +171,9 @@ static int handle_netns(struct nl80211_state *state,
 	if (argc != 1)
 		return 1;
 
+	if (!*argv[0])
+		return 1;
+
 	NLA_PUT_U32(msg, NL80211_ATTR_PID,
 		    strtoul(argv[0], &end, 10)); 
 
@@ -170,13 +193,19 @@ static int handle_coverage(struct nl80211_state *state,
 			struct nl_msg *msg,
 			int argc, char **argv)
 {
+	char *end;
 	unsigned int coverage;
 
 	if (argc != 1)
 		return 1;
 
-	coverage = strtoul(argv[0], NULL, 10);
+	if (!*argv[0])
+		return 1;
+	coverage = strtoul(argv[0], &end, 10);
 	if (coverage > 255)
+		return 1;
+
+	if (*end)
 		return 1;
 
 	NLA_PUT_U8(msg, NL80211_ATTR_WIPHY_COVERAGE_CLASS, coverage);
@@ -195,12 +224,19 @@ static int handle_distance(struct nl80211_state *state,
 			struct nl_msg *msg,
 			int argc, char **argv)
 {
+	char *end;
 	unsigned int distance, coverage;
 
 	if (argc != 1)
 		return 1;
 
-	distance = strtoul(argv[0], NULL, 10);
+	if (!*argv[0])
+		return 1;
+
+	distance = strtoul(argv[0], &end, 10);
+
+	if (*end)
+		return 1;
 
 	/*
 	 * Divide double the distance by the speed of light in m/usec (300) to

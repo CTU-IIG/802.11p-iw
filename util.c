@@ -436,7 +436,7 @@ void print_ht_capability(__u16 cap)
 
 	printf("\t\tCapabilities: 0x%02x\n", cap);
 
-	PRINT_HT_CAP((cap & BIT(0)), "RX LDCP");
+	PRINT_HT_CAP((cap & BIT(0)), "RX LDPC");
 	PRINT_HT_CAP((cap & BIT(1)), "HT20/HT40");
 	PRINT_HT_CAP(!(cap & BIT(1)), "HT20");
 

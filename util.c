@@ -165,6 +165,7 @@ static const char *commands[NL80211_CMD_MAX + 1] = {
 	[NL80211_CMD_SET_TX_BITRATE_MASK] = "set_tx_bitrate_mask",
 	[NL80211_CMD_REGISTER_ACTION] = "register_action",
 	[NL80211_CMD_ACTION] = "action",
+	[NL80211_CMD_SET_CHANNEL] = "set_channel",
 };
 
 static char cmdbuf[100];

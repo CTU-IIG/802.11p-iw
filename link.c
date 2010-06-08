@@ -70,6 +70,9 @@ static int link_bss_handler(struct nl_msg *msg, void *arg)
 	case NL80211_BSS_STATUS_AUTHENTICATED:
 		printf("Authenticated with %s (on %s)\n", mac_addr, dev);
 		return NL_SKIP;
+	case NL80211_BSS_STATUS_IBSS_JOINED:
+		printf("Joined IBSS %s (on %s)\n", mac_addr, dev);
+		break;
 	default:
 		return NL_SKIP;
 	}

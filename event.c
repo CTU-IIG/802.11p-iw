@@ -377,18 +377,9 @@ static int wait_event(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-__u32 __listen_events(struct nl80211_state *state,
-		      const int n_waits, const __u32 *waits,
-		      struct print_event_args *args)
+static int __prepare_listen_events(struct nl80211_state *state)
 {
 	int mcid, ret;
-	struct nl_cb *cb = nl_cb_alloc(iw_debug ? NL_CB_DEBUG : NL_CB_DEFAULT);
-	struct wait_event wait_ev;
-
-	if (!cb) {
-		fprintf(stderr, "failed to allocate netlink callbacks\n");
-		return -ENOMEM;
-	}
 
 	/* Configuration multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "config");
@@ -422,6 +413,26 @@ __u32 __listen_events(struct nl80211_state *state,
 		if (ret)
 			return ret;
 	}
+
+	return 0;
+}
+
+__u32 __listen_events(struct nl80211_state *state,
+		      const int n_waits, const __u32 *waits,
+		      struct print_event_args *args)
+{
+	struct nl_cb *cb = nl_cb_alloc(iw_debug ? NL_CB_DEBUG : NL_CB_DEFAULT);
+	struct wait_event wait_ev;
+	int ret;
+
+	if (!cb) {
+		fprintf(stderr, "failed to allocate netlink callbacks\n");
+		return -ENOMEM;
+	}
+
+	ret = __prepare_listen_events(state);
+	if (ret)
+		return ret;
 
 	/* no sequence checking for multicast messages */
 	nl_cb_set(cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);

@@ -377,7 +377,7 @@ static int wait_event(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int __prepare_listen_events(struct nl80211_state *state)
+int __prepare_listen_events(struct nl80211_state *state)
 {
 	int mcid, ret;
 
@@ -417,22 +417,17 @@ static int __prepare_listen_events(struct nl80211_state *state)
 	return 0;
 }
 
-__u32 __listen_events(struct nl80211_state *state,
-		      const int n_waits, const __u32 *waits,
-		      struct print_event_args *args)
+__u32 __do_listen_events(struct nl80211_state *state,
+			 const int n_waits, const __u32 *waits,
+			 struct print_event_args *args)
 {
 	struct nl_cb *cb = nl_cb_alloc(iw_debug ? NL_CB_DEBUG : NL_CB_DEFAULT);
 	struct wait_event wait_ev;
-	int ret;
 
 	if (!cb) {
 		fprintf(stderr, "failed to allocate netlink callbacks\n");
 		return -ENOMEM;
 	}
-
-	ret = __prepare_listen_events(state);
-	if (ret)
-		return ret;
 
 	/* no sequence checking for multicast messages */
 	nl_cb_set(cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);
@@ -458,7 +453,13 @@ __u32 __listen_events(struct nl80211_state *state,
 __u32 listen_events(struct nl80211_state *state,
 		    const int n_waits, const __u32 *waits)
 {
-	return __listen_events(state, n_waits, waits, NULL);
+	int ret;
+
+	ret = __prepare_listen_events(state);
+	if (ret)
+		return ret;
+
+	return __do_listen_events(state, n_waits, waits, NULL);
 }
 
 static int print_events(struct nl80211_state *state,
@@ -467,6 +468,7 @@ static int print_events(struct nl80211_state *state,
 			int argc, char **argv)
 {
 	struct print_event_args args;
+	int ret;
 
 	memset(&args, 0, sizeof(args));
 
@@ -487,7 +489,11 @@ static int print_events(struct nl80211_state *state,
 	if (argc)
 		return 1;
 
-	return __listen_events(state, 0, NULL, &args);
+	ret = __prepare_listen_events(state);
+	if (ret)
+		return ret;
+
+	return __do_listen_events(state, 0, NULL, &args);
 }
 TOPLEVEL(event, "[-t] [-f]", 0, 0, CIB_NONE, print_events,
 	"Monitor events from the kernel.\n"

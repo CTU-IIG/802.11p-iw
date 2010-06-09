@@ -95,6 +95,11 @@ static int iw_connect(struct nl80211_state *state, struct nl_cb *cb,
 	conn_argv = calloc(conn_argc, sizeof(*conn_argv));
 	if (!conn_argv)
 		return -ENOMEM;
+
+	err = __prepare_listen_events(state);
+	if (err)
+		return err;
+
 	conn_argv[0] = dev;
 	conn_argv[1] = "connect";
 	conn_argv[2] = "establish";
@@ -111,26 +116,25 @@ static int iw_connect(struct nl80211_state *state, struct nl_cb *cb,
 	/*
 	 * WARNING: DO NOT COPY THIS CODE INTO YOUR APPLICATION
 	 *
-	 * This code has a bug, which requires creating a separate
-	 * nl80211 socket to fix:
-	 * It is possible for a NL80211_CMD_NEW_SCAN_RESULTS or
-	 * NL80211_CMD_SCAN_ABORTED message to be sent by the kernel
-	 * before (!) we listen to it, because we only start listening
-	 * after we send our scan request.
+	 * This code has a bug:
 	 *
-	 * Doing it the other way around has a race condition as well,
-	 * if you first open the events socket you may get a notification
-	 * for a previous scan.
+	 * It is possible for a connect result message from another
+	 * connect attempt to be processed here first, because we
+	 * start listening to the multicast group before starting
+	 * our own connect request, which may succeed but we get a
+	 * fail message from a previous attempt that raced with us,
+	 * or similar.
 	 *
 	 * The only proper way to fix this would be to listen to events
 	 * before sending the command, and for the kernel to send the
-	 * connect request along with the event, so that you can match
-	 * up whether the connect _you_ requested was finished or aborted.
+	 * connect request or a cookie along with the event, so that you
+	 * can match up whether the connect _you_ requested was finished
+	 * or aborted.
 	 *
 	 * Alas, the kernel doesn't do that (yet).
 	 */
 
-	__listen_events(state, ARRAY_SIZE(cmds), cmds, &printargs);
+	__do_listen_events(state, ARRAY_SIZE(cmds), cmds, &printargs);
 	return 0;
 }
 TOPLEVEL(connect, "[-w] <SSID> [<freq in MHz>] [<bssid>] [key 0:abcde d:1:6162636465]",

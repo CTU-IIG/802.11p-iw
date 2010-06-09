@@ -110,9 +110,10 @@ struct print_event_args {
 
 __u32 listen_events(struct nl80211_state *state,
 		    const int n_waits, const __u32 *waits);
-__u32 __listen_events(struct nl80211_state *state,
-		      const int n_waits, const __u32 *waits,
-		      struct print_event_args *args);
+int __prepare_listen_events(struct nl80211_state *state);
+__u32 __do_listen_events(struct nl80211_state *state,
+			 const int n_waits, const __u32 *waits,
+			 struct print_event_args *args);
 
 
 int mac_addr_a2n(unsigned char *mac_addr, char *arg);

@@ -258,3 +258,51 @@ COMMAND(set, distance, "<distance>",
 	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_distance,
 	"Set appropriate coverage class for given link distance in meters.\n"
 	"Valid values: 0 - 114750");
+
+static int handle_txpower(struct nl80211_state *state,
+			  struct nl_cb *cb,
+			  struct nl_msg *msg,
+			  int argc, char **argv)
+{
+	enum nl80211_tx_power_setting type;
+	int mbm;
+
+	/* get the required args */
+	if (argc != 1 && argc != 2)
+		return 1;
+
+	if (!strcmp(argv[0], "auto"))
+		type = NL80211_TX_POWER_AUTOMATIC;
+	else if (!strcmp(argv[0], "fixed"))
+		type = NL80211_TX_POWER_FIXED;
+	else if (!strcmp(argv[0], "limit"))
+		type = NL80211_TX_POWER_LIMITED;
+	else {
+		printf("Invalid parameter: %s\n", argv[0]);
+		return 2;
+	}
+
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_TX_POWER_SETTING, type);
+
+	if (type != NL80211_TX_POWER_AUTOMATIC) {
+		if (argc != 2) {
+			printf("Missing TX power level argument.\n");
+			return 2;
+		}
+
+		mbm = atoi(argv[1]);
+		NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_TX_POWER_LEVEL, mbm);
+	} else if (argc != 1)
+		return 1;
+
+	return 0;
+
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, txpower, "<auto|fixed|limit> [<tx power in mBm>]",
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_txpower,
+	"Specify transmit power level and setting type.");
+COMMAND(set, txpower, "<auto|fixed|limit> [<tx power in mBm>]",
+	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_txpower,
+	"Specify transmit power level and setting type.");

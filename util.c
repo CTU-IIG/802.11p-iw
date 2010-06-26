@@ -457,8 +457,8 @@ void print_ht_capability(__u16 cap)
 
 	PRINT_HT_CAP((cap & BIT(10)), "HT Delayed Block Ack");
 
-	PRINT_HT_CAP((cap & BIT(11)), "Max AMSDU length: 3839 bytes");
-        PRINT_HT_CAP(!(cap & BIT(11)), "Max AMSDU length: 7935 bytes");
+	PRINT_HT_CAP(!(cap & BIT(11)), "Max AMSDU length: 3839 bytes");
+	PRINT_HT_CAP((cap & BIT(11)), "Max AMSDU length: 7935 bytes");
 
 	/*
 	 * For beacons and probe response this would mean the BSS

@@ -497,7 +497,7 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 	printf("\n");
 	print_ht_capability(data[0] | (data[1] << 8));
 	print_ampdu_length(data[2] & 3);
-	print_ampdu_spacing((data[2] >> 2) & 3);
+	print_ampdu_spacing((data[2] >> 2) & 7);
 	print_ht_mcs(data + 3);
 }
 

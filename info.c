@@ -49,8 +49,9 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	struct nlattr *nl_rate;
 	struct nlattr *nl_mode;
 	struct nlattr *nl_cmd;
+	struct nlattr *nl_if, *nl_ftype;
 	int bandidx = 1;
-	int rem_band, rem_freq, rem_rate, rem_mode, rem_cmd;
+	int rem_band, rem_freq, rem_rate, rem_mode, rem_cmd, rem_ftype, rem_if;
 	int open;
 
 	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -167,20 +168,47 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		printf("\tCoverage class: %d (up to %dm)\n", coverage, 450 * coverage);
 	}
 
-	if (!tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES])
-		goto commands;
+	if (tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES]) {
+		printf("\tSupported interface modes:\n");
+		nla_for_each_nested(nl_mode, tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES], rem_mode)
+			printf("\t\t * %s\n", iftype_name(nl_mode->nla_type));
+	}
 
-	printf("\tSupported interface modes:\n");
-	nla_for_each_nested(nl_mode, tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES], rem_mode)
-		printf("\t\t * %s\n", iftype_name(nl_mode->nla_type));
+	if (tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS]) {
+		printf("\tSupported commands:\n");
+		nla_for_each_nested(nl_cmd, tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS], rem_cmd)
+			printf("\t\t * %s\n", command_name(nla_get_u32(nl_cmd)));
+	}
 
- commands:
-	if (!tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS])
-		return NL_SKIP;
+	if (tb_msg[NL80211_ATTR_TX_FRAME_TYPES]) {
+		printf("\tSupported TX frame types:\n");
+		nla_for_each_nested(nl_if, tb_msg[NL80211_ATTR_TX_FRAME_TYPES], rem_if) {
+			bool printed = false;
+			nla_for_each_nested(nl_ftype, nl_if, rem_ftype) {
+				if (!printed)
+					printf("\t\t * %s:", iftype_name(nla_type(nl_if)));
+				printed = true;
+				printf(" 0x%.4x", nla_get_u16(nl_ftype));
+			}
+			if (printed)
+				printf("\n");
+		}
+	}
 
-	printf("\tSupported commands:\n");
-	nla_for_each_nested(nl_cmd, tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS], rem_cmd)
-		printf("\t\t * %s\n", command_name(nla_get_u32(nl_cmd)));
+	if (tb_msg[NL80211_ATTR_RX_FRAME_TYPES]) {
+		printf("\tSupported RX frame types:\n");
+		nla_for_each_nested(nl_if, tb_msg[NL80211_ATTR_RX_FRAME_TYPES], rem_if) {
+			bool printed = false;
+			nla_for_each_nested(nl_ftype, nl_if, rem_ftype) {
+				if (!printed)
+					printf("\t\t * %s:", iftype_name(nla_type(nl_if)));
+				printed = true;
+				printf(" 0x%.4x", nla_get_u16(nl_ftype));
+			}
+			if (printed)
+				printf("\n");
+		}
+	}
 
 	return NL_SKIP;
 }

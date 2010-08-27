@@ -105,13 +105,12 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type,
 	} else if (strcmp(tpstr, "monitor") == 0) {
 		*type = NL80211_IFTYPE_MONITOR;
 		return 0;
-	} else if (strcmp(tpstr, "master") == 0) {
+	} else if (strcmp(tpstr, "master") == 0 ||
+		   strcmp(tpstr, "ap") == 0) {
 		*type = NL80211_IFTYPE_UNSPECIFIED;
-		fprintf(stderr, "See http://wireless.kernel.org/RTFM-AP.\n");
-		return 2;
-	} else if (strcmp(tpstr, "ap") == 0) {
-		*type = NL80211_IFTYPE_UNSPECIFIED;
-		fprintf(stderr, "See http://wireless.kernel.org/RTFM-AP.\n");
+		fprintf(stderr, "You need to run a management daemon, e.g. hostapd,\n");
+		fprintf(stderr, "see http://wireless.kernel.org/en/users/Documentation/hostapd\n");
+		fprintf(stderr, "for more information on how to do that.\n");
 		return 2;
 	} else if (strcmp(tpstr, "__ap") == 0) {
 		*type = NL80211_IFTYPE_AP;

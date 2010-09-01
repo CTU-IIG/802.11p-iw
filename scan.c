@@ -497,6 +497,42 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 	print_ht_mcs(data + 3);
 }
 
+static void print_ht_op(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	static const char *offset[4] = {
+		"no secondary",
+		"above",
+		"[reserved!]",
+		"below",
+	};
+	static const char *protection[4] = {
+		"no",
+		"nonmember",
+		"20 MHz",
+		"non-HT mixed",
+	};
+	static const char *sta_chan_width[2] = {
+		"20 MHz",
+		"any",
+	};
+
+	printf("\n");
+	printf("\t\t * primary channel: %d\n", data[0]);
+	printf("\t\t * secondary channel offset: %s\n",
+		offset[data[1] & 0x3]);
+	printf("\t\t * STA channel width: %s\n", sta_chan_width[(data[1] & 0x4)>>2]);
+	printf("\t\t * RIFS: %d\n", (data[1] & 0x8)>>3);
+	printf("\t\t * HT protection: %s\n", protection[data[2] & 0x3]);
+	printf("\t\t * non-GF present: %d\n", (data[2] & 0x4) >> 2);
+	printf("\t\t * OBSS non-GF present: %d\n", (data[2] & 0x10) >> 4);
+	printf("\t\t * dual beacon: %d\n", (data[4] & 0x40) >> 6);
+	printf("\t\t * dual CTS protection: %d\n", (data[4] & 0x80) >> 7);
+	printf("\t\t * STBC beacon: %d\n", data[5] & 0x1);
+	printf("\t\t * L-SIG TXOP Prot: %d\n", (data[5] & 0x2) >> 1);
+	printf("\t\t * PCO active: %d\n", (data[5] & 0x4) >> 2);
+	printf("\t\t * PCO phase: %d\n", (data[5] & 0x8) >> 3);
+}
+
 static void print_capabilities(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	int i, base, bit;
@@ -605,6 +641,7 @@ static const struct ie_print ieprinters[] = {
 	[32] = { "Power constraint", print_powerconstraint, 1, 1, BIT(PRINT_SCAN), },
 	[42] = { "ERP", print_erp, 1, 255, BIT(PRINT_SCAN), },
 	[45] = { "HT capabilities", print_ht_capa, 26, 26, BIT(PRINT_SCAN), },
+	[61] = { "HT operation", print_ht_op, 22, 22, BIT(PRINT_SCAN), },
 	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
 	[50] = { "Extended supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
 	[127] = { "Extended capabilities", print_capabilities, 0, 255, BIT(PRINT_SCAN), },

@@ -490,10 +490,6 @@ static void print_rsn(const uint8_t type, uint8_t len, const uint8_t *data)
 
 static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 {
-	if (len != 26) {
-		printf("\n\t\tHT Capability IE len != expected 26 bytes, skipping parse\n");
-		return;
-	}
 	printf("\n");
 	print_ht_capability(data[0] | (data[1] << 8));
 	print_ampdu_length(data[2] & 3);
@@ -608,7 +604,7 @@ static const struct ie_print ieprinters[] = {
 	[7] = { "Country", print_country, 3, 255, BIT(PRINT_SCAN), },
 	[32] = { "Power constraint", print_powerconstraint, 1, 1, BIT(PRINT_SCAN), },
 	[42] = { "ERP", print_erp, 1, 255, BIT(PRINT_SCAN), },
-	[45] = { "HT capabilities", print_ht_capa, 1, 255, BIT(PRINT_SCAN), },
+	[45] = { "HT capabilities", print_ht_capa, 26, 26, BIT(PRINT_SCAN), },
 	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
 	[50] = { "Extended supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
 	[127] = { "Extended capabilities", print_capabilities, 0, 255, BIT(PRINT_SCAN), },

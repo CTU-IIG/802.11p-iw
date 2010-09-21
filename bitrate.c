@@ -1,4 +1,8 @@
 #include <errno.h>
+#ifndef __USE_ISOC99
+#define __USE_ISOC99
+#endif
+#include <stdlib.h>
 
 #include "nl80211.h"
 #include "iw.h"

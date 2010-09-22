@@ -38,19 +38,17 @@ struct scan_params {
 
 #define IEEE80211_COUNTRY_EXTENSION_ID 201
 
-struct ieee80211_country_ie_triplet {
-	union {
-		struct {
-			__u8 first_channel;
-			__u8 num_channels;
-			__s8 max_power;
-		} __attribute__ ((packed)) chans;
-		struct {
-			__u8 reg_extension_id;
-			__u8 reg_class;
-			__u8 coverage_class;
-		} __attribute__ ((packed)) ext;
-	};
+union ieee80211_country_ie_triplet {
+	struct {
+		__u8 first_channel;
+		__u8 num_channels;
+		__s8 max_power;
+	} __attribute__ ((packed)) chans;
+	struct {
+		__u8 reg_extension_id;
+		__u8 reg_class;
+		__u8 coverage_class;
+	} __attribute__ ((packed)) ext;
 } __attribute__ ((packed));
 
 static int handle_scan(struct nl80211_state *state,
@@ -204,8 +202,7 @@ static void print_country(const uint8_t type, uint8_t len, const uint8_t *data)
 
 	while (len >= 3) {
 		int end_channel;
-		struct ieee80211_country_ie_triplet *triplet =
-			(struct ieee80211_country_ie_triplet *) data;
+		union ieee80211_country_ie_triplet *triplet = (void *) data;
 
 		if (triplet->ext.reg_extension_id >= IEEE80211_COUNTRY_EXTENSION_ID) {
 			printf("\t\tExtension ID: %d Regulatory Class: %d Coverage class: %d (up to %dm)\n",

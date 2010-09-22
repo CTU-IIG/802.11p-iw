@@ -1,6 +1,10 @@
 #ifndef __IW_H
 #define __IW_H
 
+#ifndef _ISOC99_SOURCE
+#define _ISOC99_SOURCE
+#endif
+
 #include <stdbool.h>
 #include <netlink/netlink.h>
 #include <netlink/genl/genl.h>

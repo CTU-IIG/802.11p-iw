@@ -31,7 +31,7 @@ static int handle_bitrates(struct nl80211_state *state,
 
 	for (i = 0; i < argc; i++) {
 		char *end;
-		float tmpf;
+		double tmpd;
 #ifdef NL80211_TXRATE_MCS
 		long tmpl;
 #endif
@@ -70,12 +70,12 @@ static int handle_bitrates(struct nl80211_state *state,
 #endif
 		else switch (parser_state) {
 		case S_LEGACY:
-			tmpf = strtof(argv[i], &end);
+			tmpd = strtod(argv[i], &end);
 			if (*end != '\0')
 				return 1;
-			if (tmpf < 1 || tmpf > 255 * 2)
+			if (tmpd < 1 || tmpd > 255 * 2)
 				return 1;
-			legacy[(*n_legacy)++] = tmpf * 2;
+			legacy[(*n_legacy)++] = tmpd * 2;
 			break;
 		case S_MCS:
 #ifdef NL80211_TXRATE_MCS

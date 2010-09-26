@@ -142,7 +142,7 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		       nla_get_u8(tb_msg[NL80211_ATTR_MAX_NUM_SCAN_SSIDS]));
 	if (tb_msg[NL80211_ATTR_MAX_SCAN_IE_LEN])
 		printf("\tmax scan IEs length: %d bytes\n",
-		       nla_get_u32(tb_msg[NL80211_ATTR_MAX_SCAN_IE_LEN]));
+		       nla_get_u16(tb_msg[NL80211_ATTR_MAX_SCAN_IE_LEN]));
 
 	if (tb_msg[NL80211_ATTR_WIPHY_FRAG_THRESHOLD]) {
 		unsigned int frag;

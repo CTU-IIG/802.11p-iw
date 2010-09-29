@@ -370,8 +370,8 @@ static int wait_event(struct nl_msg *msg, void *arg)
 	for (i = 0; i < wait->n_cmds; i++) {
 		if (gnlh->cmd == wait->cmds[i]) {
 			wait->cmd = gnlh->cmd;
-		if (wait->pargs)
-			print_event(msg, wait->pargs);
+			if (wait->pargs)
+				print_event(msg, wait->pargs);
 		}
 	}
 

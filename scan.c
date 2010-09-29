@@ -468,6 +468,28 @@ static void print_rsn_ie(const char *defcipher, const char *defauth,
 		len -= 2;
 	}
 
+	if (len >= 2) {
+		int pmkid_count = data[0] | (data[1] << 8);
+
+		if (len >= 2 + 16 * pmkid_count) {
+			tab_on_first(&first);
+			printf("\t * %d PMKIDs\n", pmkid_count);
+			/* not printing PMKID values */
+			data += 2 + 16 * pmkid_count;
+			len -= 2 + 16 * pmkid_count;
+		} else
+			goto invalid;
+	}
+
+	if (len >= 4) {
+		tab_on_first(&first);
+		printf("\t * Group mgmt cipher suite: ");
+		print_cipher(data);
+		printf("\n");
+		data += 4;
+		len -= 4;
+	}
+
  invalid:
 	if (len != 0) {
 		printf("\t\t * bogus tail data (%d):", len);

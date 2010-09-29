@@ -130,12 +130,6 @@ static void parse_cqm_event(struct nlattr *tb)
 
 static int print_event(struct nl_msg *msg, void *arg)
 {
-#define PARSE_BEACON_CHAN(_attr, _chan) do { \
-	r = parse_beacon_hint_chan(tb[_attr], \
-				   &_chan); \
-	if (r) \
-		return NL_SKIP; \
-} while (0)
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1], *nst;
 	struct print_event_args *args = arg;
@@ -144,7 +138,6 @@ static int print_event(struct nl_msg *msg, void *arg)
 	__u8 reg_type;
 	struct ieee80211_beacon_channel chan_before_beacon,  chan_after_beacon;
 	__u32 wiphy_idx = 0;
-	int r;
 	int rem_nst;
 	__u16 status;
 
@@ -235,8 +228,12 @@ static int print_event(struct nl_msg *msg, void *arg)
 		memset(&chan_before_beacon, 0, sizeof(chan_before_beacon));
 		memset(&chan_after_beacon, 0, sizeof(chan_after_beacon));
 
-		PARSE_BEACON_CHAN(NL80211_ATTR_FREQ_BEFORE, chan_before_beacon);
-		PARSE_BEACON_CHAN(NL80211_ATTR_FREQ_AFTER, chan_after_beacon);
+		if (parse_beacon_hint_chan(tb[NL80211_ATTR_FREQ_BEFORE],
+					   &chan_before_beacon))
+			break;
+		if (parse_beacon_hint_chan(tb[NL80211_ATTR_FREQ_AFTER],
+					   &chan_after_beacon))
+			break;
 
 		if (chan_before_beacon.center_freq != chan_after_beacon.center_freq)
 			break;
@@ -351,7 +348,6 @@ static int print_event(struct nl_msg *msg, void *arg)
 
 	fflush(stdout);
 	return NL_SKIP;
-#undef PARSE_BEACON_CHAN
 }
 
 struct wait_event {

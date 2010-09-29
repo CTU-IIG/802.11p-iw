@@ -93,7 +93,9 @@ static const char *ifmodes[NL80211_IFTYPE_MAX + 1] = {
 	"AP/VLAN",
 	"WDS",
 	"monitor",
-	"mesh point"
+	"mesh point",
+	"P2P-client",
+	"P2P-GO",
 };
 
 static char modebuf[100];

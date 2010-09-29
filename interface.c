@@ -130,6 +130,12 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type,
 		   strcmp(tpstr, "mesh") == 0) {
 		*type = NL80211_IFTYPE_MESH_POINT;
 		return 0;
+	} else if (strcmp(tpstr, "__p2pcl") == 0) {
+		*type = NL80211_IFTYPE_P2P_CLIENT;
+		return 0;
+	} else if (strcmp(tpstr, "__p2pgo") == 0) {
+		*type = NL80211_IFTYPE_P2P_GO;
+		return 0;
 	}
 
 	fprintf(stderr, "invalid interface type %s\n", tpstr);

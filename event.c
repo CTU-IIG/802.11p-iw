@@ -349,6 +349,7 @@ static int print_event(struct nl_msg *msg, void *arg)
 		break;
 	}
 
+	fflush(stdout);
 	return NL_SKIP;
 #undef PARSE_BEACON_CHAN
 }

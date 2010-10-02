@@ -370,3 +370,16 @@ COMMAND(set, type, "<type>",
 	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_type,
 	"Set interface type/mode.\n"
 	IFACE_TYPES);
+
+static int handle_interface_4addr(struct nl80211_state *state,
+				 struct nl_cb *cb,
+				 struct nl_msg *msg,
+				 int argc, char **argv)
+{
+	if (argc != 1)
+		return 1;
+	return parse_4addr_flag(argv[0], msg);
+}
+COMMAND(set, 4addr, "<on|off>",
+	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_4addr,
+	"Set interface 4addr (WDS) mode.\n");

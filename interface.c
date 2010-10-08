@@ -382,7 +382,7 @@ static int handle_interface_4addr(struct nl80211_state *state,
 }
 COMMAND(set, 4addr, "<on|off>",
 	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_4addr,
-	"Set interface 4addr (WDS) mode.\n");
+	"Set interface 4addr (WDS) mode.");
 
 static int handle_interface_wds_peer(struct nl80211_state *state,
 				     struct nl_cb *cb,
@@ -395,7 +395,7 @@ static int handle_interface_wds_peer(struct nl80211_state *state,
 		return 1;
 
 	if (mac_addr_a2n(mac_addr, argv[0])) {
-		fprintf(stderr, "invalid mac address\n");
+		fprintf(stderr, "Invalid MAC address\n");
 		return 2;
 	}
 
@@ -413,4 +413,4 @@ static int handle_interface_wds_peer(struct nl80211_state *state,
 }
 COMMAND(set, peer, "<MAC address>",
 	NL80211_CMD_SET_WDS_PEER, 0, CIB_NETDEV, handle_interface_wds_peer,
-	"Set interface wds peer.\n");
+	"Set interface WDS peer.");

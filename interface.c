@@ -383,3 +383,34 @@ static int handle_interface_4addr(struct nl80211_state *state,
 COMMAND(set, 4addr, "<on|off>",
 	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_4addr,
 	"Set interface 4addr (WDS) mode.\n");
+
+static int handle_interface_wds_peer(struct nl80211_state *state,
+				     struct nl_cb *cb,
+				     struct nl_msg *msg,
+				     int argc, char **argv)
+{
+	unsigned char mac_addr[ETH_ALEN];
+
+	if (argc < 1)
+		return 1;
+
+	if (mac_addr_a2n(mac_addr, argv[0])) {
+		fprintf(stderr, "invalid mac address\n");
+		return 2;
+	}
+
+	argc--;
+	argv++;
+
+	if (argc)
+		return 1;
+
+	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, mac_addr);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, peer, "<MAC address>",
+	NL80211_CMD_SET_WDS_PEER, 0, CIB_NETDEV, handle_interface_wds_peer,
+	"Set interface wds peer.\n");

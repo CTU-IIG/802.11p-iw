@@ -141,10 +141,20 @@ static int print_event(struct nl_msg *msg, void *arg)
 	int rem_nst;
 	__u16 status;
 
-	if (args->time) {
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		printf("%ld.%06u: ", (long) tv.tv_sec, (unsigned int) tv.tv_usec);
+	if (args->time || args->reltime) {
+		unsigned long long usecs, previous;
+
+		previous = 1000000ULL * args->ts.tv_sec + args->ts.tv_usec;
+		gettimeofday(&args->ts, NULL);
+		usecs = 1000000ULL * args->ts.tv_sec + args->ts.tv_usec;
+		if (args->reltime) {
+			if (!args->have_ts) {
+				usecs = 0;
+				args->have_ts = true;
+			} else
+				usecs -= previous;
+		}
+		printf("%llu.%06llu: ", usecs/1000000, usecs % 1000000);
 	}
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -477,11 +487,16 @@ static int print_events(struct nl80211_state *state,
 			args.frame = true;
 		else if (strcmp(argv[0], "-t") == 0)
 			args.time = true;
+		else if (strcmp(argv[0], "-r") == 0)
+			args.reltime = true;
 		else
 			return 1;
 		argc--;
 		argv++;
 	}
+
+	if (args.time && args.reltime)
+		return 1;
 
 	if (argc)
 		return 1;
@@ -492,7 +507,8 @@ static int print_events(struct nl80211_state *state,
 
 	return __do_listen_events(state, 0, NULL, &args);
 }
-TOPLEVEL(event, "[-t] [-f]", 0, 0, CIB_NONE, print_events,
+TOPLEVEL(event, "[-t] [-r] [-f]", 0, 0, CIB_NONE, print_events,
 	"Monitor events from the kernel.\n"
 	"-t - print timestamp\n"
+	"-r - print relative timstamp\n"
 	"-f - print full frame for auth/assoc etc.");

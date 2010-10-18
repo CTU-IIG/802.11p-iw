@@ -222,7 +222,7 @@ static void print_country(const uint8_t type, uint8_t len, const uint8_t *data)
 		else
 			end_channel =  triplet->chans.first_channel + (4 * (triplet->chans.num_channels - 1));
 
-		printf("\t\tChannels [%d - %d]\n", triplet->chans.first_channel, end_channel);
+		printf("\t\tChannels [%d - %d] @ %d dBm\n", triplet->chans.first_channel, end_channel, triplet->chans.max_power);
 
 		data += 3;
 		len -= 3;

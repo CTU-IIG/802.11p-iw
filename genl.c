@@ -8,6 +8,7 @@
 #include <netlink/genl/ctrl.h>  
 #include <netlink/msg.h>
 #include <netlink/attr.h>
+#include <linux/genetlink.h>
 
 #include "iw.h"
 

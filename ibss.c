@@ -26,6 +26,7 @@ static int join_ibss(struct nl80211_state *state,
 	int n_rates = 0;
 	char *value = NULL, *sptr = NULL;
 	float rate;
+	int bintval;
 
 	if (argc < 2)
 		return 1;
@@ -55,6 +56,17 @@ static int join_ibss(struct nl80211_state *state,
 			argv++;
 			argc--;
 		}
+	}
+
+	if (argc > 1 && strcmp(argv[0], "beacon-interval") == 0) {
+		argv++;
+		argc--;
+		bintval = strtoul(argv[0], &end, 10);
+		if (*end != '\0')
+			return 1;
+		NLA_PUT_U32(msg, NL80211_ATTR_BEACON_INTERVAL, bintval);
+		argv++;
+		argc--;
 	}
 
 	/* basic rates */
@@ -108,11 +120,12 @@ COMMAND(ibss, leave, NULL,
 	NL80211_CMD_LEAVE_IBSS, 0, CIB_NETDEV, leave_ibss,
 	"Leave the current IBSS cell.");
 COMMAND(ibss, join,
-	"<SSID> <freq in MHz> [fixed-freq] [<fixed bssid>] "
-	"[basic-rates <rate in Mbps,rate2,...>] [key d:0:abcde]",
+	"<SSID> <freq in MHz> [fixed-freq] [<fixed bssid>] [beacon-interval "
+	"<TU>] [basic-rates <rate in Mbps,rate2,...>] [key d:0:abcde]",
 	NL80211_CMD_JOIN_IBSS, 0, CIB_NETDEV, join_ibss,
 	"Join the IBSS cell with the given SSID, if it doesn't exist create\n"
 	"it on the given frequency. When fixed frequency is requested, don't\n"
 	"join/create a cell on a different frequency. When a fixed BSSID is\n"
 	"requested use that BSSID and do not adopt another cell's BSSID even\n"
-	"if it has higher TSF and the same SSID.");
+	"if it has higher TSF and the same SSID. If an IBSS is created, create\n"
+	"it with the specified basic-rates and beacon-interval (in TU).");

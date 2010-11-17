@@ -307,3 +307,42 @@ COMMAND(set, txpower, "<auto|fixed|limit> [<tx power in mBm>]",
 COMMAND(set, txpower, "<auto|fixed|limit> [<tx power in mBm>]",
 	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_txpower,
 	"Specify transmit power level and setting type.");
+
+static int handle_antenna(struct nl80211_state *state,
+			  struct nl_cb *cb,
+			  struct nl_msg *msg,
+			  int argc, char **argv)
+{
+	char *end;
+	uint32_t tx_ant = 0, rx_ant = 0;
+
+	if (argc == 1 && strcmp(argv[0], "all") == 0) {
+		tx_ant = 0xffffffff;
+		rx_ant = 0xffffffff;
+	} else if (argc == 1) {
+		tx_ant = rx_ant = strtoul(argv[0], &end, 0);
+		if (*end)
+			return 1;
+	}
+	else if (argc == 2) {
+		tx_ant = strtoul(argv[0], &end, 0);
+		if (*end)
+			return 1;
+		rx_ant = strtoul(argv[1], &end, 0);
+		if (*end)
+			return 1;
+	} else
+		return 1;
+
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_ANTENNA_TX, tx_ant);
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_ANTENNA_RX, rx_ant);
+
+	return 0;
+
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, antenna, "<bitmap> | all | <tx bitmap> <rx bitmap>",
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_antenna,
+	"Set a bitmap of allowed antennas to use for TX and RX.\n"
+	"The driver may reject antenna configurations it cannot support.");

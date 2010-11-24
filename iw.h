@@ -51,12 +51,13 @@ struct cmd {
 		       struct nl_cb *cb,
 		       struct nl_msg *msg,
 		       int argc, char **argv);
+	const struct cmd *(*selector)(int argc, char **argv);
 	const struct cmd *parent;
 };
 
 #define ARRAY_SIZE(ar) (sizeof(ar)/sizeof(ar[0]))
 
-#define __COMMAND(_section, _symname, _name, _args, _nlcmd, _flags, _hidden, _idby, _handler, _help)\
+#define __COMMAND(_section, _symname, _name, _args, _nlcmd, _flags, _hidden, _idby, _handler, _help, _sel)\
 	static struct cmd						\
 	__cmd ## _ ## _symname ## _ ## _handler ## _ ## _nlcmd ## _ ## _idby ## _ ## _hidden\
 	__attribute__((used)) __attribute__((section("__cmd")))	= {	\
@@ -69,11 +70,17 @@ struct cmd {
 		.handler = (_handler),					\
 		.help = (_help),					\
 		.parent = _section,					\
-	 }
+		.selector = (_sel),					\
+	}
+#define __ACMD(_section, _symname, _name, _args, _nlcmd, _flags, _hidden, _idby, _handler, _help, _sel, _alias)\
+	__COMMAND(_section, _symname, _name, _args, _nlcmd, _flags, _hidden, _idby, _handler, _help, _sel);\
+	static const struct cmd *_alias = &__cmd ## _ ## _symname ## _ ## _handler ## _ ## _nlcmd ## _ ## _idby ## _ ## _hidden
 #define COMMAND(section, name, args, cmd, flags, idby, handler, help)	\
-	__COMMAND(&(__section ## _ ## section), name, #name, args, cmd, flags, 0, idby, handler, help)
+	__COMMAND(&(__section ## _ ## section), name, #name, args, cmd, flags, 0, idby, handler, help, NULL)
+#define COMMAND_ALIAS(section, name, args, cmd, flags, idby, handler, help, selector, alias)\
+	__ACMD(&(__section ## _ ## section), name, #name, args, cmd, flags, 0, idby, handler, help, selector, alias)
 #define HIDDEN(section, name, args, cmd, flags, idby, handler)		\
-	__COMMAND(&(__section ## _ ## section), name, #name, args, cmd, flags, 1, idby, handler, NULL)
+	__COMMAND(&(__section ## _ ## section), name, #name, args, cmd, flags, 1, idby, handler, NULL, NULL)
 
 #define TOPLEVEL(_name, _args, _nlcmd, _flags, _idby, _handler, _help)	\
 	struct cmd							\

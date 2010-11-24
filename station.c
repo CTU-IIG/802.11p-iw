@@ -204,6 +204,20 @@ COMMAND(station, del, "<MAC address>",
 	NL80211_CMD_DEL_STATION, 0, CIB_NETDEV, handle_station_get,
 	"Remove the given station entry (use with caution!)");
 
+static const struct cmd *station_set_plink;
+static const struct cmd *station_set_vlan;
+
+static const struct cmd *select_station_cmd(int argc, char **argv)
+{
+	if (argc < 2)
+		return NULL;
+	if (strcmp(argv[1], "plink_action") == 0)
+		return station_set_plink;
+	if (strcmp(argv[1], "vlan") == 0)
+		return station_set_vlan;
+	return NULL;
+}
+
 static int handle_station_set_plink(struct nl80211_state *state,
 			      struct nl_cb *cb,
 			      struct nl_msg *msg,
@@ -248,9 +262,10 @@ static int handle_station_set_plink(struct nl80211_state *state,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(station, set, "<MAC address> plink_action <open|block>",
+COMMAND_ALIAS(station, set, "<MAC address> plink_action <open|block>",
 	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set_plink,
-	"Set mesh peer link action for this station (peer).");
+	"Set mesh peer link action for this station (peer).",
+	select_station_cmd, station_set_plink);
 
 static int handle_station_set_vlan(struct nl80211_state *state,
 			      struct nl_cb *cb,
@@ -294,9 +309,10 @@ static int handle_station_set_vlan(struct nl80211_state *state,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(station, set, "<MAC address> vlan <ifindex>",
+COMMAND_ALIAS(station, set, "<MAC address> vlan <ifindex>",
 	NL80211_CMD_SET_STATION, 0, CIB_NETDEV, handle_station_set_vlan,
-	"Set an AP VLAN for this station.");
+	"Set an AP VLAN for this station.",
+	select_station_cmd, station_set_vlan);
 
 
 static int handle_station_dump(struct nl80211_state *state,

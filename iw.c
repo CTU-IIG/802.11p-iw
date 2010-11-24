@@ -358,6 +358,12 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 			return 1;
 	}
 
+	if (cmd->selector) {
+		cmd = cmd->selector(argc, argv);
+		if (!cmd)
+			return 1;
+	}
+
 	if (cmdout)
 		*cmdout = cmd;
 

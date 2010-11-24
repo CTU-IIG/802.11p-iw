@@ -168,13 +168,6 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		printf("\tCoverage class: %d (up to %dm)\n", coverage, 450 * coverage);
 	}
 
-	if (tb_msg[NL80211_ATTR_WIPHY_ANTENNA_TX] &&
-	    tb_msg[NL80211_ATTR_WIPHY_ANTENNA_RX]) {
-		printf("\tAntenna: TX %#x RX %#x\n",
-		       nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_ANTENNA_TX]),
-		       nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_ANTENNA_RX]));
-	}
-
 	if (tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES]) {
 		printf("\tSupported interface modes:\n");
 		nla_for_each_nested(nl_mode, tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES], rem_mode)

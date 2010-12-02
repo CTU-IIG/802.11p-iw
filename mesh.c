@@ -11,6 +11,9 @@
 #include "nl80211.h"
 #include "iw.h"
 
+SECTION(mesh);
+
+
 typedef struct _any_t {
 	union {
 		uint32_t as_32;
@@ -328,3 +331,34 @@ static int get_interface_meshparam(struct nl80211_state *state,
 COMMAND(get, mesh_param, "[<param>]",
 	NL80211_CMD_GET_MESH_PARAMS, 0, CIB_NETDEV, get_interface_meshparam,
 	"Retrieve mesh parameter (run command without any to see available ones).");
+
+static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
+		     struct nl_msg *msg, int argc, char **argv)
+{
+	if (argc < 1)
+		return 1;
+
+	NLA_PUT(msg, NL80211_ATTR_MESH_ID, strlen(argv[0]), argv[0]);
+	argc--;
+	argv++;
+
+	if (!argc)
+		return 0;
+	return set_interface_meshparam(state, cb, msg, argc, argv);
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(mesh, join, "<mesh ID> [<param>=<value>]*",
+	NL80211_CMD_JOIN_MESH, 0, CIB_NETDEV, join_mesh,
+	"Join a mesh with the given mesh ID and mesh parameters.");
+
+static int leave_mesh(struct nl80211_state *state, struct nl_cb *cb,
+		      struct nl_msg *msg, int argc, char **argv)
+{
+	if (argc)
+		return 1;
+
+	return 0;
+}
+COMMAND(mesh, leave, NULL, NL80211_CMD_LEAVE_MESH, 0, CIB_NETDEV, leave_mesh,
+	"Leave a mesh.");

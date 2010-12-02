@@ -267,8 +267,20 @@ static int print_mesh_param_handler(struct nl_msg *msg, void *arg)
 
 	/* unpack the mesh parameters */
 	if (nla_parse_nested(mesh_params, NL80211_MESHCONF_ATTR_MAX,
-				parent_attr, NULL))
+			     parent_attr, NULL))
 		return -EINVAL;
+
+	if (!mdescr) {
+		int i;
+
+		for (i = 0; i < ARRAY_SIZE(_mesh_param_descrs); i++) {
+			mdescr = &_mesh_param_descrs[i];
+			printf("%s = ", mdescr->name);
+			mdescr->nla_print_fn(mesh_params[mdescr->mesh_param_num]);
+			printf("\n");
+		}
+		return NL_SKIP;
+	}
 
 	/* print out the mesh parameter */
 	mdescr->nla_print_fn(mesh_params[mdescr->mesh_param_num]);
@@ -281,17 +293,22 @@ static int get_interface_meshparam(struct nl80211_state *state,
 				   struct nl_msg *msg,
 				   int argc, char **argv)
 {
-	const struct mesh_param_descr *mdescr;
+	const struct mesh_param_descr *mdescr = NULL;
 
-	mdescr = find_mesh_param(argc, argv, "get");
-	if (!mdescr)
-		return 2;
+	if (argc > 1)
+		return 1;
+
+	if (argc == 1) {
+		mdescr = find_mesh_param(argc, argv, "get");
+		if (!mdescr)
+			return 2;
+	}
 
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM,
 		  print_mesh_param_handler, (void *)mdescr);
 	return 0;
 }
 
-COMMAND(get, mesh_param, "<param>",
+COMMAND(get, mesh_param, "[<param>]",
 	NL80211_CMD_GET_MESH_PARAMS, 0, CIB_NETDEV, get_interface_meshparam,
 	"Retrieve mesh parameter (run command without any to see available ones).");

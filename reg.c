@@ -132,7 +132,7 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 	}
 
 	alpha2 = nla_data(tb_msg[NL80211_ATTR_REG_ALPHA2]);
-	printf("country %s:\n", alpha2);
+	printf("country %c%c:\n", alpha2[0], alpha2[1]);
 
 	nla_for_each_nested(nl_rule, tb_msg[NL80211_ATTR_REG_RULES], rem_rule) {
 		struct nlattr *tb_rule[NL80211_FREQUENCY_ATTR_MAX + 1];

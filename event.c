@@ -310,6 +310,16 @@ static int print_event(struct nl_msg *msg, void *arg)
 		print_frame(args, tb[NL80211_ATTR_FRAME]);
 		printf("\n");
 		break;
+	case NL80211_CMD_UNPROT_DEAUTHENTICATE:
+		printf("unprotected deauth");
+		print_frame(args, tb[NL80211_ATTR_FRAME]);
+		printf("\n");
+		break;
+	case NL80211_CMD_UNPROT_DISASSOCIATE:
+		printf("unprotected disassoc");
+		print_frame(args, tb[NL80211_ATTR_FRAME]);
+		printf("\n");
+		break;
 	case NL80211_CMD_CONNECT:
 		status = 0;
 		if (!tb[NL80211_ATTR_STATUS_CODE])

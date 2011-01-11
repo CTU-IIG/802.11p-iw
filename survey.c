@@ -44,8 +44,9 @@ static int print_survey_handler(struct nl_msg *msg, void *arg)
 	}
 
 	if (sinfo[NL80211_SURVEY_INFO_FREQUENCY])
-		printf("\tfrequency:\t%u MHz\n",
-			nla_get_u32(sinfo[NL80211_SURVEY_INFO_FREQUENCY]));
+		printf("\tfrequency:\t%u MHz%s\n",
+			nla_get_u32(sinfo[NL80211_SURVEY_INFO_FREQUENCY]),
+			sinfo[NL80211_SURVEY_INFO_IN_USE] ? " [in use]" : "");
 	if (sinfo[NL80211_SURVEY_INFO_NOISE])
 		printf("\tnoise:\t\t%d dBm\n",
 			(int8_t)nla_get_u8(sinfo[NL80211_SURVEY_INFO_NOISE]));

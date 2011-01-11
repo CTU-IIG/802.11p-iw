@@ -44,12 +44,27 @@ static int print_survey_handler(struct nl_msg *msg, void *arg)
 	}
 
 	if (sinfo[NL80211_SURVEY_INFO_FREQUENCY])
-		printf("\tfrequency:\t%u MHz%s\n",
+		printf("\tfrequency:\t\t\t%u MHz%s\n",
 			nla_get_u32(sinfo[NL80211_SURVEY_INFO_FREQUENCY]),
 			sinfo[NL80211_SURVEY_INFO_IN_USE] ? " [in use]" : "");
 	if (sinfo[NL80211_SURVEY_INFO_NOISE])
-		printf("\tnoise:\t\t%d dBm\n",
+		printf("\tnoise:\t\t\t\t%d dBm\n",
 			(int8_t)nla_get_u8(sinfo[NL80211_SURVEY_INFO_NOISE]));
+	if (sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME])
+		printf("\tchannel active time:\t\t%llu ms\n",
+			(unsigned long long)nla_get_u64(sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME]));
+	if (sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_BUSY])
+		printf("\tchannel busy time:\t\t%llu ms\n",
+			(unsigned long long)nla_get_u64(sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_BUSY]));
+	if (sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_EXT_BUSY])
+		printf("\textension channel busy time:\t%llu ms\n",
+			(unsigned long long)nla_get_u64(sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_EXT_BUSY]));
+	if (sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_RX])
+		printf("\tchannel receive time:\t\t%llu ms\n",
+			(unsigned long long)nla_get_u64(sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_RX]));
+	if (sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_TX])
+		printf("\tchannel transmit time:\t\t%llu ms\n",
+			(unsigned long long)nla_get_u64(sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_TX]));
 	return NL_SKIP;
 }
 

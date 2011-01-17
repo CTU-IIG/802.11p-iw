@@ -168,6 +168,10 @@ static const char *commands[NL80211_CMD_MAX + 1] = {
 	[NL80211_CMD_REGISTER_ACTION] = "register_action",
 	[NL80211_CMD_ACTION] = "action",
 	[NL80211_CMD_SET_CHANNEL] = "set_channel",
+	[NL80211_CMD_SET_WDS_PEER] = "set_wds_peer",
+	[NL80211_CMD_FRAME_WAIT_CANCEL] = "frame_wait_cancel",
+	[NL80211_CMD_JOIN_MESH] = "join_mesh",
+	[NL80211_CMD_LEAVE_MESH] = "leave_mesh",
 };
 
 static char cmdbuf[100];

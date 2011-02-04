@@ -137,6 +137,51 @@ static void parse_cqm_event(struct nlattr **attrs)
 		printf("unknown event\n");
 }
 
+static const char * key_type_str(enum nl80211_key_type key_type)
+{
+	static char buf[30];
+	switch (key_type) {
+	case NL80211_KEYTYPE_GROUP:
+		return "Group";
+	case NL80211_KEYTYPE_PAIRWISE:
+		return "Pairwise";
+	case NL80211_KEYTYPE_PEERKEY:
+		return "PeerKey";
+	default:
+		snprintf(buf, sizeof(buf), "unknown(%d)", key_type);
+		return buf;
+	}
+}
+
+static void parse_mic_failure(struct nlattr **attrs)
+{
+	printf("Michael MIC failure event:");
+
+	if (attrs[NL80211_ATTR_MAC]) {
+		char addr[3 * ETH_ALEN];
+		mac_addr_n2a(addr, nla_data(attrs[NL80211_ATTR_MAC]));
+		printf(" source MAC address %s", addr);
+	}
+
+	if (attrs[NL80211_ATTR_KEY_SEQ] &&
+	    nla_len(attrs[NL80211_ATTR_KEY_SEQ]) == 6) {
+		unsigned char *seq = nla_data(attrs[NL80211_ATTR_KEY_SEQ]);
+		printf(" seq=%02x%02x%02x%02x%02x%02x",
+		       seq[0], seq[1], seq[2], seq[3], seq[4], seq[5]);
+	}
+	if (attrs[NL80211_ATTR_KEY_TYPE]) {
+		enum nl80211_key_type key_type =
+			nla_get_u32(attrs[NL80211_ATTR_KEY_TYPE]);
+		printf(" Key Type %s", key_type_str(key_type));
+	}
+
+	if (attrs[NL80211_ATTR_KEY_IDX]) {
+		__u8 key_id = nla_get_u8(attrs[NL80211_ATTR_KEY_IDX]);
+		printf(" Key Id %d", key_id);
+	}
+
+	printf("\n");
+}
 
 static int print_event(struct nl_msg *msg, void *arg)
 {
@@ -370,6 +415,9 @@ static int print_event(struct nl_msg *msg, void *arg)
 		break;
 	case NL80211_CMD_NOTIFY_CQM:
 		parse_cqm_event(tb);
+		break;
+	case NL80211_CMD_MICHAEL_MIC_FAILURE:
+		parse_mic_failure(tb);
 		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);

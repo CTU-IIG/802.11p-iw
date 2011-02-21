@@ -183,7 +183,7 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	if (tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES]) {
 		printf("\tSupported interface modes:\n");
 		nla_for_each_nested(nl_mode, tb_msg[NL80211_ATTR_SUPPORTED_IFTYPES], rem_mode)
-			printf("\t\t * %s\n", iftype_name(nl_mode->nla_type));
+			printf("\t\t * %s\n", iftype_name(nla_type(nl_mode)));
 	}
 
 	if (tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS]) {

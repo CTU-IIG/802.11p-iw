@@ -222,6 +222,10 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		}
 	}
 
+	if (tb_msg[NL80211_ATTR_SUPPORT_IBSS_RSN]) {
+		printf("\tDevice supports RSN-IBSS.\n");
+	}
+
 	return NL_SKIP;
 }
 

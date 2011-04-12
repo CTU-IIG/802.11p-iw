@@ -222,8 +222,42 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		}
 	}
 
-	if (tb_msg[NL80211_ATTR_SUPPORT_IBSS_RSN]) {
+	if (tb_msg[NL80211_ATTR_SUPPORT_IBSS_RSN])
 		printf("\tDevice supports RSN-IBSS.\n");
+
+	if (tb_msg[NL80211_ATTR_WOWLAN_TRIGGERS_SUPPORTED]) {
+		struct nlattr *tb_wowlan[NUM_NL80211_WOWLAN_TRIG];
+		static struct nla_policy wowlan_policy[NUM_NL80211_WOWLAN_TRIG] = {
+			[NL80211_WOWLAN_TRIG_ANY] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_DISCONNECT] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_MAGIC_PKT] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_PKT_PATTERN] = {
+				.minlen = sizeof(struct nl80211_wowlan_pattern_support),
+			},
+		};
+		struct nl80211_wowlan_pattern_support *pat;
+		int err;
+
+		err = nla_parse_nested(tb_wowlan, MAX_NL80211_WOWLAN_TRIG,
+				       tb_msg[NL80211_ATTR_WOWLAN_TRIGGERS_SUPPORTED],
+				       wowlan_policy);
+		printf("\tWoWLAN support:");
+		if (err) {
+			printf(" <failed to parse>\n");
+		} else {
+			printf("\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_ANY])
+				printf("\t\t * any (device continues operating)\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_DISCONNECT])
+				printf("\t\t * disconnect\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_MAGIC_PKT])
+				printf("\t\t * magic packet\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]) {
+				pat = nla_data(tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]);
+				printf("\t\t * up to %u patterns of %u-%u bytes\n",
+					pat->max_patterns, pat->min_pattern_len, pat->max_pattern_len);
+			}
+		}
 	}
 
 	return NL_SKIP;

@@ -419,6 +419,11 @@ static int print_event(struct nl_msg *msg, void *arg)
 	case NL80211_CMD_MICHAEL_MIC_FAILURE:
 		parse_mic_failure(tb);
 		break;
+	case NL80211_CMD_FRAME_TX_STATUS:
+		printf("mgmt TX status (cookie %llx): %s\n",
+			(unsigned long long)nla_get_u64(tb[NL80211_ATTR_COOKIE]),
+			tb[NL80211_ATTR_ACK] ? "acked" : "no ack");
+		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);
 		break;

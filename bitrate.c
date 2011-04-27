@@ -137,4 +137,6 @@ static int handle_bitrates(struct nl80211_state *state,
 #endif
 
 COMMAND(set, bitrates, DESCR, NL80211_CMD_SET_TX_BITRATE_MASK, 0, CIB_NETDEV,
-	handle_bitrates, "Sets up the specified rate masks.");
+	handle_bitrates,
+	"Sets up the specified rate masks.\n"
+	"Not passing any arguments would clear the existing mask (if any).");

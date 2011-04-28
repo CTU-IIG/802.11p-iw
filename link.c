@@ -115,6 +115,7 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *sinfo[NL80211_STA_INFO_MAX + 1];
 	struct nlattr *rinfo[NL80211_RATE_INFO_MAX + 1];
+	struct nlattr *binfo[NL80211_STA_BSS_PARAM_MAX + 1];
 	static struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
 		[NL80211_STA_INFO_INACTIVE_TIME] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_RX_BYTES] = { .type = NLA_U32 },
@@ -133,6 +134,13 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 		[NL80211_RATE_INFO_MCS] = { .type = NLA_U8 },
 		[NL80211_RATE_INFO_40_MHZ_WIDTH] = { .type = NLA_FLAG },
 		[NL80211_RATE_INFO_SHORT_GI] = { .type = NLA_FLAG },
+	};
+	static struct nla_policy bss_policy[NL80211_STA_BSS_PARAM_MAX + 1] = {
+		[NL80211_STA_BSS_PARAM_CTS_PROT] = { .type = NLA_FLAG },
+		[NL80211_STA_BSS_PARAM_SHORT_PREAMBLE] = { .type = NLA_FLAG },
+		[NL80211_STA_BSS_PARAM_SHORT_SLOT_TIME] = { .type = NLA_FLAG },
+		[NL80211_STA_BSS_PARAM_DTIM_PERIOD] = { .type = NLA_U8 },
+		[NL80211_STA_BSS_PARAM_BEACON_INTERVAL] = { .type = NLA_U16 },
 	};
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -178,6 +186,32 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 				printf(" 40Mhz");
 			if (rinfo[NL80211_RATE_INFO_SHORT_GI])
 				printf(" short GI");
+			printf("\n");
+		}
+	}
+
+	if (sinfo[NL80211_STA_INFO_BSS_PARAM]) {
+		if (nla_parse_nested(binfo, NL80211_STA_BSS_PARAM_MAX,
+				     sinfo[NL80211_STA_INFO_BSS_PARAM],
+				     bss_policy)) {
+			fprintf(stderr, "failed to parse nested bss parameters!\n");
+		} else {
+			char *delim = "";
+			printf("\n\tbss flags:\t");
+			if (binfo[NL80211_STA_BSS_PARAM_CTS_PROT]) {
+				printf("CTS-protection");
+				delim = " ";
+			}
+			if (binfo[NL80211_STA_BSS_PARAM_SHORT_PREAMBLE]) {
+				printf("%sshort-preamble", delim);
+				delim = " ";
+			}
+			if (binfo[NL80211_STA_BSS_PARAM_SHORT_SLOT_TIME])
+				printf("%sshort-slot-time", delim);
+			printf("\n\tdtim period:\t%d",
+			       nla_get_u8(binfo[NL80211_STA_BSS_PARAM_DTIM_PERIOD]));
+			printf("\n\tbeacon int:\t%d",
+			       nla_get_u16(binfo[NL80211_STA_BSS_PARAM_BEACON_INTERVAL]));
 			printf("\n");
 		}
 	}

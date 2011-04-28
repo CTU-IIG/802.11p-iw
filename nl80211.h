@@ -148,6 +148,10 @@
  * @NL80211_CMD_SET_MPATH:  Set mesh path attributes for mesh path to
  * 	destination %NL80211_ATTR_MAC on the interface identified by
  * 	%NL80211_ATTR_IFINDEX.
+ * @NL80211_CMD_NEW_MPATH: Create a new mesh path for the destination given by
+ *	%NL80211_ATTR_MAC via %NL80211_ATTR_MPATH_NEXT_HOP.
+ * @NL80211_CMD_DEL_MPATH: Delete a mesh path to the destination given by
+ *	%NL80211_ATTR_MAC.
  * @NL80211_CMD_NEW_PATH: Add a mesh path with given attributes to the
  *	the interface identified by %NL80211_ATTR_IFINDEX.
  * @NL80211_CMD_DEL_PATH: Remove a mesh path identified by %NL80211_ATTR_MAC
@@ -406,11 +410,21 @@
  *	notification. This event is used to indicate that an unprotected
  *	disassociation frame was dropped when MFP is in use.
  *
+ * @NL80211_CMD_NEW_PEER_CANDIDATE: Notification on the reception of a
+ *      beacon or probe response from a compatible mesh peer.  This is only
+ *      sent while no station information (sta_info) exists for the new peer
+ *      candidate and when @NL80211_MESH_SETUP_USERSPACE_AUTH is set.  On
+ *      reception of this notification, userspace may decide to create a new
+ *      station (@NL80211_CMD_NEW_STATION).  To stop this notification from
+ *      reoccurring, the userspace authentication daemon may want to create the
+ *      new station with the AUTHENTICATED flag unset and maybe change it later
+ *      depending on the authentication result.
+ *
  * @NL80211_CMD_MAX: highest used command number
  * @__NL80211_CMD_AFTER_LAST: internal use
  */
 enum nl80211_commands {
-/* don't change the order or add anything inbetween, this is ABI! */
+/* don't change the order or add anything between, this is ABI! */
 	NL80211_CMD_UNSPEC,
 
 	NL80211_CMD_GET_WIPHY,		/* can dump */
@@ -518,6 +532,8 @@ enum nl80211_commands {
 	NL80211_CMD_UNPROT_DEAUTHENTICATE,
 	NL80211_CMD_UNPROT_DISASSOCIATE,
 
+	NL80211_CMD_NEW_PEER_CANDIDATE,
+
 	/* add new commands above here */
 
 	/* used to define NL80211_CMD_MAX below */
@@ -541,6 +557,7 @@ enum nl80211_commands {
 /* source-level API compatibility */
 #define NL80211_CMD_GET_MESH_PARAMS NL80211_CMD_GET_MESH_CONFIG
 #define NL80211_CMD_SET_MESH_PARAMS NL80211_CMD_SET_MESH_CONFIG
+#define NL80211_MESH_SETUP_VENDOR_PATH_SEL_IE NL80211_MESH_SETUP_IE
 
 /**
  * enum nl80211_attrs - nl80211 netlink attributes
@@ -612,7 +629,7 @@ enum nl80211_commands {
  *	consisting of a nested array.
  *
  * @NL80211_ATTR_MESH_ID: mesh id (1-32 bytes).
- * @NL80211_ATTR_PLINK_ACTION: action to perform on the mesh peer link.
+ * @NL80211_ATTR_STA_PLINK_ACTION: action to perform on the mesh peer link.
  * @NL80211_ATTR_MPATH_NEXT_HOP: MAC address of the next hop for a mesh path.
  * @NL80211_ATTR_MPATH_INFO: information about a mesh_path, part of mesh path
  * 	info given for %NL80211_CMD_GET_MPATH, nested attribute described at
@@ -856,7 +873,7 @@ enum nl80211_commands {
  *	This can be used to mask out antennas which are not attached or should
  *	not be used for receiving. If an antenna is not selected in this bitmap
  *	the hardware should not be configured to receive on this antenna.
- *	For a more detailed descripton see @NL80211_ATTR_WIPHY_ANTENNA_TX.
+ *	For a more detailed description see @NL80211_ATTR_WIPHY_ANTENNA_TX.
  *
  * @NL80211_ATTR_WIPHY_ANTENNA_AVAIL_TX: Bitmap of antennas which are available
  *	for configuration as TX antennas via the above parameters.
@@ -879,13 +896,18 @@ enum nl80211_commands {
  *	See &enum nl80211_key_default_types.
  *
  * @NL80211_ATTR_MESH_SETUP: Optional mesh setup parameters.  These cannot be
- * changed once the mesh is active.
+ *	changed once the mesh is active.
+ * @NL80211_ATTR_MESH_CONFIG: Mesh configuration parameters, a nested attribute
+ *	containing attributes from &enum nl80211_meshconf_params.
+ * @NL80211_ATTR_SUPPORT_MESH_AUTH: Currently, this means the underlying driver
+ *	allows auth frames in a mesh to be passed to userspace for processing via
+ *	the @NL80211_MESH_SETUP_USERSPACE_AUTH flag.
  *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
 enum nl80211_attrs {
-/* don't change the order or add anything inbetween, this is ABI! */
+/* don't change the order or add anything between, this is ABI! */
 	NL80211_ATTR_UNSPEC,
 
 	NL80211_ATTR_WIPHY,
@@ -1068,6 +1090,8 @@ enum nl80211_attrs {
 	NL80211_ATTR_WIPHY_ANTENNA_AVAIL_TX,
 	NL80211_ATTR_WIPHY_ANTENNA_AVAIL_RX,
 
+	NL80211_ATTR_SUPPORT_MESH_AUTH,
+
 	/* add attributes here, update the policy in nl80211.c */
 
 	__NL80211_ATTR_AFTER_LAST,
@@ -1162,6 +1186,7 @@ enum nl80211_iftype {
  *	with short barker preamble
  * @NL80211_STA_FLAG_WME: station is WME/QoS capable
  * @NL80211_STA_FLAG_MFP: station uses management frame protection
+ * @NL80211_STA_FLAG_AUTHENTICATED: station is authenticated
  * @NL80211_STA_FLAG_MAX: highest station flag number currently defined
  * @__NL80211_STA_FLAG_AFTER_LAST: internal use
  */
@@ -1171,6 +1196,7 @@ enum nl80211_sta_flags {
 	NL80211_STA_FLAG_SHORT_PREAMBLE,
 	NL80211_STA_FLAG_WME,
 	NL80211_STA_FLAG_MFP,
+	NL80211_STA_FLAG_AUTHENTICATED,
 
 	/* keep last */
 	__NL80211_STA_FLAG_AFTER_LAST,
@@ -1216,6 +1242,36 @@ enum nl80211_rate_info {
 };
 
 /**
+ * enum nl80211_sta_bss_param - BSS information collected by STA
+ *
+ * These attribute types are used with %NL80211_STA_INFO_BSS_PARAM
+ * when getting information about the bitrate of a station.
+ *
+ * @__NL80211_STA_BSS_PARAM_INVALID: attribute number 0 is reserved
+ * @NL80211_STA_BSS_PARAM_CTS_PROT: whether CTS protection is enabled (flag)
+ * @NL80211_STA_BSS_PARAM_SHORT_PREAMBLE:  whether short preamble is enabled
+ *	(flag)
+ * @NL80211_STA_BSS_PARAM_SHORT_SLOT_TIME:  whether short slot time is enabled
+ *	(flag)
+ * @NL80211_STA_BSS_PARAM_DTIM_PERIOD: DTIM period for beaconing (u8)
+ * @NL80211_STA_BSS_PARAM_BEACON_INTERVAL: Beacon interval (u16)
+ * @NL80211_STA_BSS_PARAM_MAX: highest sta_bss_param number currently defined
+ * @__NL80211_STA_BSS_PARAM_AFTER_LAST: internal use
+ */
+enum nl80211_sta_bss_param {
+	__NL80211_STA_BSS_PARAM_INVALID,
+	NL80211_STA_BSS_PARAM_CTS_PROT,
+	NL80211_STA_BSS_PARAM_SHORT_PREAMBLE,
+	NL80211_STA_BSS_PARAM_SHORT_SLOT_TIME,
+	NL80211_STA_BSS_PARAM_DTIM_PERIOD,
+	NL80211_STA_BSS_PARAM_BEACON_INTERVAL,
+
+	/* keep last */
+	__NL80211_STA_BSS_PARAM_AFTER_LAST,
+	NL80211_STA_BSS_PARAM_MAX = __NL80211_STA_BSS_PARAM_AFTER_LAST - 1
+};
+
+/**
  * enum nl80211_sta_info - station information
  *
  * These attribute types are used with %NL80211_ATTR_STA_INFO
@@ -1225,17 +1281,25 @@ enum nl80211_rate_info {
  * @NL80211_STA_INFO_INACTIVE_TIME: time since last activity (u32, msecs)
  * @NL80211_STA_INFO_RX_BYTES: total received bytes (u32, from this station)
  * @NL80211_STA_INFO_TX_BYTES: total transmitted bytes (u32, to this station)
- * @__NL80211_STA_INFO_AFTER_LAST: internal
- * @NL80211_STA_INFO_MAX: highest possible station info attribute
  * @NL80211_STA_INFO_SIGNAL: signal strength of last received PPDU (u8, dBm)
  * @NL80211_STA_INFO_TX_BITRATE: current unicast tx rate, nested attribute
- * 	containing info as possible, see &enum nl80211_sta_info_txrate.
+ * 	containing info as possible, see &enum nl80211_rate_info
  * @NL80211_STA_INFO_RX_PACKETS: total received packet (u32, from this station)
  * @NL80211_STA_INFO_TX_PACKETS: total transmitted packets (u32, to this
  *	station)
  * @NL80211_STA_INFO_TX_RETRIES: total retries (u32, to this station)
  * @NL80211_STA_INFO_TX_FAILED: total failed packets (u32, to this station)
  * @NL80211_STA_INFO_SIGNAL_AVG: signal strength average (u8, dBm)
+ * @NL80211_STA_INFO_LLID: the station's mesh LLID
+ * @NL80211_STA_INFO_PLID: the station's mesh PLID
+ * @NL80211_STA_INFO_PLINK_STATE: peer link state for the station
+ * @NL80211_STA_INFO_RX_BITRATE: last unicast data frame rx rate, nested
+ *	attribute, like NL80211_STA_INFO_TX_BITRATE.
+ * @NL80211_STA_INFO_BSS_PARAM: current station's view of BSS, nested attribute
+ *     containing info as possible, see &enum nl80211_sta_bss_param
+ * @NL80211_STA_INFO_CONNECTED_TIME: time since the station is last connected
+ * @__NL80211_STA_INFO_AFTER_LAST: internal
+ * @NL80211_STA_INFO_MAX: highest possible station info attribute
  */
 enum nl80211_sta_info {
 	__NL80211_STA_INFO_INVALID,
@@ -1252,6 +1316,9 @@ enum nl80211_sta_info {
 	NL80211_STA_INFO_TX_RETRIES,
 	NL80211_STA_INFO_TX_FAILED,
 	NL80211_STA_INFO_SIGNAL_AVG,
+	NL80211_STA_INFO_RX_BITRATE,
+	NL80211_STA_INFO_BSS_PARAM,
+	NL80211_STA_INFO_CONNECTED_TIME,
 
 	/* keep last */
 	__NL80211_STA_INFO_AFTER_LAST,
@@ -1407,7 +1474,7 @@ enum nl80211_bitrate_attr {
  * 	802.11 country information element with regulatory information it
  * 	thinks we should consider. cfg80211 only processes the country
  *	code from the IE, and relies on the regulatory domain information
- *	structure pased by userspace (CRDA) from our wireless-regdb.
+ *	structure passed by userspace (CRDA) from our wireless-regdb.
  *	If a channel is enabled but the country code indicates it should
  *	be disabled we disable the channel and re-enable it upon disassociation.
  */
@@ -1586,7 +1653,7 @@ enum nl80211_mntr_flags {
  * @NL80211_MESHCONF_RETRY_TIMEOUT: specifies the initial retry timeout in
  * millisecond units, used by the Peer Link Open message
  *
- * @NL80211_MESHCONF_CONFIRM_TIMEOUT: specifies the inital confirm timeout, in
+ * @NL80211_MESHCONF_CONFIRM_TIMEOUT: specifies the initial confirm timeout, in
  * millisecond units, used by the peer link management to close a peer link
  *
  * @NL80211_MESHCONF_HOLDING_TIMEOUT: specifies the holding timeout, in
@@ -1626,7 +1693,7 @@ enum nl80211_mntr_flags {
  * @NL80211_MESHCONF_HWMP_NET_DIAM_TRVS_TIME: The interval of time (in TUs)
  * that it takes for an HWMP information element to propagate across the mesh
  *
- * @NL80211_MESHCONF_ROOTMODE: whether root mode is enabled or not
+ * @NL80211_MESHCONF_HWMP_ROOTMODE: whether root mode is enabled or not
  *
  * @NL80211_MESHCONF_ELEMENT_TTL: specifies the value of TTL field set at a
  * source mesh point for path selection elements.
@@ -1674,17 +1741,22 @@ enum nl80211_meshconf_params {
  * vendor specific path metric or disable it to use the default Airtime
  * metric.
  *
- * @NL80211_MESH_SETUP_VENDOR_PATH_SEL_IE: A vendor specific information
- * element that vendors will use to identify the path selection methods and
- * metrics in use.
+ * @NL80211_MESH_SETUP_IE: Information elements for this mesh, for instance, a
+ * robust security network ie, or a vendor specific information element that
+ * vendors will use to identify the path selection methods and metrics in use.
  *
+ * @NL80211_MESH_SETUP_USERSPACE_AUTH: Enable this option if an authentication
+ * daemon will be authenticating mesh candidates.
+ *
+ * @NL80211_MESH_SETUP_ATTR_MAX: highest possible mesh setup attribute number
  * @__NL80211_MESH_SETUP_ATTR_AFTER_LAST: Internal use
  */
 enum nl80211_mesh_setup_params {
 	__NL80211_MESH_SETUP_INVALID,
 	NL80211_MESH_SETUP_ENABLE_VENDOR_PATH_SEL,
 	NL80211_MESH_SETUP_ENABLE_VENDOR_METRIC,
-	NL80211_MESH_SETUP_VENDOR_PATH_SEL_IE,
+	NL80211_MESH_SETUP_IE,
+	NL80211_MESH_SETUP_USERSPACE_AUTH,
 
 	/* keep last */
 	__NL80211_MESH_SETUP_ATTR_AFTER_LAST,

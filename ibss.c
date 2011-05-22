@@ -104,7 +104,7 @@ static int join_ibss(struct nl80211_state *state,
 		if (*end != '\0')
 			return 1;
 
-		NLA_PUT_U32(msg, NL80211_ATTR_MCAST_RATE, (int) rate * 10);
+		NLA_PUT_U32(msg, NL80211_ATTR_MCAST_RATE, (int)(rate * 10));
 		argv++;
 		argc--;
 	}

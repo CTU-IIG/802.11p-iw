@@ -835,6 +835,20 @@ static void print_wifi_wps(const uint8_t type, uint8_t len, const uint8_t *data)
 			       val == 2 ? " (Configured)" : "");
 			break;
 		}
+		case 0x1047:
+			tab_on_first(&first);
+			printf("\t * UUID: ");
+			if (sublen != 16) {
+				printf("(invalid, length=%d)\n", sublen);
+				break;
+			}
+			printf("%02x%02x%02x%02x-%02x%02x-%02x%02x-"
+				"%02x%02x-%02x%02x%02x%02x%02x%02x\n",
+				data[4], data[5], data[6], data[7],
+				data[8], data[9], data[10], data[11],
+				data[12], data[13], data[14], data[15],
+				data[16], data[17], data[18], data[19]);
+			break;
 		case 0x1054: {
 			tab_on_first(&first);
 			if (sublen != 8) {

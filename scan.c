@@ -27,8 +27,8 @@
 #define WLAN_CAPABILITY_APSD		(1<<11)
 #define WLAN_CAPABILITY_DSSS_OFDM	(1<<13)
 
-static unsigned char wifi_oui[3]      = { 0x00, 0x50, 0xf2 };
-static unsigned char ieee80211_oui[3] = { 0x00, 0x0f, 0xac };
+static unsigned char ms_oui[3]		= { 0x00, 0x50, 0xf2 };
+static unsigned char ieee80211_oui[3]	= { 0x00, 0x0f, 0xac };
 
 struct scan_params {
 	bool unknown;
@@ -254,7 +254,7 @@ static void print_erp(const uint8_t type, uint8_t len, const uint8_t *data)
 
 static void print_cipher(const uint8_t *data)
 {
-	if (memcmp(data, wifi_oui, 3) == 0) {
+	if (memcmp(data, ms_oui, 3) == 0) {
 		switch (data[3]) {
 		case 0:
 			printf("Use group cipher suite");
@@ -308,7 +308,7 @@ static void print_cipher(const uint8_t *data)
 
 static void print_auth(const uint8_t *data)
 {
-	if (memcmp(data, wifi_oui, 3) == 0) {
+	if (memcmp(data, ms_oui, 3) == 0) {
 		switch (data[3]) {
 		case 1:
 			printf("IEEE 802.1X");
@@ -947,7 +947,7 @@ static void print_vendor(unsigned char len, unsigned char *data,
 		return;
 	}
 
-	if (len >= 4 && memcmp(data, wifi_oui, 3) == 0) {
+	if (len >= 4 && memcmp(data, ms_oui, 3) == 0) {
 		if (data[3] < ARRAY_SIZE(wifiprinters) &&
 		    wifiprinters[data[3]].name &&
 		    wifiprinters[data[3]].flags & BIT(ptype)) {
@@ -956,7 +956,7 @@ static void print_vendor(unsigned char len, unsigned char *data,
 		}
 		if (!unknown)
 			return;
-		printf("\tWiFi OUI %#.2x, data:", data[3]);
+		printf("\tMS/WiFi %#.2x, data:", data[3]);
 		for(i = 0; i < len - 4; i++)
 			printf(" %.02x", data[i + 4]);
 		printf("\n");

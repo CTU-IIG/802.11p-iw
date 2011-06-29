@@ -195,8 +195,7 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	if (tb_msg[NL80211_ATTR_INTERFACE_COMBINATIONS]) {
 		struct nlattr *nl_combi;
 		int rem_combi;
-
-		printf("\tvalid interface combinations:\n");
+		bool have_combinations = false;
 
 		nla_for_each_nested(nl_combi, tb_msg[NL80211_ATTR_INTERFACE_COMBINATIONS], rem_combi) {
 			static struct nla_policy iface_combination_policy[NUM_NL80211_IFACE_COMB] = {
@@ -214,6 +213,11 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			struct nlattr *nl_limit;
 			int err, rem_limit;
 			bool comma = false;
+
+			if (!have_combinations) {
+				printf("\tvalid interface combinations:\n");
+				have_combinations = true;
+			}
 
 			printf("\t\t * ");
 
@@ -258,6 +262,9 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 broken_combination:
 			;
 		}
+
+		if (!have_combinations)
+			printf("\tinterface combinations are not supported\n");
 	}
 
 	if (tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS]) {

@@ -208,6 +208,7 @@ static const char *commands[NL80211_CMD_MAX + 1] = {
 	[NL80211_CMD_FRAME_WAIT_CANCEL] = "frame_wait_cancel",
 	[NL80211_CMD_JOIN_MESH] = "join_mesh",
 	[NL80211_CMD_LEAVE_MESH] = "leave_mesh",
+	[NL80211_CMD_SET_REKEY_OFFLOAD] = "set_rekey_offload",
 };
 
 static char cmdbuf[100];

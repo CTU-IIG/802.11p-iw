@@ -40,6 +40,14 @@ static int handle_wowlan_enable(struct nl80211_state *state, struct nl_cb *cb,
 				NLA_PUT_FLAG(msg, NL80211_WOWLAN_TRIG_DISCONNECT);
 			else if (strcmp(argv[0], "magic-packet") == 0)
 				NLA_PUT_FLAG(msg, NL80211_WOWLAN_TRIG_MAGIC_PKT);
+			else if (strcmp(argv[0], "gtk-rekey-failure") == 0)
+				NLA_PUT_FLAG(msg, NL80211_WOWLAN_TRIG_GTK_REKEY_FAILURE);
+			else if (strcmp(argv[0], "eap-identity-request") == 0)
+				NLA_PUT_FLAG(msg, NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST);
+			else if (strcmp(argv[0], "4way-handshake") == 0)
+				NLA_PUT_FLAG(msg, NL80211_WOWLAN_TRIG_4WAY_HANDSHAKE);
+			else if (strcmp(argv[0], "rfkill-release") == 0)
+				NLA_PUT_FLAG(msg, NL80211_WOWLAN_TRIG_RFKILL_RELEASE);
 			else if (strcmp(argv[0], "patterns") == 0) {
 				parse_state = PS_PAT;
 				patterns = nlmsg_alloc();
@@ -81,7 +89,8 @@ static int handle_wowlan_enable(struct nl80211_state *state, struct nl_cb *cb,
 	nlmsg_free(patterns);
 	return err;
 }
-COMMAND(wowlan, enable, "[any] [disconnect] [magic-packet] [patterns <pattern>*]",
+COMMAND(wowlan, enable, "[any] [disconnect] [magic-packet] [gtk-rekey-failure] [eap-identity-request]"
+	" [4way-handshake] [rfkill-release] [patterns <pattern>*]",
 	NL80211_CMD_SET_WOWLAN, 0, CIB_PHY, handle_wowlan_enable,
 	"Enable WoWLAN with the given triggers.\n"
 	"Each pattern is given as a bytestring with '-' in places where any byte\n"
@@ -128,6 +137,14 @@ static int print_wowlan_handler(struct nl_msg *msg, void *arg)
 		printf(" * wake up on disconnect\n");
 	if (trig[NL80211_WOWLAN_TRIG_MAGIC_PKT])
 		printf(" * wake up on magic packet\n");
+	if (trig[NL80211_WOWLAN_TRIG_GTK_REKEY_FAILURE])
+		printf(" * wake up on GTK rekeying failure\n");
+	if (trig[NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST])
+		printf(" * wake up on EAP identity request\n");
+	if (trig[NL80211_WOWLAN_TRIG_4WAY_HANDSHAKE])
+		printf(" * wake up on 4-way handshake\n");
+	if (trig[NL80211_WOWLAN_TRIG_RFKILL_RELEASE])
+		printf(" * wake up on RF-kill release\n");
 	if (trig[NL80211_WOWLAN_TRIG_PKT_PATTERN]) {
 		nla_for_each_nested(pattern,
 				    trig[NL80211_WOWLAN_TRIG_PKT_PATTERN],

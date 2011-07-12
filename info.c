@@ -315,6 +315,11 @@ broken_combination:
 			[NL80211_WOWLAN_TRIG_PKT_PATTERN] = {
 				.minlen = sizeof(struct nl80211_wowlan_pattern_support),
 			},
+			[NL80211_WOWLAN_TRIG_GTK_REKEY_SUPPORTED] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_GTK_REKEY_FAILURE] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_4WAY_HANDSHAKE] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_RFKILL_RELEASE] = { .type = NLA_FLAG },
 		};
 		struct nl80211_wowlan_pattern_support *pat;
 		int err;
@@ -328,16 +333,26 @@ broken_combination:
 		} else {
 			printf("\n");
 			if (tb_wowlan[NL80211_WOWLAN_TRIG_ANY])
-				printf("\t\t * any (device continues operating)\n");
+				printf("\t\t * wake up on anything (device continues operating normally)\n");
 			if (tb_wowlan[NL80211_WOWLAN_TRIG_DISCONNECT])
-				printf("\t\t * disconnect\n");
+				printf("\t\t * wake up on disconnect\n");
 			if (tb_wowlan[NL80211_WOWLAN_TRIG_MAGIC_PKT])
-				printf("\t\t * magic packet\n");
+				printf("\t\t * wake up on magic packet\n");
 			if (tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]) {
 				pat = nla_data(tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]);
-				printf("\t\t * up to %u patterns of %u-%u bytes\n",
+				printf("\t\t * wake up on pattern match, up to %u patterns of %u-%u bytes\n",
 					pat->max_patterns, pat->min_pattern_len, pat->max_pattern_len);
 			}
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_GTK_REKEY_SUPPORTED])
+				printf("\t\t * can do GTK rekeying\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_GTK_REKEY_FAILURE])
+				printf("\t\t * wake up on GTK rekey failure\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST])
+				printf("\t\t * wake up on EAP identity request\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_4WAY_HANDSHAKE])
+				printf("\t\t * wake up on 4-way handshake\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_RFKILL_RELEASE])
+				printf("\t\t * wake up on rfkill release\n");
 		}
 	}
 

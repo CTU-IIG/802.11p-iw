@@ -3,8 +3,6 @@
 VERSION="0.9.22"
 OUT="$1"
 
-echo '#include "iw.h"' > "$OUT"
-
 if head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	git update-index --refresh --unmerged > /dev/null
 	descr=$(git describe)
@@ -21,4 +19,5 @@ else
 	v="$VERSION"
 fi
 
+echo '#include "iw.h"' > "$OUT"
 echo "const char iw_version[] = \"$v\";" >> "$OUT"

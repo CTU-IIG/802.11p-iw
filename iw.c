@@ -23,9 +23,8 @@
 #include "nl80211.h"
 #include "iw.h"
 
-#ifndef CONFIG_LIBNL20
-/* libnl 2.0 compatibility code */
-
+/* libnl 1.x compatibility code */
+#if !defined(CONFIG_LIBNL20) && !defined(CONFIG_LIBNL30)
 static inline struct nl_handle *nl_socket_alloc(void)
 {
 	return nl_handle_alloc();
@@ -45,7 +44,7 @@ static inline int __genl_ctrl_alloc_cache(struct nl_sock *h, struct nl_cache **c
 	return 0;
 }
 #define genl_ctrl_alloc_cache __genl_ctrl_alloc_cache
-#endif /* CONFIG_LIBNL20 */
+#endif /* CONFIG_LIBNL20 && CONFIG_LIBNL30 */
 
 int iw_debug = 0;
 

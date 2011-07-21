@@ -24,6 +24,7 @@ ALL = iw
 
 NL1FOUND := $(shell $(PKG_CONFIG) --atleast-version=1 libnl-1 && echo Y)
 NL2FOUND := $(shell $(PKG_CONFIG) --atleast-version=2 libnl-2.0 && echo Y)
+NL3FOUND := $(shell $(PKG_CONFIG) --atleast-version=3 libnl-3.0 && echo Y)
 
 ifeq ($(NL1FOUND),Y)
 NLLIBNAME = libnl-1
@@ -33,6 +34,12 @@ ifeq ($(NL2FOUND),Y)
 CFLAGS += -DCONFIG_LIBNL20
 LIBS += -lnl-genl
 NLLIBNAME = libnl-2.0
+endif
+
+ifeq ($(NL3FOUND),Y)
+CFLAGS += -DCONFIG_LIBNL30
+LIBS += -lnl-genl
+NLLIBNAME = libnl-3.0
 endif
 
 ifeq ($(NLLIBNAME),)
@@ -53,11 +60,14 @@ endif
 all: version_check $(ALL)
 
 version_check:
+ifeq ($(NL3FOUND),Y)
+else
 ifeq ($(NL2FOUND),Y)
 else
 ifeq ($(NL1FOUND),Y)
 else
 	$(error No libnl found)
+endif
 endif
 endif
 

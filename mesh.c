@@ -173,6 +173,10 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 	_my_nla_put_u16, _parse_u16, _print_u16_in_TUs},
 	{"mesh_hwmp_rootmode", NL80211_MESHCONF_HWMP_ROOTMODE,
 	_my_nla_put_u8, _parse_u8, _print_u8},
+	{"mesh_hwmp_rann_interval", NL80211_MESHCONF_HWMP_RANN_INTERVAL,
+	_my_nla_put_u16, _parse_u16, _print_u16},
+	{"mesh_gate_announcements", NL80211_MESHCONF_GATE_ANNOUNCEMENTS,
+	_my_nla_put_u8, _parse_u8, _print_u8},
 };
 
 static void print_all_mesh_param_descr(void)

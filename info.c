@@ -356,6 +356,9 @@ broken_combination:
 		}
 	}
 
+	if (tb_msg[NL80211_ATTR_ROAM_SUPPORT])
+		printf("\tDevice supports roaming.\n");
+
 	return NL_SKIP;
 }
 

@@ -21,6 +21,32 @@ static void print_flag(const char *name, int *open)
 	*open = 1;
 }
 
+static char *cipher_name(__u32 c)
+{
+	static char buf[20];
+
+	switch (c) {
+	case 0x000fac01:
+		return "WEP40 (00-0f-ac:1)";
+	case 0x000fac05:
+		return "WEP104 (00-0f-ac:5)";
+	case 0x000fac02:
+		return "TKIP (00-0f-ac:2)";
+	case 0x000fac04:
+		return "CCMP (00-0f-ac:4)";
+	case 0x000fac06:
+		return "CMAC (00-0f-ac:6)";
+	case 0x00147201:
+		return "WPI-SMS4 (00-14-72:1)";
+	default:
+		sprintf(buf, "%.2x-%.2x-%.2x:%d",
+			c >> 24, (c >> 16) & 0xff,
+			(c >> 8) & 0xff, c & 0xff);
+
+		return buf;
+	}
+}
+
 static int print_phy_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
@@ -166,6 +192,18 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		coverage = nla_get_u8(tb_msg[NL80211_ATTR_WIPHY_COVERAGE_CLASS]);
 		/* See handle_distance() for an explanation where the '450' comes from */
 		printf("\tCoverage class: %d (up to %dm)\n", coverage, 450 * coverage);
+	}
+
+	if (tb_msg[NL80211_ATTR_CIPHER_SUITES]) {
+		int num = nla_len(tb_msg[NL80211_ATTR_CIPHER_SUITES]) / sizeof(__u32);
+		int i;
+		__u32 *ciphers = nla_data(tb_msg[NL80211_ATTR_CIPHER_SUITES]);
+		if (num > 0) {
+			printf("\tSupported Ciphers:\n");
+			for (i = 0; i < num; i++)
+				printf("\t\t* %s\n",
+					cipher_name(ciphers[i]));
+		}
 	}
 
 	if (tb_msg[NL80211_ATTR_WIPHY_ANTENNA_AVAIL_TX] &&

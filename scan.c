@@ -158,6 +158,8 @@ static void print_ssid(const uint8_t type, uint8_t len, const uint8_t *data)
 	printf("\n");
 }
 
+#define BSS_MEMBERSHIP_SELECTOR_HT_PHY 127
+
 static void print_supprates(const uint8_t type, uint8_t len, const uint8_t *data)
 {
 	int i;
@@ -166,7 +168,13 @@ static void print_supprates(const uint8_t type, uint8_t len, const uint8_t *data
 
 	for (i = 0; i < len; i++) {
 		int r = data[i] & 0x7f;
-		printf("%d.%d%s ", r/2, 5*(r&1), data[i] & 0x80 ? "*":"");
+
+		if (r == BSS_MEMBERSHIP_SELECTOR_HT_PHY)
+			printf("HT");
+		else
+			printf("%d.%d", r/2, 5*(r&1));
+
+		printf("%s ", data[i] & 0x80 ? "*" : "");
 	}
 	printf("\n");
 }

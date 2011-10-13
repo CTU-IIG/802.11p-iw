@@ -169,7 +169,7 @@ static void print_supprates(const uint8_t type, uint8_t len, const uint8_t *data
 	for (i = 0; i < len; i++) {
 		int r = data[i] & 0x7f;
 
-		if (r == BSS_MEMBERSHIP_SELECTOR_HT_PHY)
+		if (r == BSS_MEMBERSHIP_SELECTOR_HT_PHY && data[i] & 0x80)
 			printf("HT");
 		else
 			printf("%d.%d", r/2, 5*(r&1));

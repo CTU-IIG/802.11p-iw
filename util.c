@@ -250,8 +250,11 @@ void print_ssid_escaped(const uint8_t len, const uint8_t *data)
 	int i;
 
 	for (i = 0; i < len; i++) {
-		if (isprint(data[i]))
+		if (isprint(data[i]) && data[i] != ' ' && data[i] != '\\')
 			printf("%c", data[i]);
+		else if (data[i] == ' ' &&
+			 (i != 0 && i != len -1))
+			printf(" ");
 		else
 			printf("\\x%.2x", data[i]);
 	}

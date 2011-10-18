@@ -37,6 +37,7 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	struct nlattr *sinfo[NL80211_STA_INFO_MAX + 1];
 	struct nlattr *rinfo[NL80211_RATE_INFO_MAX + 1];
 	char mac_addr[20], state_name[10], dev[20];
+	struct nl80211_sta_flag_update *sta_flags;
 	static struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
 		[NL80211_STA_INFO_INACTIVE_TIME] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_RX_BYTES] = { .type = NLA_U32 },
@@ -50,6 +51,8 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_PLINK_STATE] = { .type = NLA_U8 },
 		[NL80211_STA_INFO_TX_RETRIES] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_TX_FAILED] = { .type = NLA_U32 },
+		[NL80211_STA_INFO_STA_FLAGS] =
+			{ .minlen = sizeof(struct nl80211_sta_flag_update) },
 	};
 
 	static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
@@ -165,6 +168,59 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 			break;
 		}
 		printf("\n\tmesh plink:\t%s", state_name);
+	}
+
+	if (sinfo[NL80211_STA_INFO_STA_FLAGS]) {
+		sta_flags = (struct nl80211_sta_flag_update *)
+			    nla_data(sinfo[NL80211_STA_INFO_STA_FLAGS]);
+
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_AUTHORIZED)) {
+			printf("\n\tauthorized:\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_AUTHORIZED))
+				printf("yes");
+			else
+				printf("no");
+		}
+
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_AUTHENTICATED)) {
+			printf("\n\tauthenticated:\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_AUTHENTICATED))
+				printf("yes");
+			else
+				printf("no");
+		}
+
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_SHORT_PREAMBLE)) {
+			printf("\n\tpreamble:\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_SHORT_PREAMBLE))
+				printf("short");
+			else
+				printf("long");
+		}
+
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_WME)) {
+			printf("\n\tWMM/WME:\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_WME))
+				printf("yes");
+			else
+				printf("no");
+		}
+
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_MFP)) {
+			printf("\n\tMFP:\t\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_MFP))
+				printf("yes");
+			else
+				printf("no");
+		}
+
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_TDLS_PEER)) {
+			printf("\n\tTDLS peer:\t\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_TDLS_PEER))
+				printf("yes");
+			else
+				printf("no");
+		}
 	}
 
 	printf("\n");

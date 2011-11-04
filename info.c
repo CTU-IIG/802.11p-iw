@@ -397,6 +397,9 @@ broken_combination:
 	if (tb_msg[NL80211_ATTR_ROAM_SUPPORT])
 		printf("\tDevice supports roaming.\n");
 
+	if (tb_msg[NL80211_ATTR_SUPPORT_AP_UAPSD])
+		printf("\tDevice supports AP-side u-APSD.\n");
+
 	return NL_SKIP;
 }
 

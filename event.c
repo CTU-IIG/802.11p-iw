@@ -424,6 +424,9 @@ static int print_event(struct nl_msg *msg, void *arg)
 			(unsigned long long)nla_get_u64(tb[NL80211_ATTR_COOKIE]),
 			tb[NL80211_ATTR_ACK] ? "acked" : "no ack");
 		break;
+	case NL80211_ATTR_PMKSA_CANDIDATE:
+		printf("PMKSA candidate found\n");
+		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);
 		break;

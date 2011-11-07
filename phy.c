@@ -293,7 +293,7 @@ static int handle_txpower(struct nl80211_state *state,
 		}
 
 		mbm = strtol(argv[1], &endptr, 10);
-		if (!*endptr)
+		if (*endptr)
 			return 2;
 		NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_TX_POWER_LEVEL, mbm);
 	} else if (argc != 1)

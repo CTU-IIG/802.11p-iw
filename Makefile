@@ -36,10 +36,11 @@ LIBS += -lnl-genl
 NLLIBNAME = libnl-2.0
 endif
 
+# libnl-3 has a separate libnl-genl-3.0.pc
 ifeq ($(NL3FOUND),Y)
 CFLAGS += -DCONFIG_LIBNL30
-LIBS += -lnl-genl
-NLLIBNAME = libnl-3.0
+LIBS =
+NLLIBNAME = libnl-genl-3.0
 endif
 
 ifeq ($(NLLIBNAME),)

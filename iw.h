@@ -18,8 +18,7 @@
 
 struct nl80211_state {
 	struct nl_sock *nl_sock;
-	struct nl_cache *nl_cache;
-	struct genl_family *nl80211;
+	int nl80211_id;
 };
 
 enum command_identify_by {

@@ -34,16 +34,6 @@ static inline void nl_socket_free(struct nl_sock *h)
 {
 	nl_handle_destroy(h);
 }
-
-static inline int __genl_ctrl_alloc_cache(struct nl_sock *h, struct nl_cache **cache)
-{
-	struct nl_cache *tmp = genl_ctrl_alloc_cache(h);
-	if (!tmp)
-		return -ENOMEM;
-	*cache = tmp;
-	return 0;
-}
-#define genl_ctrl_alloc_cache __genl_ctrl_alloc_cache
 #endif /* CONFIG_LIBNL20 && CONFIG_LIBNL30 */
 
 int iw_debug = 0;
@@ -64,23 +54,15 @@ static int nl80211_init(struct nl80211_state *state)
 		goto out_handle_destroy;
 	}
 
-	if (genl_ctrl_alloc_cache(state->nl_sock, &state->nl_cache)) {
-		fprintf(stderr, "Failed to allocate generic netlink cache.\n");
-		err = -ENOMEM;
-		goto out_handle_destroy;
-	}
-
-	state->nl80211 = genl_ctrl_search_by_name(state->nl_cache, "nl80211");
-	if (!state->nl80211) {
+	state->nl80211_id = genl_ctrl_resolve(state->nl_sock, "nl80211");
+	if (state->nl80211_id < 0) {
 		fprintf(stderr, "nl80211 not found.\n");
 		err = -ENOENT;
-		goto out_cache_free;
+		goto out_handle_destroy;
 	}
 
 	return 0;
 
- out_cache_free:
-	nl_cache_free(state->nl_cache);
  out_handle_destroy:
 	nl_socket_free(state->nl_sock);
 	return err;
@@ -88,8 +70,6 @@ static int nl80211_init(struct nl80211_state *state)
 
 static void nl80211_cleanup(struct nl80211_state *state)
 {
-	genl_family_put(state->nl80211);
-	nl_cache_free(state->nl_cache);
 	nl_socket_free(state->nl_sock);
 }
 
@@ -387,7 +367,7 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 		goto out_free_msg;
 	}
 
-	genlmsg_put(msg, 0, 0, genl_family_get_id(state->nl80211), 0,
+	genlmsg_put(msg, 0, 0, state->nl80211_id, 0,
 		    cmd->nl_msg_flags, cmd->cmd, 0);
 
 	switch (command_idby) {

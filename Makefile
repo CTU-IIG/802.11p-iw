@@ -38,6 +38,14 @@ LIBS += -lnl-genl
 NLLIBNAME = libnl-2.0
 endif
 
+ifeq ($(NL3xFOUND),Y)
+# libnl 3.2 might be found as 3.2 and 3.0
+NL3FOUND = N
+CFLAGS += -DCONFIG_LIBNL30
+LIBS += -lnl-genl-3
+NLLIBNAME = libnl-3.0
+endif
+
 ifeq ($(NL3FOUND),Y)
 CFLAGS += -DCONFIG_LIBNL30
 LIBS += -lnl-genl
@@ -50,12 +58,6 @@ ifeq ($(NL31FOUND),Y)
 CFLAGS += -DCONFIG_LIBNL30
 LIBS += -lnl-genl
 NLLIBNAME = libnl-3.1
-endif
-
-ifeq ($(NL3xFOUND),Y)
-CFLAGS += -DCONFIG_LIBNL30
-LIBS += -lnl-genl-3
-NLLIBNAME = libnl-3.0
 endif
 
 ifeq ($(NLLIBNAME),)

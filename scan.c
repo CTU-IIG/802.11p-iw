@@ -707,7 +707,7 @@ static bool print_wifi_wmm_param(const uint8_t *data, uint8_t len)
 
 	for (i = 0; i < 4; i++) {
 		printf("\n\t\t * %s:", aci_tbl[(data[0] >> 5) & 3]);
-		if (data[4] & 0x10)
+		if (data[0] & 0x10)
 			printf(" acm");
 		printf(" CW %d-%d", (1 << (data[1] & 0xf)) - 1,
 				    (1 << (data[1] >> 4)) - 1);

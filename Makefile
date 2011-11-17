@@ -66,7 +66,6 @@ endif
 
 LIBS += $(shell $(PKG_CONFIG) --libs $(NLLIBNAME))
 CFLAGS += $(shell $(PKG_CONFIG) --cflags $(NLLIBNAME))
-NLVERSION :=$(shell $(PKG_CONFIG) --print-provides $(NLLIBNAME))
 
 ifeq ($(V),1)
 Q=

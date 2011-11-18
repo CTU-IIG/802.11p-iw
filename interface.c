@@ -386,6 +386,33 @@ COMMAND(set, 4addr, "<on|off>",
 	NL80211_CMD_SET_INTERFACE, 0, CIB_NETDEV, handle_interface_4addr,
 	"Set interface 4addr (WDS) mode.");
 
+static int handle_interface_noack_map(struct nl80211_state *state,
+				      struct nl_cb *cb,
+				      struct nl_msg *msg,
+				      int argc, char **argv)
+{
+	uint16_t noack_map;
+	char *end;
+
+	if (argc != 1)
+		return 1;
+
+	noack_map = strtoul(argv[0], &end, 16);
+	if (*end)
+		return 1;
+
+	NLA_PUT_U16(msg, NL80211_ATTR_NOACK_MAP, noack_map);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+
+}
+COMMAND(set, noack_map, "<map>",
+	NL80211_CMD_SET_NOACK_MAP, 0, CIB_NETDEV, handle_interface_noack_map,
+	"Set the NoAck map for the TIDs. (0x0009 = BE, 0x0006 = BK, 0x0030 = VI, 0x00C0 = VO)");
+
+
 static int handle_interface_wds_peer(struct nl80211_state *state,
 				     struct nl_cb *cb,
 				     struct nl_msg *msg,

@@ -6,8 +6,10 @@
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
 #include <netlink/genl/ctrl.h>
+#include <endian.h>
 
 #include "nl80211.h"
+#include "ieee80211.h"
 
 #define ETH_ALEN 6
 

@@ -400,6 +400,35 @@ broken_combination:
 	if (tb_msg[NL80211_ATTR_SUPPORT_AP_UAPSD])
 		printf("\tDevice supports AP-side u-APSD.\n");
 
+	if (tb_msg[NL80211_ATTR_HT_CAPABILITY_MASK]) {
+		struct ieee80211_ht_cap *cm;
+		printf("\tHT Capability overrides:\n");
+		if (nla_len(tb_msg[NL80211_ATTR_HT_CAPABILITY_MASK]) >= sizeof(*cm)) {
+			cm = nla_data(tb_msg[NL80211_ATTR_HT_CAPABILITY_MASK]);
+			printf("\t\t * MCS: %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
+			       " %02hhx %02hhx %02hhx %02hhx\n",
+			       cm->mcs.rx_mask[0], cm->mcs.rx_mask[1],
+			       cm->mcs.rx_mask[2], cm->mcs.rx_mask[3],
+			       cm->mcs.rx_mask[4], cm->mcs.rx_mask[5],
+			       cm->mcs.rx_mask[6], cm->mcs.rx_mask[7],
+			       cm->mcs.rx_mask[8], cm->mcs.rx_mask[9]);
+			if (cm->cap_info & htole16(IEEE80211_HT_CAP_MAX_AMSDU))
+				printf("\t\t * maximum A-MSDU length\n");
+			if (cm->cap_info & htole16(IEEE80211_HT_CAP_SUP_WIDTH_20_40))
+				printf("\t\t * supported channel width\n");
+			if (cm->cap_info & htole16(IEEE80211_HT_CAP_SGI_40))
+				printf("\t\t * short GI for 40 MHz\n");
+			if (cm->ampdu_params_info & IEEE80211_HT_AMPDU_PARM_FACTOR)
+				printf("\t\t * max A-MPDU length exponent\n");
+			if (cm->ampdu_params_info & IEEE80211_HT_AMPDU_PARM_DENSITY)
+				printf("\t\t * min MPDU start spacing\n");
+		} else {
+			printf("\tERROR: capabilities mask is too short, expected: %d, received: %d\n",
+			       (int)(sizeof(*cm)),
+			       (int)(nla_len(tb_msg[NL80211_ATTR_HT_CAPABILITY_MASK])));
+		}
+	}
+
 	return NL_SKIP;
 }
 

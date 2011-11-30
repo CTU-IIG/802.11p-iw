@@ -3,6 +3,7 @@
 #endif
 #include <errno.h>
 #include <string.h>
+#include <strings.h>
 
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
@@ -27,6 +28,17 @@ static int join_ibss(struct nl80211_state *state,
 	char *value = NULL, *sptr = NULL;
 	float rate;
 	int bintval;
+	int i;
+	static const struct {
+		const char *name;
+		unsigned int val;
+	} htmap[] = {
+		{ .name = "HT20", .val = NL80211_CHAN_HT20, },
+		{ .name = "HT40+", .val = NL80211_CHAN_HT40PLUS, },
+		{ .name = "HT40-", .val = NL80211_CHAN_HT40MINUS, },
+		{ .name = "NOHT", .val = NL80211_CHAN_NO_HT, },
+	};
+	unsigned int htval;
 
 	if (argc < 2)
 		return 1;
@@ -43,6 +55,22 @@ static int join_ibss(struct nl80211_state *state,
 		return 1;
 	argv++;
 	argc--;
+
+	if (argc) {
+		for (i = 0; i < ARRAY_SIZE(htmap); i++) {
+			if (strcasecmp(htmap[i].name, argv[0]) == 0) {
+				htval = htmap[i].val;
+				break;
+			}
+		}
+		if (i != ARRAY_SIZE(htmap)) {
+			NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_CHANNEL_TYPE,
+				    htval);
+			argv++;
+			argc--;
+		}
+
+	}
 
 	if (argc && strcmp(argv[0], "fixed-freq") == 0) {
 		NLA_PUT_FLAG(msg, NL80211_ATTR_FREQ_FIXED);
@@ -134,7 +162,7 @@ COMMAND(ibss, leave, NULL,
 	NL80211_CMD_LEAVE_IBSS, 0, CIB_NETDEV, leave_ibss,
 	"Leave the current IBSS cell.");
 COMMAND(ibss, join,
-	"<SSID> <freq in MHz> [fixed-freq] [<fixed bssid>] [beacon-interval <TU>]"
+	"<SSID> <freq in MHz> [HT20|HT40+|HT40-|NOHT] [fixed-freq] [<fixed bssid>] [beacon-interval <TU>]"
 	" [basic-rates <rate in Mbps,rate2,...>] [mcast-rate <rate in Mbps>] "
 	"[key d:0:abcde]",
 	NL80211_CMD_JOIN_IBSS, 0, CIB_NETDEV, join_ibss,

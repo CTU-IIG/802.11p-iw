@@ -461,7 +461,7 @@ void print_ampdu_length(__u8 exponent)
 	if (max_ampdu_length) {
 		printf("\t\tMaximum RX AMPDU length %d bytes (exponent: 0x0%02x)\n",
 		       max_ampdu_length, exponent);
-        } else {
+	} else {
 		printf("\t\tMaximum RX AMPDU length: unrecognized bytes "
 		       "(exponent: %d)\n", exponent);
 	}
@@ -469,8 +469,8 @@ void print_ampdu_length(__u8 exponent)
 
 void print_ampdu_spacing(__u8 spacing)
 {
-        printf("\t\tMinimum RX AMPDU time spacing: %s (0x%02x)\n",
-               print_ampdu_space(spacing), spacing);
+	printf("\t\tMinimum RX AMPDU time spacing: %s (0x%02x)\n",
+	       print_ampdu_space(spacing), spacing);
 }
 
 void print_ht_capability(__u16 cap)

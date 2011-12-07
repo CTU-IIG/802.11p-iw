@@ -387,7 +387,7 @@ int parse_keys(struct nl_msg *msg, char **argv, int argc)
 
 static void print_mcs_index(const __u8 *mcs)
 {
-	unsigned int mcs_bit, prev_bit = -2, prev_cont = 0;
+	int mcs_bit, prev_bit = -2, prev_cont = 0;
 
 	for (mcs_bit = 0; mcs_bit <= 76; mcs_bit++) {
 		unsigned int mcs_octet = mcs_bit/8;

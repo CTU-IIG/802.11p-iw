@@ -1219,7 +1219,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
 		printf("\tlast seen: %d ms ago\n", age);
 	}
-	
+
 	if (bss[NL80211_BSS_INFORMATION_ELEMENTS] && show--) {
 		if (bss[NL80211_BSS_BEACON_IES])
 			printf("\tInformation elements from Probe Response "

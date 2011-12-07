@@ -110,12 +110,12 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 	struct nlattr *nl_rule;
 	int rem_rule;
 	static struct nla_policy reg_rule_policy[NL80211_FREQUENCY_ATTR_MAX + 1] = {
-		[NL80211_ATTR_REG_RULE_FLAGS]           = { .type = NLA_U32 },
-		[NL80211_ATTR_FREQ_RANGE_START]         = { .type = NLA_U32 },
-		[NL80211_ATTR_FREQ_RANGE_END]           = { .type = NLA_U32 },
-		[NL80211_ATTR_FREQ_RANGE_MAX_BW]        = { .type = NLA_U32 },
-		[NL80211_ATTR_POWER_RULE_MAX_ANT_GAIN]  = { .type = NLA_U32 },
-		[NL80211_ATTR_POWER_RULE_MAX_EIRP]      = { .type = NLA_U32 },
+		[NL80211_ATTR_REG_RULE_FLAGS]		= { .type = NLA_U32 },
+		[NL80211_ATTR_FREQ_RANGE_START]		= { .type = NLA_U32 },
+		[NL80211_ATTR_FREQ_RANGE_END]		= { .type = NLA_U32 },
+		[NL80211_ATTR_FREQ_RANGE_MAX_BW]	= { .type = NLA_U32 },
+		[NL80211_ATTR_POWER_RULE_MAX_ANT_GAIN]	= { .type = NLA_U32 },
+		[NL80211_ATTR_POWER_RULE_MAX_EIRP]	= { .type = NLA_U32 },
 	};
 
 	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),

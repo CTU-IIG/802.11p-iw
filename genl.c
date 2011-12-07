@@ -5,7 +5,7 @@
 #include <asm/errno.h>
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
-#include <netlink/genl/ctrl.h>  
+#include <netlink/genl/ctrl.h>
 #include <netlink/msg.h>
 #include <netlink/attr.h>
 #include <linux/genetlink.h>
@@ -43,7 +43,7 @@ static int family_handler(struct nl_msg *msg, void *arg)
 	nla_parse(tb, CTRL_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
 		  genlmsg_attrlen(gnlh, 0), NULL);
 
-        if (!tb[CTRL_ATTR_MCAST_GROUPS])
+	if (!tb[CTRL_ATTR_MCAST_GROUPS])
 		return NL_SKIP;
 
 	nla_for_each_nested(mcgrp, tb[CTRL_ATTR_MCAST_GROUPS], rem_mcgrp) {
@@ -61,7 +61,7 @@ static int family_handler(struct nl_msg *msg, void *arg)
 		grp->id = nla_get_u32(tb_mcgrp[CTRL_ATTR_MCAST_GRP_ID]);
 		break;
 	}
-	
+
 	return NL_SKIP;
 }
 
@@ -87,7 +87,7 @@ int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *gr
 
 	ctrlid = genl_ctrl_resolve(sock, "nlctrl");
 
-        genlmsg_put(msg, 0, 0, ctrlid, 0,
+	genlmsg_put(msg, 0, 0, ctrlid, 0,
 		    0, CTRL_CMD_GETFAMILY, 0);
 
 	ret = -ENOBUFS;

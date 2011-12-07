@@ -176,7 +176,7 @@ static int handle_netns(struct nl80211_state *state,
 		return 1;
 
 	NLA_PUT_U32(msg, NL80211_ATTR_PID,
-		    strtoul(argv[0], &end, 10)); 
+		    strtoul(argv[0], &end, 10));
 
 	if (*end != '\0')
 		return 1;

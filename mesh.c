@@ -342,6 +342,9 @@ COMMAND(get, mesh_param, "[<param>]",
 static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
 		     struct nl_msg *msg, int argc, char **argv)
 {
+	float rate;
+	char *end;
+
 	if (argc < 1)
 		return 1;
 
@@ -349,15 +352,28 @@ static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
 	argc--;
 	argv++;
 
+	if (argc > 1 && strcmp(argv[0], "mcast-rate") == 0) {
+		argv++;
+		argc--;
+
+		rate = strtod(argv[0], &end);
+		if (*end != '\0')
+			return 1;
+
+		NLA_PUT_U32(msg, NL80211_ATTR_MCAST_RATE, (int)(rate * 10));
+		argv++;
+		argc--;
+	}
+
 	if (!argc)
 		return 0;
 	return set_interface_meshparam(state, cb, msg, argc, argv);
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(mesh, join, "<mesh ID> [<param>=<value>]*",
+COMMAND(mesh, join, "<mesh ID> [mcast-rate <rate in Mbps>] [<param>=<value>]*",
 	NL80211_CMD_JOIN_MESH, 0, CIB_NETDEV, join_mesh,
-	"Join a mesh with the given mesh ID and mesh parameters.");
+	"Join a mesh with the given mesh ID with mcast-rate and mesh parameters.");
 
 static int leave_mesh(struct nl80211_state *state, struct nl_cb *cb,
 		      struct nl_msg *msg, int argc, char **argv)

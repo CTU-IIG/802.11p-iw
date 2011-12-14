@@ -429,6 +429,15 @@ broken_combination:
 		}
 	}
 
+	if (tb_msg[NL80211_ATTR_FEATURE_FLAGS]) {
+		if (nla_get_u32(tb_msg[NL80211_ATTR_FEATURE_FLAGS]) &
+				NL80211_FEATURE_SK_TX_STATUS)
+			printf("\tDevice supports TX status socket option.\n");
+		if (nla_get_u32(tb_msg[NL80211_ATTR_FEATURE_FLAGS]) &
+				NL80211_FEATURE_HT_IBSS)
+			printf("\tDevice supports HT-IBSS.\n");
+	}
+
 	return NL_SKIP;
 }
 

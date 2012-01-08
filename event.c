@@ -321,6 +321,10 @@ static int print_event(struct nl_msg *msg, void *arg)
 		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
 		printf("new station %s\n", macbuf);
 		break;
+	case NL80211_CMD_DEL_STATION:
+		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		printf("del station %s\n", macbuf);
+		break;
 	case NL80211_CMD_JOIN_IBSS:
 		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
 		printf("IBSS %s joined\n", macbuf);

@@ -17,12 +17,10 @@ static int handle_bitrates(struct nl80211_state *state,
 	uint8_t *legacy = NULL;
 	int *n_legacy = NULL;
 	bool have_mcs_24 = false, have_mcs_5 = false;
-#ifdef NL80211_TXRATE_MCS
 	uint8_t mcs_24[77], mcs_5[77];
 	int n_mcs_24 = 0, n_mcs_5 = 0;
 	uint8_t *mcs = NULL;
 	int *n_mcs = NULL;
-#endif
 	enum {
 		S_NONE,
 		S_LEGACY,
@@ -32,9 +30,7 @@ static int handle_bitrates(struct nl80211_state *state,
 	for (i = 0; i < argc; i++) {
 		char *end;
 		double tmpd;
-#ifdef NL80211_TXRATE_MCS
 		long tmpl;
-#endif
 
 		if (strcmp(argv[i], "legacy-2.4") == 0) {
 			if (have_legacy_24)
@@ -51,7 +47,6 @@ static int handle_bitrates(struct nl80211_state *state,
 			n_legacy = &n_legacy_5;
 			have_legacy_5 = true;
 		}
-#ifdef NL80211_TXRATE_MCS
 		else if (strcmp(argv[i], "mcs-2.4") == 0) {
 			if (have_mcs_24)
 				return 1;
@@ -67,7 +62,6 @@ static int handle_bitrates(struct nl80211_state *state,
 			n_mcs = &n_mcs_5;
 			have_mcs_5 = true;
 		}
-#endif
 		else switch (parser_state) {
 		case S_LEGACY:
 			tmpd = strtod(argv[i], &end);
@@ -78,7 +72,6 @@ static int handle_bitrates(struct nl80211_state *state,
 			legacy[(*n_legacy)++] = tmpd * 2;
 			break;
 		case S_MCS:
-#ifdef NL80211_TXRATE_MCS
 			tmpl = strtol(argv[i], &end, 0);
 			if (*end != '\0')
 				return 1;
@@ -86,7 +79,6 @@ static int handle_bitrates(struct nl80211_state *state,
 				return 1;
 			mcs[(*n_mcs)++] = tmpl;
 			break;
-#endif
 		default:
 			return 1;
 		}
@@ -102,10 +94,8 @@ static int handle_bitrates(struct nl80211_state *state,
 			goto nla_put_failure;
 		if (have_legacy_24)
 			nla_put(msg, NL80211_TXRATE_LEGACY, n_legacy_24, legacy_24);
-#ifdef NL80211_TXRATE_MCS
 		if (have_mcs_24)
 			nla_put(msg, NL80211_TXRATE_MCS, n_mcs_24, mcs_24);
-#endif
 		nla_nest_end(msg, nl_band);
 	}
 
@@ -115,10 +105,8 @@ static int handle_bitrates(struct nl80211_state *state,
 			goto nla_put_failure;
 		if (have_legacy_5)
 			nla_put(msg, NL80211_TXRATE_LEGACY, n_legacy_5, legacy_5);
-#ifdef NL80211_TXRATE_MCS
 		if (have_mcs_5)
 			nla_put(msg, NL80211_TXRATE_MCS, n_mcs_5, mcs_5);
-#endif
 		nla_nest_end(msg, nl_band);
 	}
 
@@ -130,13 +118,9 @@ static int handle_bitrates(struct nl80211_state *state,
 }
 
 #define DESCR_LEGACY "[legacy-<2.4|5> <legacy rate in Mbps>*]"
-#ifdef NL80211_TXRATE_MCS
 #define DESCR DESCR_LEGACY " [mcs-<2.4|5> <MCS index>*]"
-#else
-#define DESCR DESCR_LEGACY
-#endif
 
-COMMAND(set, bitrates, DESCR, NL80211_CMD_SET_TX_BITRATE_MASK, 0, CIB_NETDEV,
-	handle_bitrates,
+COMMAND(set, bitrates, "[legacy-<2.4|5> <legacy rate in Mbps>*] [mcs-<2.4|5> <MCS index>*]",
+	NL80211_CMD_SET_TX_BITRATE_MASK, 0, CIB_NETDEV, handle_bitrates,
 	"Sets up the specified rate masks.\n"
 	"Not passing any arguments would clear the existing mask (if any).");

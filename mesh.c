@@ -177,6 +177,8 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 	_my_nla_put_u16, _parse_u16, _print_u16},
 	{"mesh_gate_announcements", NL80211_MESHCONF_GATE_ANNOUNCEMENTS,
 	_my_nla_put_u8, _parse_u8, _print_u8},
+	{"mesh_fwding", NL80211_MESHCONF_FORWARDING,
+	_my_nla_put_u8, _parse_u8_as_bool, _print_u8},
 };
 
 static void print_all_mesh_param_descr(void)

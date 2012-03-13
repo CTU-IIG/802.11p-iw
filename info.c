@@ -319,7 +319,7 @@ broken_combination:
 				if (!printed)
 					printf("\t\t * %s:", iftype_name(nla_type(nl_if)));
 				printed = true;
-				printf(" 0x%.4x", nla_get_u16(nl_ftype));
+				printf(" 0x%.2x", nla_get_u16(nl_ftype));
 			}
 			if (printed)
 				printf("\n");
@@ -334,7 +334,7 @@ broken_combination:
 				if (!printed)
 					printf("\t\t * %s:", iftype_name(nla_type(nl_if)));
 				printed = true;
-				printf(" 0x%.4x", nla_get_u16(nl_ftype));
+				printf(" 0x%.2x", nla_get_u16(nl_ftype));
 			}
 			if (printed)
 				printf("\n");

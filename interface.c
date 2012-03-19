@@ -266,7 +266,7 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 	if (tb_msg[NL80211_ATTR_IFTYPE])
 		printf("%s\ttype %s\n", indent, iftype_name(nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE])));
 	if (!wiphy && tb_msg[NL80211_ATTR_WIPHY])
-		printf("%s\twiphy %d\n", indent, nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE]));
+		printf("%s\twiphy %d\n", indent, nla_get_u32(tb_msg[NL80211_ATTR_WIPHY]));
 
 	return NL_SKIP;
 }

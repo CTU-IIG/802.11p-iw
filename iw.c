@@ -138,9 +138,18 @@ static void usage_options(void)
 
 static const char *argv0;
 
-static void usage(bool full)
+static void usage(int argc, char **argv)
 {
 	const struct cmd *section, *cmd;
+	bool full = argc >= 0;
+	const char *sect_filt = NULL;
+	const char *cmd_filt = NULL;
+
+	if (argc > 0)
+		sect_filt = argv[0];
+
+	if (argc > 1)
+		cmd_filt = argv[1];
 
 	printf("Usage:\t%s [options] command\n", argv0);
 	usage_options();
@@ -150,6 +159,9 @@ static void usage(bool full)
 		if (section->parent)
 			continue;
 
+		if (sect_filt && strcmp(section->name, sect_filt))
+			continue;
+
 		if (section->handler && !section->hidden)
 			__usage_cmd(section, "\t", full);
 
@@ -157,6 +169,8 @@ static void usage(bool full)
 			if (section != cmd->parent)
 				continue;
 			if (!cmd->handler || cmd->hidden)
+				continue;
+			if (cmd_filt && strcmp(cmd->name, cmd_filt))
 				continue;
 			__usage_cmd(cmd, "\t", full);
 		}
@@ -176,8 +190,9 @@ static int print_help(struct nl80211_state *state,
 {
 	exit(3);
 }
-TOPLEVEL(help, NULL, 0, 0, CIB_NONE, print_help,
-	 "Print usage for each command.");
+TOPLEVEL(help, "[command]", 0, 0, CIB_NONE, print_help,
+	 "Print usage for all or a specific command, e.g.\n"
+	 "\"help wowlan\" or \"help wowlan enable\".");
 
 static void usage_cmd(const struct cmd *cmd)
 {
@@ -440,7 +455,7 @@ int main(int argc, char **argv)
 
 	/* need to treat "help" command specially so it works w/o nl80211 */
 	if (argc == 0 || strcmp(*argv, "help") == 0) {
-		usage(argc != 0);
+		usage(argc - 1, argv + 1);
 		return 0;
 	}
 
@@ -476,7 +491,7 @@ int main(int argc, char **argv)
 		if (cmd)
 			usage_cmd(cmd);
 		else
-			usage(false);
+			usage(0, NULL);
 	} else if (err < 0)
 		fprintf(stderr, "command failed: %s (%d)\n", strerror(-err), err);
 

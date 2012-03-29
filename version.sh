@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="3.3"
+VERSION="3.4"
 OUT="$1"
 
 if head=`git rev-parse --verify HEAD 2>/dev/null`; then

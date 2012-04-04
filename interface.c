@@ -241,6 +241,22 @@ TOPLEVEL(del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_d
 	 "Remove this virtual interface");
 HIDDEN(interface, del, NULL, NL80211_CMD_DEL_INTERFACE, 0, CIB_NETDEV, handle_interface_del);
 
+static char *channel_type_name(enum nl80211_channel_type channel_type)
+{
+	switch (channel_type) {
+	case NL80211_CHAN_NO_HT:
+		return "NO HT";
+	case NL80211_CHAN_HT20:
+		return "HT20";
+	case NL80211_CHAN_HT40MINUS:
+		return "HT40-";
+	case NL80211_CHAN_HT40PLUS:
+		return "HT40+";
+	default:
+		return "unknown";
+	}
+}
+
 static int print_iface_handler(struct nl_msg *msg, void *arg)
 {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
@@ -267,6 +283,17 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 		printf("%s\ttype %s\n", indent, iftype_name(nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE])));
 	if (!wiphy && tb_msg[NL80211_ATTR_WIPHY])
 		printf("%s\twiphy %d\n", indent, nla_get_u32(tb_msg[NL80211_ATTR_WIPHY]));
+	if (tb_msg[NL80211_ATTR_WIPHY_FREQ]) {
+		uint32_t freq = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_FREQ]);
+		enum nl80211_channel_type channel_type = NL80211_CHAN_NO_HT;
+
+		if (tb_msg[NL80211_ATTR_WIPHY_CHANNEL_TYPE])
+			channel_type = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_CHANNEL_TYPE]);
+
+		printf("%s\tchannel %d (%d MHz) %s\n", indent,
+		       ieee80211_frequency_to_channel(freq), freq,
+		       channel_type_name(channel_type));
+	}
 
 	return NL_SKIP;
 }

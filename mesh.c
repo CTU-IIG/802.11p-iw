@@ -344,6 +344,7 @@ COMMAND(get, mesh_param, "[<param>]",
 static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
 		     struct nl_msg *msg, int argc, char **argv)
 {
+	struct nlattr *container;
 	float rate;
 	char *end;
 
@@ -367,13 +368,34 @@ static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
 		argc--;
 	}
 
+	container = nla_nest_start(msg, NL80211_ATTR_MESH_SETUP);
+	if (!container)
+		return -ENOBUFS;
+
+	if (argc > 1 && strcmp(argv[0], "vendor_sync") == 0) {
+		argv++;
+		argc--;
+		if (strcmp(argv[0], "on") == 0)
+			NLA_PUT_U8(msg,
+				   NL80211_MESH_SETUP_ENABLE_VENDOR_SYNC, 1);
+		else
+			NLA_PUT_U8(msg,
+				   NL80211_MESH_SETUP_ENABLE_VENDOR_SYNC, 0);
+		argv++;
+		argc--;
+	}
+	/* parse and put other NL80211_ATTR_MESH_SETUP elements here */
+
+	nla_nest_end(msg, container);
+
 	if (!argc)
 		return 0;
 	return set_interface_meshparam(state, cb, msg, argc, argv);
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(mesh, join, "<mesh ID> [mcast-rate <rate in Mbps>] [<param>=<value>]*",
+COMMAND(mesh, join, "<mesh ID> [mcast-rate <rate in Mbps>] [vendor_sync on|off]"
+	" [<param>=<value>]*",
 	NL80211_CMD_JOIN_MESH, 0, CIB_NETDEV, join_mesh,
 	"Join a mesh with the given mesh ID with mcast-rate and mesh parameters.");
 

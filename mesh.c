@@ -116,6 +116,11 @@ static void _print_u16_in_TUs(struct nlattr *a)
 	printf("%d TUs", nla_get_u16(a));
 }
 
+static void _print_u32(struct nlattr *a)
+{
+	printf("%d", nla_get_u32(a));
+}
+
 static void _print_u32_timeout(struct nlattr *a)
 {
 	printf("%u milliseconds", nla_get_u32(a));
@@ -179,6 +184,9 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 	_my_nla_put_u8, _parse_u8, _print_u8},
 	{"mesh_fwding", NL80211_MESHCONF_FORWARDING,
 	_my_nla_put_u8, _parse_u8_as_bool, _print_u8},
+	{"mesh_sync_offset_max_neighor",
+	NL80211_MESHCONF_SYNC_OFFSET_MAX_NEIGHBOR,
+	_my_nla_put_u32, _parse_u32, _print_u32},
 };
 
 static void print_all_mesh_param_descr(void)

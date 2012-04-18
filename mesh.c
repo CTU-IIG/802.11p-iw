@@ -17,6 +17,7 @@ SECTION(mesh);
 typedef struct _any_t {
 	union {
 		uint32_t as_32;
+		int32_t as_s32;
 		uint16_t as_16;
 		uint8_t as_8;
 	} u;
@@ -96,6 +97,19 @@ static uint32_t _parse_u32(const char *str, _any *ret)
 	return 0;
 }
 
+static uint32_t _parse_s32(const char *str, _any *ret)
+{
+	char *endptr = NULL;
+	long int v = strtol(str, &endptr, 10);
+	if (*endptr != '\0')
+		return 0xffffffff;
+	if (v > 0xff)
+		return 0xffffffff;
+	ret->u.as_s32 = (int32_t)v;
+	return 0;
+}
+
+
 static void _print_u8(struct nlattr *a)
 {
 	printf("%d", nla_get_u8(a));
@@ -130,6 +144,12 @@ static void _print_u32_in_TUs(struct nlattr *a)
 {
 	printf("%d TUs", nla_get_u32(a));
 }
+
+static void _print_s32_in_dBm(struct nlattr *a)
+{
+	printf("%d dBm", (int32_t) nla_get_u32(a));
+}
+
 
 /* The current mesh parameters */
 const static struct mesh_param_descr _mesh_param_descrs[] =
@@ -187,6 +207,8 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 	{"mesh_sync_offset_max_neighor",
 	NL80211_MESHCONF_SYNC_OFFSET_MAX_NEIGHBOR,
 	_my_nla_put_u32, _parse_u32, _print_u32},
+	{"mesh_rssi_threshold", NL80211_MESHCONF_RSSI_THRESHOLD,
+	_my_nla_put_u32, _parse_s32, _print_s32_in_dBm},
 };
 
 static void print_all_mesh_param_descr(void)

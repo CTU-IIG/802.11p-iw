@@ -1,4 +1,4 @@
-.TH IW 8 "16 September 2008" "iw" "Linux"
+.TH IW 8 "7 June 2012" "iw" "Linux"
 .SH NAME
 iw \- show / manipulate wireless devices and their configuration
 .SH SYNOPSIS
@@ -8,7 +8,9 @@ iw \- show / manipulate wireless devices and their configuration
 .ti -8
 .B iw
 .RI [ " OPTIONS " ] " " { "
-.BR help " |"
+.BR help " [ "
+.RI ""command " ]"
+.BR "|"
 .RI ""OBJECT " " COMMAND " }"
 .sp
 
@@ -56,7 +58,9 @@ enable netlink message debugging.
 Specifies the action to perform on the object.
 The set of possible actions depends on the object type.
 .B iw help
-will print all supported commands.
+will print all supported commands, while
+.B iw help command
+will print the help for all matching commands.
 
 .SH SEE ALSO
 .BR ip (8),

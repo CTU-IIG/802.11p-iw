@@ -199,7 +199,7 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 	{"mesh_hwmp_rootmode", NL80211_MESHCONF_HWMP_ROOTMODE,
 	_my_nla_put_u8, _parse_u8, _print_u8},
 	{"mesh_hwmp_rann_interval", NL80211_MESHCONF_HWMP_RANN_INTERVAL,
-	_my_nla_put_u16, _parse_u16, _print_u16},
+	_my_nla_put_u16, _parse_u16, _print_u16_in_TUs},
 	{"mesh_gate_announcements", NL80211_MESHCONF_GATE_ANNOUNCEMENTS,
 	_my_nla_put_u8, _parse_u8, _print_u8},
 	{"mesh_fwding", NL80211_MESHCONF_FORWARDING,
@@ -209,6 +209,14 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 	_my_nla_put_u32, _parse_u32, _print_u32},
 	{"mesh_rssi_threshold", NL80211_MESHCONF_RSSI_THRESHOLD,
 	_my_nla_put_u32, _parse_s32, _print_s32_in_dBm},
+	{"mesh_hwmp_active_path_to_root_timeout",
+	NL80211_MESHCONF_HWMP_PATH_TO_ROOT_TIMEOUT,
+	_my_nla_put_u32, _parse_u32, _print_u32_in_TUs},
+	{"mesh_hwmp_root_interval", NL80211_MESHCONF_HWMP_ROOT_INTERVAL,
+	_my_nla_put_u16, _parse_u16, _print_u16_in_TUs},
+	{"mesh_hwmp_confirmation_interval",
+	NL80211_MESHCONF_HWMP_CONFIRMATION_INTERVAL,
+	_my_nla_put_u16, _parse_u16, _print_u16_in_TUs},
 };
 
 static void print_all_mesh_param_descr(void)

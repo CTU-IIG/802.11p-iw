@@ -269,7 +269,13 @@ int ieee80211_frequency_to_channel(int freq)
 		return (freq - 2407) / 5;
 
 	/* FIXME: dot11ChannelStartingFactor (802.11-2007 17.3.8.3.2) */
-	return freq/5 - 1000;
+	if (freq < 45000)
+		return freq/5 - 1000;
+
+	if (freq >= 58320 && freq <= 64800)
+		return (freq - 56160) / 2160;
+
+	return 0;
 }
 
 void print_ssid_escaped(const uint8_t len, const uint8_t *data)

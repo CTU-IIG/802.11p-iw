@@ -36,6 +36,8 @@ static char *cipher_name(__u32 c)
 		return "CCMP (00-0f-ac:4)";
 	case 0x000fac06:
 		return "CMAC (00-0f-ac:6)";
+	case 0x000fac08:
+		return "GCMP (00-0f-ac:8)";
 	case 0x00147201:
 		return "WPI-SMS4 (00-14-72:1)";
 	default:

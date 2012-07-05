@@ -305,6 +305,9 @@ static void print_cipher(const uint8_t *data)
 		case 6:
 			printf("AES-128-CMAC");
 			break;
+		case 8:
+			printf("GCMP");
+			break;
 		default:
 			printf("%.02x-%.02x-%.02x:%d",
 				data[0], data[1] ,data[2], data[3]);

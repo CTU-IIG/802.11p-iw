@@ -58,6 +58,7 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 
 	static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
 		[NL80211_RATE_INFO_BITRATE] = { .type = NLA_U16 },
+		[NL80211_RATE_INFO_BITRATE32] = { .type = NLA_U32 },
 		[NL80211_RATE_INFO_MCS] = { .type = NLA_U8 },
 		[NL80211_RATE_INFO_40_MHZ_WIDTH] = { .type = NLA_FLAG },
 		[NL80211_RATE_INFO_SHORT_GI] = { .type = NLA_FLAG },
@@ -123,11 +124,14 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 				     sinfo[NL80211_STA_INFO_TX_BITRATE], rate_policy)) {
 			fprintf(stderr, "failed to parse nested rate attributes!\n");
 		} else {
+			int rate = 0;
 			printf("\n\ttx bitrate:\t");
-			if (rinfo[NL80211_RATE_INFO_BITRATE]) {
-				int rate = nla_get_u16(rinfo[NL80211_RATE_INFO_BITRATE]);
+			if (rinfo[NL80211_RATE_INFO_BITRATE32])
+				rate = nla_get_u32(rinfo[NL80211_RATE_INFO_BITRATE32]);
+			else if (rinfo[NL80211_RATE_INFO_BITRATE])
+				rate = nla_get_u16(rinfo[NL80211_RATE_INFO_BITRATE]);
+			if (rate > 0)
 				printf("%d.%d MBit/s", rate / 10, rate % 10);
-			}
 
 			if (rinfo[NL80211_RATE_INFO_MCS])
 				printf(" MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_MCS]));

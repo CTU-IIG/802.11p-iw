@@ -20,6 +20,9 @@ OBJS = iw.o genl.o event.o info.o phy.o \
 	reason.o status.o connect.o link.o offch.o ps.o cqm.o \
 	bitrate.o wowlan.o roc.o
 OBJS += sections.o
+
+OBJS-$(HWSIM) += hwsim.o
+
 ALL = iw
 
 NL3xFOUND := $(shell $(PKG_CONFIG) --atleast-version=3.2 libnl-3.0 && echo Y)
@@ -85,7 +88,7 @@ endif
 
 all: $(ALL)
 
-VERSION_OBJS := $(filter-out version.o, $(OBJS))
+VERSION_OBJS := $(filter-out version.o, $(OBJS) $(OBJS-y))
 
 version.c: version.sh $(patsubst %.o,%.c,$(VERSION_OBJS)) nl80211.h iw.h Makefile \
 		$(wildcard .git/index .git/refs/tags)
@@ -96,9 +99,9 @@ version.c: version.sh $(patsubst %.o,%.c,$(VERSION_OBJS)) nl80211.h iw.h Makefil
 	@$(NQ) ' CC  ' $@
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
-iw:	$(OBJS)
+iw:	$(OBJS) $(OBJS-y)
 	@$(NQ) ' CC  ' iw
-	$(Q)$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o iw
+	$(Q)$(CC) $(LDFLAGS) $(OBJS) $(OBJS-y) $(LIBS) -o iw
 
 check:
 	$(Q)$(MAKE) all CC="REAL_CC=$(CC) CHECK=\"sparse -Wall\" cgcc"

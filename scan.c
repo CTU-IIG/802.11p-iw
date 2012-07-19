@@ -55,7 +55,8 @@ union ieee80211_country_ie_triplet {
 static int handle_scan(struct nl80211_state *state,
 		       struct nl_cb *cb,
 		       struct nl_msg *msg,
-		       int argc, char **argv)
+		       int argc, char **argv,
+		       enum id_input id)
 {
 	struct nl_msg *ssids = NULL, *freqs = NULL;
 	char *eptr;
@@ -1247,7 +1248,8 @@ static struct scan_params scan_params;
 static int handle_scan_dump(struct nl80211_state *state,
 			    struct nl_cb *cb,
 			    struct nl_msg *msg,
-			    int argc, char **argv)
+			    int argc, char **argv,
+			    enum id_input id)
 {
 	if (argc > 1)
 		return 1;
@@ -1269,7 +1271,8 @@ static int handle_scan_dump(struct nl80211_state *state,
 static int handle_scan_combined(struct nl80211_state *state,
 				struct nl_cb *cb,
 				struct nl_msg *msg,
-				int argc, char **argv)
+				int argc, char **argv,
+				enum id_input id)
 {
 	char **trig_argv;
 	static char *dump_argv[] = {

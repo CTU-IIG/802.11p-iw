@@ -100,7 +100,8 @@ static int link_bss_handler(struct nl_msg *msg, void *arg)
 static int handle_scan_for_link(struct nl80211_state *state,
 				struct nl_cb *cb,
 				struct nl_msg *msg,
-				int argc, char **argv)
+				int argc, char **argv,
+				enum id_input id)
 {
 	if (argc > 0)
 		return 1;
@@ -226,7 +227,8 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 static int handle_link_sta(struct nl80211_state *state,
 			   struct nl_cb *cb,
 			   struct nl_msg *msg,
-			   int argc, char **argv)
+			   int argc, char **argv,
+			   enum id_input id)
 {
 	unsigned char mac_addr[ETH_ALEN];
 
@@ -254,7 +256,8 @@ static int handle_link_sta(struct nl80211_state *state,
 }
 
 static int handle_link(struct nl80211_state *state, struct nl_cb *cb,
-		       struct nl_msg *msg, int argc, char **argv)
+		       struct nl_msg *msg, int argc, char **argv,
+		       enum id_input id)
 {
 	char *link_argv[] = {
 		NULL,

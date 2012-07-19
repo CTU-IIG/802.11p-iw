@@ -189,7 +189,8 @@ static void usage(int argc, char **argv)
 static int print_help(struct nl80211_state *state,
 		      struct nl_cb *cb,
 		      struct nl_msg *msg,
-		      int argc, char **argv)
+		      int argc, char **argv,
+		      enum id_input id)
 {
 	exit(3);
 }
@@ -375,7 +376,7 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 	if (!cmd->cmd) {
 		argc = o_argc;
 		argv = o_argv;
-		return cmd->handler(state, NULL, NULL, argc, argv);
+		return cmd->handler(state, NULL, NULL, argc, argv, idby);
 	}
 
 	msg = nlmsg_alloc();
@@ -409,7 +410,7 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 		break;
 	}
 
-	err = cmd->handler(state, cb, msg, argc, argv);
+	err = cmd->handler(state, cb, msg, argc, argv, idby);
 	if (err)
 		goto out;
 

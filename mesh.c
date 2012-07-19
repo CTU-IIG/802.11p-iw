@@ -251,7 +251,8 @@ static const struct mesh_param_descr *find_mesh_param(const char *name)
 static int set_interface_meshparam(struct nl80211_state *state,
 				   struct nl_cb *cb,
 				   struct nl_msg *msg,
-				   int argc, char **argv)
+				   int argc, char **argv,
+				   enum id_input id)
 {
 	const struct mesh_param_descr *mdescr;
 	struct nlattr *container;
@@ -357,7 +358,8 @@ static int print_mesh_param_handler(struct nl_msg *msg, void *arg)
 static int get_interface_meshparam(struct nl80211_state *state,
 				   struct nl_cb *cb,
 				   struct nl_msg *msg,
-				   int argc, char **argv)
+				   int argc, char **argv,
+				   enum id_input id)
 {
 	const struct mesh_param_descr *mdescr = NULL;
 
@@ -380,7 +382,8 @@ COMMAND(get, mesh_param, "[<param>]",
 	"Retrieve mesh parameter (run command without any to see available ones).");
 
 static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
-		     struct nl_msg *msg, int argc, char **argv)
+		     struct nl_msg *msg, int argc, char **argv,
+		     enum id_input id)
 {
 	struct nlattr *container;
 	float rate;
@@ -428,7 +431,7 @@ static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
 
 	if (!argc)
 		return 0;
-	return set_interface_meshparam(state, cb, msg, argc, argv);
+	return set_interface_meshparam(state, cb, msg, argc, argv, id);
  nla_put_failure:
 	return -ENOBUFS;
 }
@@ -438,7 +441,8 @@ COMMAND(mesh, join, "<mesh ID> [mcast-rate <rate in Mbps>] [vendor_sync on|off]"
 	"Join a mesh with the given mesh ID with mcast-rate and mesh parameters.");
 
 static int leave_mesh(struct nl80211_state *state, struct nl_cb *cb,
-		      struct nl_msg *msg, int argc, char **argv)
+		      struct nl_msg *msg, int argc, char **argv,
+		      enum id_input id)
 {
 	if (argc)
 		return 1;

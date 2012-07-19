@@ -54,7 +54,8 @@ struct cmd {
 	int (*handler)(struct nl80211_state *state,
 		       struct nl_cb *cb,
 		       struct nl_msg *msg,
-		       int argc, char **argv);
+		       int argc, char **argv,
+		       enum id_input id);
 	const struct cmd *(*selector)(int argc, char **argv);
 	const struct cmd *parent;
 };

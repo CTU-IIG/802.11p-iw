@@ -238,7 +238,8 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 static int handle_station_get(struct nl80211_state *state,
 			      struct nl_cb *cb,
 			      struct nl_msg *msg,
-			      int argc, char **argv)
+			      int argc, char **argv,
+			      enum id_input id)
 {
 	unsigned char mac_addr[ETH_ALEN];
 
@@ -288,7 +289,8 @@ static const struct cmd *select_station_cmd(int argc, char **argv)
 static int handle_station_set_plink(struct nl80211_state *state,
 			      struct nl_cb *cb,
 			      struct nl_msg *msg,
-			      int argc, char **argv)
+			      int argc, char **argv,
+			      enum id_input id)
 {
 	unsigned char plink_action;
 	unsigned char mac_addr[ETH_ALEN];
@@ -335,9 +337,10 @@ COMMAND_ALIAS(station, set, "<MAC address> plink_action <open|block>",
 	select_station_cmd, station_set_plink);
 
 static int handle_station_set_vlan(struct nl80211_state *state,
-			      struct nl_cb *cb,
-			      struct nl_msg *msg,
-			      int argc, char **argv)
+				   struct nl_cb *cb,
+				   struct nl_msg *msg,
+				   int argc, char **argv,
+				   enum id_input id)
 {
 	unsigned char mac_addr[ETH_ALEN];
 	unsigned long sta_vlan = 0;
@@ -385,7 +388,8 @@ COMMAND_ALIAS(station, set, "<MAC address> vlan <ifindex>",
 static int handle_station_dump(struct nl80211_state *state,
 			       struct nl_cb *cb,
 			       struct nl_msg *msg,
-			       int argc, char **argv)
+			       int argc, char **argv,
+			       enum id_input id)
 {
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);
 	return 0;

@@ -19,7 +19,8 @@ SECTION(ibss);
 static int join_ibss(struct nl80211_state *state,
 		     struct nl_cb *cb,
 		     struct nl_msg *msg,
-		     int argc, char **argv)
+		     int argc, char **argv,
+		     enum id_input id)
 {
 	char *end;
 	unsigned char abssid[6];
@@ -154,7 +155,8 @@ static int join_ibss(struct nl80211_state *state,
 static int leave_ibss(struct nl80211_state *state,
 		      struct nl_cb *cb,
 		      struct nl_msg *msg,
-		      int argc, char **argv)
+		      int argc, char **argv,
+		      enum id_input id)
 {
 	return 0;
 }

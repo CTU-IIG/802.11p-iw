@@ -53,7 +53,8 @@ static int print_hwsim_ps_handler(struct nl_msg *msg, void *arg)
 }
 
 static int handle_hwsim_getps(struct nl80211_state *state, struct nl_cb *cb,
-			      struct nl_msg *msg, int argc, char **argv)
+			      struct nl_msg *msg, int argc, char **argv,
+			      enum id_input id)
 {
 	struct nlattr *tmdata;
 
@@ -74,7 +75,8 @@ static int handle_hwsim_getps(struct nl80211_state *state, struct nl_cb *cb,
 COMMAND(hwsim, getps, "", NL80211_CMD_TESTMODE, 0, CIB_PHY, handle_hwsim_getps, "");
 
 static int handle_hwsim_setps(struct nl80211_state *state, struct nl_cb *cb,
-			      struct nl_msg *msg, int argc, char **argv)
+			      struct nl_msg *msg, int argc, char **argv,
+			      enum id_input id)
 {
 	struct nlattr *tmdata;
 	__u32 ps;
@@ -105,7 +107,8 @@ static int handle_hwsim_setps(struct nl80211_state *state, struct nl_cb *cb,
 COMMAND(hwsim, setps, "<value>", NL80211_CMD_TESTMODE, 0, CIB_PHY, handle_hwsim_setps, "");
 
 static int handle_hwsim_stop_queues(struct nl80211_state *state, struct nl_cb *cb,
-				    struct nl_msg *msg, int argc, char **argv)
+				    struct nl_msg *msg, int argc, char **argv,
+				    enum id_input id)
 {
 	struct nlattr *tmdata;
 
@@ -126,7 +129,8 @@ static int handle_hwsim_stop_queues(struct nl80211_state *state, struct nl_cb *c
 COMMAND(hwsim, stopqueues, "", NL80211_CMD_TESTMODE, 0, CIB_PHY, handle_hwsim_stop_queues, "");
 
 static int handle_hwsim_wake_queues(struct nl80211_state *state, struct nl_cb *cb,
-				    struct nl_msg *msg, int argc, char **argv)
+				    struct nl_msg *msg, int argc, char **argv,
+				    enum id_input id)
 {
 	struct nlattr *tmdata;
 

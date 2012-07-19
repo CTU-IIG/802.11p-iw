@@ -159,7 +159,8 @@ nla_put_failure:
 static int handle_interface_add(struct nl80211_state *state,
 				struct nl_cb *cb,
 				struct nl_msg *msg,
-				int argc, char **argv)
+				int argc, char **argv,
+				enum id_input id)
 {
 	char *name;
 	char *mesh_id = NULL;
@@ -233,7 +234,8 @@ COMMAND(interface, add, "<name> type <type> [mesh_id <meshid>] [4addr on|off] [f
 static int handle_interface_del(struct nl80211_state *state,
 				struct nl_cb *cb,
 				struct nl_msg *msg,
-				int argc, char **argv)
+				int argc, char **argv,
+				enum id_input id)
 {
 	return 0;
 }
@@ -311,7 +313,8 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 static int handle_interface_info(struct nl80211_state *state,
 				 struct nl_cb *cb,
 				 struct nl_msg *msg,
-				 int argc, char **argv)
+				 int argc, char **argv,
+				 enum id_input id)
 {
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, NULL);
 	return 0;
@@ -322,7 +325,8 @@ TOPLEVEL(info, NULL, NL80211_CMD_GET_INTERFACE, 0, CIB_NETDEV, handle_interface_
 static int handle_interface_set(struct nl80211_state *state,
 				struct nl_cb *cb,
 				struct nl_msg *msg,
-				int argc, char **argv)
+				int argc, char **argv,
+				enum id_input id)
 {
 	if (!argc)
 		return 1;
@@ -352,7 +356,8 @@ COMMAND(set, monitor, "<flag>*",
 static int handle_interface_meshid(struct nl80211_state *state,
 				   struct nl_cb *cb,
 				   struct nl_msg *msg,
-				   int argc, char **argv)
+				   int argc, char **argv,
+				   enum id_input id)
 {
 	char *mesh_id = NULL;
 
@@ -375,7 +380,8 @@ static unsigned int dev_dump_wiphy;
 static int handle_dev_dump(struct nl80211_state *state,
 			   struct nl_cb *cb,
 			   struct nl_msg *msg,
-			   int argc, char **argv)
+			   int argc, char **argv,
+			   enum id_input id)
 {
 	dev_dump_wiphy = -1;
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_iface_handler, &dev_dump_wiphy);
@@ -387,7 +393,8 @@ TOPLEVEL(dev, NULL, NL80211_CMD_GET_INTERFACE, NLM_F_DUMP, CIB_NONE, handle_dev_
 static int handle_interface_type(struct nl80211_state *state,
 				 struct nl_cb *cb,
 				 struct nl_msg *msg,
-				 int argc, char **argv)
+				 int argc, char **argv,
+				 enum id_input id)
 {
 	enum nl80211_iftype type;
 	int tpset;
@@ -411,9 +418,10 @@ COMMAND(set, type, "<type>",
 	IFACE_TYPES);
 
 static int handle_interface_4addr(struct nl80211_state *state,
-				 struct nl_cb *cb,
-				 struct nl_msg *msg,
-				 int argc, char **argv)
+				  struct nl_cb *cb,
+				  struct nl_msg *msg,
+				  int argc, char **argv,
+				  enum id_input id)
 {
 	if (argc != 1)
 		return 1;
@@ -426,7 +434,8 @@ COMMAND(set, 4addr, "<on|off>",
 static int handle_interface_noack_map(struct nl80211_state *state,
 				      struct nl_cb *cb,
 				      struct nl_msg *msg,
-				      int argc, char **argv)
+				      int argc, char **argv,
+				      enum id_input id)
 {
 	uint16_t noack_map;
 	char *end;
@@ -453,7 +462,8 @@ COMMAND(set, noack_map, "<map>",
 static int handle_interface_wds_peer(struct nl80211_state *state,
 				     struct nl_cb *cb,
 				     struct nl_msg *msg,
-				     int argc, char **argv)
+				     int argc, char **argv,
+				     enum id_input id)
 {
 	unsigned char mac_addr[ETH_ALEN];
 

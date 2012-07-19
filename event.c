@@ -552,7 +552,8 @@ __u32 listen_events(struct nl80211_state *state,
 static int print_events(struct nl80211_state *state,
 			struct nl_cb *cb,
 			struct nl_msg *msg,
-			int argc, char **argv)
+			int argc, char **argv,
+			enum id_input id)
 {
 	struct print_event_args args;
 	int ret;

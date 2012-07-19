@@ -99,7 +99,8 @@ static int print_mpath_handler(struct nl_msg *msg, void *arg)
 static int handle_mpath_get(struct nl80211_state *state,
 			    struct nl_cb *cb,
 			    struct nl_msg *msg,
-			    int argc, char **argv)
+			    int argc, char **argv,
+			    enum id_input id)
 {
 	unsigned char dst[ETH_ALEN];
 
@@ -134,7 +135,8 @@ COMMAND(mpath, del, "<MAC address>",
 static int handle_mpath_set(struct nl80211_state *state,
 			    struct nl_cb *cb,
 			    struct nl_msg *msg,
-			    int argc, char **argv)
+			    int argc, char **argv,
+			    enum id_input id)
 {
 	unsigned char dst[ETH_ALEN];
 	unsigned char next_hop[ETH_ALEN];
@@ -182,7 +184,8 @@ COMMAND(mpath, set, "<destination MAC address> next_hop <next hop MAC address>",
 static int handle_mpath_dump(struct nl80211_state *state,
 			     struct nl_cb *cb,
 			     struct nl_msg *msg,
-			     int argc, char **argv)
+			     int argc, char **argv,
+			     enum id_input id)
 {
 	printf("DEST ADDR         NEXT HOP          IFACE\tSN\tMETRIC\tQLEN\t"
 	       "EXPTIME\t\tDTIM\tDRET\tFLAGS\n");

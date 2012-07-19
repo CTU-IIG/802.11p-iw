@@ -14,7 +14,8 @@
 SECTION(wowlan);
 
 static int handle_wowlan_enable(struct nl80211_state *state, struct nl_cb *cb,
-				struct nl_msg *msg, int argc, char **argv)
+				struct nl_msg *msg, int argc, char **argv,
+				enum id_input id)
 {
 	struct nlattr *wowlan, *pattern;
 	struct nl_msg *patterns = NULL;
@@ -99,7 +100,8 @@ COMMAND(wowlan, enable, "[any] [disconnect] [magic-packet] [gtk-rekey-failure] [
 
 
 static int handle_wowlan_disable(struct nl80211_state *state, struct nl_cb *cb,
-				 struct nl_msg *msg, int argc, char **argv)
+				 struct nl_msg *msg, int argc, char **argv,
+				 enum id_input id)
 {
 	/* just a set w/o wowlan attribute */
 	return 0;
@@ -185,7 +187,8 @@ static int print_wowlan_handler(struct nl_msg *msg, void *arg)
 }
 
 static int handle_wowlan_show(struct nl80211_state *state, struct nl_cb *cb,
-			      struct nl_msg *msg, int argc, char **argv)
+			      struct nl_msg *msg, int argc, char **argv,
+			      enum id_input id)
 {
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM,
 		  print_wowlan_handler, NULL);

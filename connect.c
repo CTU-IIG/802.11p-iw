@@ -10,7 +10,8 @@
 #include "iw.h"
 
 static int iw_conn(struct nl80211_state *state, struct nl_cb *cb,
-		   struct nl_msg *msg, int argc, char **argv)
+		   struct nl_msg *msg, int argc, char **argv,
+		   enum id_input id)
 {
 	char *end;
 	unsigned char bssid[6];
@@ -60,7 +61,8 @@ static int iw_conn(struct nl80211_state *state, struct nl_cb *cb,
 static int disconnect(struct nl80211_state *state,
 		      struct nl_cb *cb,
 		      struct nl_msg *msg,
-		      int argc, char **argv)
+		      int argc, char **argv,
+		      enum id_input id)
 {
 	return 0;
 }
@@ -69,7 +71,8 @@ TOPLEVEL(disconnect, NULL,
 	"Disconnect from the current network.");
 
 static int iw_connect(struct nl80211_state *state, struct nl_cb *cb,
-		      struct nl_msg *msg, int argc, char **argv)
+		      struct nl_msg *msg, int argc, char **argv,
+		      enum id_input id)
 {
 	char **conn_argv, *dev = argv[0];
 	static const __u32 cmds[] = {

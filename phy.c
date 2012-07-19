@@ -15,7 +15,8 @@
 static int handle_name(struct nl80211_state *state,
 		       struct nl_cb *cb,
 		       struct nl_msg *msg,
-		       int argc, char **argv)
+		       int argc, char **argv,
+		       enum id_input id)
 {
 	if (argc != 1)
 		return 1;
@@ -78,7 +79,8 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 
 static int handle_freq(struct nl80211_state *state,
 		       struct nl_cb *cb, struct nl_msg *msg,
-		       int argc, char **argv)
+		       int argc, char **argv,
+		       enum id_input id)
 {
 	return handle_freqchan(msg, false, argc, argv);
 }
@@ -91,7 +93,8 @@ COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
 
 static int handle_chan(struct nl80211_state *state,
 		       struct nl_cb *cb, struct nl_msg *msg,
-		       int argc, char **argv)
+		       int argc, char **argv,
+		       enum id_input id)
 {
 	return handle_freqchan(msg, true, argc, argv);
 }
@@ -102,7 +105,8 @@ COMMAND(set, channel, "<channel> [HT20|HT40+|HT40-]",
 
 static int handle_fragmentation(struct nl80211_state *state,
 				struct nl_cb *cb, struct nl_msg *msg,
-				int argc, char **argv)
+				int argc, char **argv,
+				enum id_input id)
 {
 	unsigned int frag;
 
@@ -133,7 +137,8 @@ COMMAND(set, frag, "<fragmentation threshold|off>",
 
 static int handle_rts(struct nl80211_state *state,
 		      struct nl_cb *cb, struct nl_msg *msg,
-		      int argc, char **argv)
+		      int argc, char **argv,
+		      enum id_input id)
 {
 	unsigned int rts;
 
@@ -165,7 +170,8 @@ COMMAND(set, rts, "<rts threshold|off>",
 static int handle_netns(struct nl80211_state *state,
 			struct nl_cb *cb,
 			struct nl_msg *msg,
-			int argc, char **argv)
+			int argc, char **argv,
+			enum id_input id)
 {
 	char *end;
 
@@ -192,7 +198,8 @@ COMMAND(set, netns, "<pid>",
 static int handle_coverage(struct nl80211_state *state,
 			struct nl_cb *cb,
 			struct nl_msg *msg,
-			int argc, char **argv)
+			int argc, char **argv,
+			enum id_input id)
 {
 	char *end;
 	unsigned int coverage;
@@ -223,7 +230,8 @@ COMMAND(set, coverage, "<coverage class>",
 static int handle_distance(struct nl80211_state *state,
 			struct nl_cb *cb,
 			struct nl_msg *msg,
-			int argc, char **argv)
+			int argc, char **argv,
+			enum id_input id)
 {
 	char *end;
 	unsigned int distance, coverage;
@@ -263,7 +271,8 @@ COMMAND(set, distance, "<distance>",
 static int handle_txpower(struct nl80211_state *state,
 			  struct nl_cb *cb,
 			  struct nl_msg *msg,
-			  int argc, char **argv)
+			  int argc, char **argv,
+			  enum id_input id)
 {
 	enum nl80211_tx_power_setting type;
 	int mbm;
@@ -314,7 +323,8 @@ COMMAND(set, txpower, "<auto|fixed|limit> [<tx power in mBm>]",
 static int handle_antenna(struct nl80211_state *state,
 			  struct nl_cb *cb,
 			  struct nl_msg *msg,
-			  int argc, char **argv)
+			  int argc, char **argv,
+			  enum id_input id)
 {
 	char *end;
 	uint32_t tx_ant = 0, rx_ant = 0;

@@ -276,7 +276,7 @@ static int handle_link(struct nl80211_state *state, struct nl_cb *cb,
 	int err;
 
 	link_argv[0] = argv[0];
-	err = handle_cmd(state, II_NETDEV, 3, link_argv);
+	err = handle_cmd(state, id, 3, link_argv);
 	if (err)
 		return err;
 
@@ -291,7 +291,7 @@ static int handle_link(struct nl80211_state *state, struct nl_cb *cb,
 
 	station_argv[0] = argv[0];
 	station_argv[3] = bssid_buf;
-	return handle_cmd(state, II_NETDEV, 4, station_argv);
+	return handle_cmd(state, id, 4, station_argv);
 }
 TOPLEVEL(link, NULL, 0, 0, CIB_NETDEV, handle_link,
 	 "Print information about the current link, if any.");

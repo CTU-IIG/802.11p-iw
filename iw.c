@@ -178,6 +178,8 @@ static void usage(int argc, char **argv)
 			__usage_cmd(cmd, "\t", full);
 		}
 	}
+	printf("\nCommands that use the netdev ('dev') can also be given the\n"
+	       "'wdev' instead to identify the device.\n");
 	printf("\nYou can omit the 'phy' or 'dev' if "
 			"the identification is unique,\n"
 			"e.g. \"iw wlan0 info\" or \"iw phy0 info\". "
@@ -335,7 +337,13 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 				continue;
 			if (cmd->parent != sectcmd)
 				continue;
-			if (cmd->idby != command_idby)
+			/*
+			 * ignore mismatch id by, but allow WDEV
+			 * in place of NETDEV
+			 */
+			if (cmd->idby != command_idby &&
+			    !(cmd->idby == CIB_NETDEV &&
+			      command_idby == CIB_WDEV))
 				continue;
 			if (strcmp(cmd->name, command))
 				continue;
@@ -358,7 +366,8 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 		cmd = sectcmd;
 		if (argc && !cmd->args)
 			return 1;
-		if (cmd->idby != command_idby)
+		if (cmd->idby != command_idby &&
+		    !(cmd->idby == CIB_NETDEV && command_idby == CIB_WDEV))
 			return 1;
 		if (!cmd->handler)
 			return 1;

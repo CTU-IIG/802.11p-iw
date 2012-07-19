@@ -1306,7 +1306,7 @@ static int handle_scan_combined(struct nl80211_state *state,
 	int i;
 	for (i = 0; i < argc - 2 - (dump_argc - 3); i++)
 		trig_argv[i + 3] = argv[i + 2 + (dump_argc - 3)];
-	err = handle_cmd(state, II_NETDEV, trig_argc, trig_argv);
+	err = handle_cmd(state, id, trig_argc, trig_argv);
 	free(trig_argv);
 	if (err)
 		return err;
@@ -1342,7 +1342,7 @@ static int handle_scan_combined(struct nl80211_state *state,
 	}
 
 	dump_argv[0] = argv[0];
-	return handle_cmd(state, II_NETDEV, dump_argc, dump_argv);
+	return handle_cmd(state, id, dump_argc, dump_argv);
 }
 TOPLEVEL(scan, "[-u] [freq <freq>*] [ies <hex as 00:11:..>] [ssid <ssid>*|passive]", 0, 0,
 	 CIB_NETDEV, handle_scan_combined,

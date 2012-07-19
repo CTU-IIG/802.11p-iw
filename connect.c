@@ -108,7 +108,7 @@ static int iw_connect(struct nl80211_state *state, struct nl_cb *cb,
 	conn_argv[2] = "establish";
 	for (i = 0; i < argc; i++)
 		conn_argv[i + 3] = argv[i];
-	err = handle_cmd(state, II_NETDEV, conn_argc, conn_argv);
+	err = handle_cmd(state, id, conn_argc, conn_argv);
 	free(conn_argv);
 	if (err)
 		return err;

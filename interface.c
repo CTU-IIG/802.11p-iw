@@ -277,8 +277,18 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 
 	if (tb_msg[NL80211_ATTR_IFNAME])
 		printf("%sInterface %s\n", indent, nla_get_string(tb_msg[NL80211_ATTR_IFNAME]));
+	else
+		printf("%sUnnamed/non-netdev interface\n", indent);
 	if (tb_msg[NL80211_ATTR_IFINDEX])
 		printf("%s\tifindex %d\n", indent, nla_get_u32(tb_msg[NL80211_ATTR_IFINDEX]));
+	if (tb_msg[NL80211_ATTR_WDEV])
+		printf("%s\twdev 0x%llx\n", indent,
+		       (unsigned long long)nla_get_u64(tb_msg[NL80211_ATTR_WDEV]));
+	if (tb_msg[NL80211_ATTR_MAC]) {
+		char mac_addr[20];
+		mac_addr_n2a(mac_addr, nla_data(tb_msg[NL80211_ATTR_MAC]));
+		printf("%s\taddr %s\n", indent, mac_addr);
+	}
 	if (tb_msg[NL80211_ATTR_IFTYPE])
 		printf("%s\ttype %s\n", indent, iftype_name(nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE])));
 	if (!wiphy && tb_msg[NL80211_ATTR_WIPHY])

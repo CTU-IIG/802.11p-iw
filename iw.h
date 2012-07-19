@@ -27,6 +27,7 @@ enum command_identify_by {
 	CIB_NONE,
 	CIB_PHY,
 	CIB_NETDEV,
+	CIB_WDEV,
 };
 
 enum id_input {
@@ -34,6 +35,7 @@ enum id_input {
 	II_NETDEV,
 	II_PHY_NAME,
 	II_PHY_IDX,
+	II_WDEV,
 };
 
 struct cmd {

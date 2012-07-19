@@ -98,6 +98,9 @@ static void __usage_cmd(const struct cmd *cmd, char *indent, bool full)
 	case CIB_NETDEV:
 		printf("dev <devname> ");
 		break;
+	case CIB_WDEV:
+		printf("wdev <idx> ");
+		break;
 	}
 	if (cmd->parent && cmd->parent->name)
 		printf("%s ", cmd->parent->name);
@@ -255,7 +258,7 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 	struct nl_cb *cb;
 	struct nl_cb *s_cb;
 	struct nl_msg *msg;
-	int devidx = 0;
+	signed long long devidx = 0;
 	int err, o_argc;
 	const char *command, *section;
 	char *tmp, **o_argv;
@@ -290,6 +293,13 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 		argc--;
 		argv++;
 		break;
+	case II_WDEV:
+		command_idby = CIB_WDEV;
+		devidx = strtoll(*argv, &tmp, 0);
+		if (*tmp != '\0')
+			return 1;
+		argc--;
+		argv++;
 	default:
 		break;
 	}
@@ -392,6 +402,9 @@ static int __handle_cmd(struct nl80211_state *state, enum id_input idby,
 	case CIB_NETDEV:
 		NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, devidx);
 		break;
+	case CIB_WDEV:
+		NLA_PUT_U64(msg, NL80211_ATTR_WDEV, devidx);
+		break;
 	default:
 		break;
 	}
@@ -476,6 +489,10 @@ int main(int argc, char **argv)
 			err = __handle_cmd(&nlstate, II_PHY_IDX, argc, argv, &cmd);
 		else
 			goto detect;
+	} else if (strcmp(*argv, "wdev") == 0 && argc > 1) {
+		argc--;
+		argv++;
+		err = __handle_cmd(&nlstate, II_WDEV, argc, argv, &cmd);
 	} else {
 		int idx;
 		enum id_input idby = II_NONE;

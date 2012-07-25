@@ -218,9 +218,15 @@ static int print_event(struct nl_msg *msg, void *arg)
 	if (tb[NL80211_ATTR_IFINDEX] && tb[NL80211_ATTR_WIPHY]) {
 		if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), ifname);
 		printf("%s (phy #%d): ", ifname, nla_get_u32(tb[NL80211_ATTR_WIPHY]));
+	} else if (tb[NL80211_ATTR_WDEV] && tb[NL80211_ATTR_WIPHY]) {
+		printf("wdev 0x%llx (phy #%d): ",
+			(unsigned long long)nla_get_u64(tb[NL80211_ATTR_WDEV]),
+			nla_get_u32(tb[NL80211_ATTR_WIPHY]));
 	} else if (tb[NL80211_ATTR_IFINDEX]) {
 		if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), ifname);
 		printf("%s: ", ifname);
+	} else if (tb[NL80211_ATTR_WDEV]) {
+		printf("wdev 0x%llx: ", (unsigned long long)nla_get_u64(tb[NL80211_ATTR_WDEV]));
 	} else if (tb[NL80211_ATTR_WIPHY]) {
 		printf("phy #%d: ", nla_get_u32(tb[NL80211_ATTR_WIPHY]));
 	}

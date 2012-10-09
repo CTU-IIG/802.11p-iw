@@ -232,19 +232,15 @@ static void print_all_mesh_param_descr(void)
 static const struct mesh_param_descr *find_mesh_param(const char *name)
 {
 	int i;
-	const struct mesh_param_descr *mdescr = NULL;
 
 	/* Find out what mesh parameter we want to change. */
 	for (i = 0; i < ARRAY_SIZE(_mesh_param_descrs); i++) {
-		if (!strcmp(_mesh_param_descrs[i].name, name))
+		if (strcmp(_mesh_param_descrs[i].name, name) == 0)
 			return _mesh_param_descrs + i;
 	}
 
-	if (!mdescr) {
-		print_all_mesh_param_descr();
-		return NULL;
-	}
-	return mdescr;
+	print_all_mesh_param_descr();
+	return NULL;
 }
 
 /* Setter */

@@ -432,12 +432,18 @@ broken_combination:
 	}
 
 	if (tb_msg[NL80211_ATTR_FEATURE_FLAGS]) {
-		if (nla_get_u32(tb_msg[NL80211_ATTR_FEATURE_FLAGS]) &
-				NL80211_FEATURE_SK_TX_STATUS)
+		unsigned int features = nla_get_u32(tb_msg[NL80211_ATTR_FEATURE_FLAGS]);
+
+		if (features & NL80211_FEATURE_SK_TX_STATUS)
 			printf("\tDevice supports TX status socket option.\n");
-		if (nla_get_u32(tb_msg[NL80211_ATTR_FEATURE_FLAGS]) &
-				NL80211_FEATURE_HT_IBSS)
+		if (features & NL80211_FEATURE_HT_IBSS)
 			printf("\tDevice supports HT-IBSS.\n");
+		if (features & NL80211_FEATURE_INACTIVITY_TIMER)
+			printf("\tDevice has client inactivity timer.\n");
+		if (features & NL80211_FEATURE_CELL_BASE_REG_HINTS)
+			printf("\tDevice accepts cell base station regulatory hints.\n");
+		if (features & NL80211_FEATURE_P2P_DEVICE_NEEDS_CHANNEL)
+			printf("\tP2P Device uses a channel (of the concurrent ones)\n");
 	}
 
 	return NL_SKIP;

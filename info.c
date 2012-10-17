@@ -444,6 +444,10 @@ broken_combination:
 			printf("\tDevice accepts cell base station regulatory hints.\n");
 		if (features & NL80211_FEATURE_P2P_DEVICE_NEEDS_CHANNEL)
 			printf("\tP2P Device uses a channel (of the concurrent ones)\n");
+		if (features & NL80211_FEATURE_LOW_PRIORITY_SCAN)
+			printf("\tDevice supports low priority scan.\n");
+		if (features & NL80211_FEATURE_SCAN_FLUSH)
+			printf("\tDevice supports scan flush.\n");
 	}
 
 	return NL_SKIP;

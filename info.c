@@ -448,6 +448,8 @@ broken_combination:
 			printf("\tDevice supports low priority scan.\n");
 		if (features & NL80211_FEATURE_SCAN_FLUSH)
 			printf("\tDevice supports scan flush.\n");
+		if (features & NL80211_FEATURE_AP_SCAN)
+			printf("\tDevice supports AP scan.\n");
 	}
 
 	return NL_SKIP;

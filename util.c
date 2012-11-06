@@ -139,7 +139,7 @@ static char modebuf[100];
 
 const char *iftype_name(enum nl80211_iftype iftype)
 {
-	if (iftype <= NL80211_IFTYPE_MAX)
+	if (iftype <= NL80211_IFTYPE_MAX && ifmodes[iftype])
 		return ifmodes[iftype];
 	sprintf(modebuf, "Unknown mode (%d)", iftype);
 	return modebuf;

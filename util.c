@@ -237,6 +237,9 @@ static const char *commands[NL80211_CMD_MAX + 1] = {
 	[NL80211_CMD_UNEXPECTED_4ADDR_FRAME] = "unexpected_4addr_frame",
 	[NL80211_CMD_SET_NOACK_MAP] = "set_noack_map",
 	[NL80211_CMD_CH_SWITCH_NOTIFY] = "ch_switch_notify",
+	[NL80211_CMD_START_P2P_DEVICE] = "start_p2p_device",
+	[NL80211_CMD_STOP_P2P_DEVICE] = "stop_p2p_device",
+	[NL80211_CMD_CONN_FAILED] = "conn_failed",
 };
 
 static char cmdbuf[100];

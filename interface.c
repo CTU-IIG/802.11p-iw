@@ -499,3 +499,32 @@ static int handle_interface_wds_peer(struct nl80211_state *state,
 COMMAND(set, peer, "<MAC address>",
 	NL80211_CMD_SET_WDS_PEER, 0, CIB_NETDEV, handle_interface_wds_peer,
 	"Set interface WDS peer.");
+
+static int set_mcast_rate(struct nl80211_state *state,
+			  struct nl_cb *cb,
+			  struct nl_msg *msg,
+			  int argc, char **argv,
+			  enum id_input id)
+{
+	float rate;
+	char *end;
+
+	if (argc != 1) {
+		printf("Invalid parameters!\n");
+		return 2;
+	}
+
+	rate = strtod(argv[0], &end);
+	if (*end != '\0')
+		return 1;
+
+	NLA_PUT_U32(msg, NL80211_ATTR_MCAST_RATE, (int)(rate * 10));
+
+	return 0;
+nla_put_failure:
+	return -ENOBUFS;
+}
+
+COMMAND(set, mcast_rate, "<rate in Mbps>",
+	NL80211_CMD_SET_MCAST_RATE, 0, CIB_NETDEV, set_mcast_rate,
+	"Set the multicast bitrate.");

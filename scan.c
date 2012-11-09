@@ -601,32 +601,60 @@ static void print_capabilities(const uint8_t type, uint8_t len, const uint8_t *d
 			else
 				first = false;
 
+#define CAPA(bit, name)		case bit: printf(" " name); break
+
 			switch (bit + base) {
-			case 0:
-				printf(" HT Information Exchange Supported");
-				break;
-			case 1:
-				printf(" On-demand Beacon");
-				break;
-			case 2:
-				printf(" Extended Channel Switching");
-				break;
-			case 3:
-				printf(" Wave Indication");
-				break;
-			case 4:
-				printf(" PSMP Capability");
-				break;
-			case 5:
-				printf(" Service Interval Granularity");
-				break;
-			case 6:
-				printf(" S-PSMP Capability");
-				break;
+			CAPA(0, "HT Information Exchange Supported");
+			CAPA(1, "reserved (On-demand Beacon)");
+			CAPA(2, "Extended Channel Switching");
+			CAPA(3, "reserved (Wave Indication)");
+			CAPA(4, "PSMP Capability");
+			CAPA(5, "reserved (Service Interval Granularity)");
+			CAPA(6, "S-PSMP Capability");
+			CAPA(7, "Event");
+			CAPA(8, "Diagnostics");
+			CAPA(9, "Multicast Diagnostics");
+			CAPA(10, "Location Tracking");
+			CAPA(11, "FMS");
+			CAPA(12, "Proxy ARP Service");
+			CAPA(13, "Collocated Interference Reporting");
+			CAPA(14, "Civic Location");
+			CAPA(15, "Geospatial Location");
+			CAPA(16, "TFS");
+			CAPA(17, "WNM-Sleep Mode");
+			CAPA(18, "TIM Broadcast");
+			CAPA(19, "BSS Transition");
+			CAPA(20, "QoS Traffic Capability");
+			CAPA(21, "AC Station Count");
+			CAPA(22, "Multiple BSSID");
+			CAPA(23, "Timing Measurement");
+			CAPA(24, "Channel Usage");
+			CAPA(25, "SSID List");
+			CAPA(26, "DMS");
+			CAPA(27, "UTC TSF Offset");
+			CAPA(28, "TDLS Peer U-APSD Buffer STA Support");
+			CAPA(29, "TDLS Peer PSM Support");
+			CAPA(30, "TDLS channel switching");
+			CAPA(31, "Interworking");
+			CAPA(32, "QoS Map");
+			CAPA(33, "EBR");
+			CAPA(34, "SSPN Interface");
+			CAPA(35, "Reserved");
+			CAPA(36, "MSGCF Capability");
+			CAPA(37, "TDLS Support");
+			CAPA(38, "TDLS Prohibited");
+			CAPA(39, "TDLS Channel Switching Prohibited");
+			CAPA(40, "Reject Unadmitted Frame");
+			CAPA(44, "Identifier Location");
+			CAPA(45, "U-APSD Coexistence");
+			CAPA(46, "WNM-Notification");
+			CAPA(47, "Reserved");
+			CAPA(48, "UTF-8 SSID");
 			default:
 				printf(" %d", bit);
 				break;
 			}
+#undef CAPA
 		}
 	}
 

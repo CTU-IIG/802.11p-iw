@@ -294,6 +294,12 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 		mac_addr_n2a(mac_addr, nla_data(tb_msg[NL80211_ATTR_MAC]));
 		printf("%s\taddr %s\n", indent, mac_addr);
 	}
+	if (tb_msg[NL80211_ATTR_SSID]) {
+		printf("%s\tssid ", indent);
+		print_ssid_escaped(nla_len(tb_msg[NL80211_ATTR_SSID]),
+				   nla_data(tb_msg[NL80211_ATTR_SSID]));
+		printf("\n");
+	}
 	if (tb_msg[NL80211_ATTR_IFTYPE])
 		printf("%s\ttype %s\n", indent, iftype_name(nla_get_u32(tb_msg[NL80211_ATTR_IFTYPE])));
 	if (!wiphy && tb_msg[NL80211_ATTR_WIPHY])

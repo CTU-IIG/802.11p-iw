@@ -143,6 +143,7 @@ void print_ht_mcs(const __u8 *mcs);
 void print_ampdu_length(__u8 exponent);
 void print_ampdu_spacing(__u8 spacing);
 void print_ht_capability(__u16 cap);
+void print_vht_info(__u32 capa, const __u8 *mcs);
 
 const char *iftype_name(enum nl80211_iftype iftype);
 const char *command_name(enum nl80211_commands cmd);

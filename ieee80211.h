@@ -46,4 +46,16 @@ struct ieee80211_ht_cap {
 	__u8 antenna_selection_info;
 } __attribute__ ((packed));
 
+struct ieee80211_vht_mcs_info {
+	__u16 rx_vht_mcs;
+	__u16 rx_highest;
+	__u16 tx_vht_mcs;
+	__u16 tx_highest;
+} __attribute__ ((packed));
+
+struct ieee80211_vht_cap {
+	__u32 cap_info;
+	struct ieee80211_vht_mcs_info mcs;
+} __attribute__ ((packed));
+
 #endif /* __IEEE80211 */

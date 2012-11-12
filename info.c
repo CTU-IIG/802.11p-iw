@@ -98,7 +98,6 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		nla_parse(tb_band, NL80211_BAND_ATTR_MAX, nla_data(nl_band),
 			  nla_len(nl_band), NULL);
 
-#ifdef NL80211_BAND_ATTR_HT_CAPA
 		if (tb_band[NL80211_BAND_ATTR_HT_CAPA]) {
 			__u16 cap = nla_get_u16(tb_band[NL80211_BAND_ATTR_HT_CAPA]);
 			print_ht_capability(cap);
@@ -114,7 +113,10 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		if (tb_band[NL80211_BAND_ATTR_HT_MCS_SET] &&
 		    nla_len(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]) == 16)
 			print_ht_mcs(nla_data(tb_band[NL80211_BAND_ATTR_HT_MCS_SET]));
-#endif
+		if (tb_band[NL80211_BAND_ATTR_VHT_CAPA] &&
+		    tb_band[NL80211_BAND_ATTR_VHT_MCS_SET])
+			print_vht_info(nla_get_u32(tb_band[NL80211_BAND_ATTR_VHT_CAPA]),
+				       nla_data(tb_band[NL80211_BAND_ATTR_VHT_MCS_SET]));
 
 		printf("\t\tFrequencies:\n");
 

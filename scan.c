@@ -671,6 +671,14 @@ static void print_tim(const uint8_t type, uint8_t len, const uint8_t *data)
 	printf("\n");
 }
 
+static void print_vht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	printf("\n");
+	print_vht_info(data[0] | (data[1] << 8) |
+		       (data[2] << 16) | (data[3] << 24),
+		       data + 4);
+}
+
 struct ie_print {
 	const char *name;
 	void (*print)(const uint8_t type, uint8_t len, const uint8_t *data);
@@ -720,6 +728,7 @@ static const struct ie_print ieprinters[] = {
 	[42] = { "ERP", print_erp, 1, 255, BIT(PRINT_SCAN), },
 	[45] = { "HT capabilities", print_ht_capa, 26, 26, BIT(PRINT_SCAN), },
 	[61] = { "HT operation", print_ht_op, 22, 22, BIT(PRINT_SCAN), },
+	[191] = { "VHT capabilities", print_vht_capa, 12, 255, BIT(PRINT_SCAN), },
 	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
 	[50] = { "Extended supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
 	[114] = { "MESH ID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },

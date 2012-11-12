@@ -600,3 +600,77 @@ void print_ht_mcs(const __u8 *mcs)
 		printf("\t\tHT TX MCS rate indexes are undefined\n");
 	}
 }
+
+void print_vht_info(__u32 capa, const __u8 *mcs)
+{
+	__u16 tmp;
+	int i;
+
+	printf("\t\tVHT Capabilities (0x%.8x):\n", capa);
+
+#define PRINT_VHT_CAPA(_bit, _str) \
+	do { \
+		if (capa & BIT(_bit)) \
+			printf("\t\t\t" _str "\n"); \
+	} while (0)
+
+	printf("\t\t\tMax MPDU length: ");
+	switch (capa & 3) {
+	case 0: printf("3895\n"); break;
+	case 1: printf("7991\n"); break;
+	case 2: printf("11454\n"); break;
+	case 3: printf("(reserved)\n");
+	}
+	printf("\t\t\tSupported Channel Width: ");
+	switch ((capa >> 2) & 3) {
+	case 0: printf("neither 160 nor 80+80\n"); break;
+	case 1: printf("160 MHz\n"); break;
+	case 2: printf("160 MHz, 80+80 MHz\n"); break;
+	case 3: printf("(reserved)\n");
+	}
+	PRINT_VHT_CAPA(4, "RX LDPC");
+	PRINT_VHT_CAPA(5, "short GI (80 MHz)");
+	PRINT_VHT_CAPA(6, "short GI (160/80+80 MHz)");
+	PRINT_VHT_CAPA(7, "TX STBC");
+	/* RX STBC */
+	PRINT_VHT_CAPA(11, "SU Beamformer");
+	PRINT_VHT_CAPA(12, "SU Beamformee");
+	/* compressed steering */
+	/* # of sounding dimensions */
+	PRINT_VHT_CAPA(19, "MU Beamformer");
+	PRINT_VHT_CAPA(20, "MU Beamformee");
+	PRINT_VHT_CAPA(21, "VHT TXOP PS");
+	PRINT_VHT_CAPA(22, "+HTC-VHT");
+	/* max A-MPDU */
+	/* VHT link adaptation */
+	PRINT_VHT_CAPA(29, "RX antenna pattern consistency");
+	PRINT_VHT_CAPA(30, "TX antenna pattern consistency");
+
+	printf("\t\tVHT RX MCS set:\n");
+	tmp = mcs[0] | (mcs[1] << 8);
+	for (i = 1; i <= 8; i++) {
+		printf("\t\t\t%d streams: ", i);
+		switch ((tmp >> ((i-1)*2) ) & 3) {
+		case 0: printf("MCS 0-7\n"); break;
+		case 1: printf("MCS 0-8\n"); break;
+		case 2: printf("MCS 0-9\n"); break;
+		case 3: printf("not supported\n"); break;
+		}
+	}
+	tmp = mcs[2] | (mcs[3] << 8);
+	printf("\t\tVHT RX highest supported: %d Mbps\n", tmp & 0x1fff);
+
+	printf("\t\tVHT TX MCS set:\n");
+	tmp = mcs[4] | (mcs[5] << 8);
+	for (i = 1; i <= 8; i++) {
+		printf("\t\t\t%d streams: ", i);
+		switch ((tmp >> ((i-1)*2) ) & 3) {
+		case 0: printf("MCS 0-7\n"); break;
+		case 1: printf("MCS 0-8\n"); break;
+		case 2: printf("MCS 0-9\n"); break;
+		case 3: printf("not supported\n"); break;
+		}
+	}
+	tmp = mcs[6] | (mcs[7] << 8);
+	printf("\t\tVHT TX highest supported: %d Mbps\n", tmp & 0x1fff);
+}

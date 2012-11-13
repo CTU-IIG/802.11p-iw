@@ -38,4 +38,4 @@ static int handle_roc_start(struct nl80211_state *state, struct nl_cb *cb,
 	return -ENOBUFS;
 }
 
-COMMAND(roc, start, "<freq> <time>", NL80211_CMD_REMAIN_ON_CHANNEL, 0, CIB_NETDEV, handle_roc_start, "");
+COMMAND(roc, start, "<freq> <time in ms>", NL80211_CMD_REMAIN_ON_CHANNEL, 0, CIB_NETDEV, handle_roc_start, "");

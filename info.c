@@ -472,3 +472,16 @@ __COMMAND(NULL, info, "info", NULL, NL80211_CMD_GET_WIPHY, 0, 0, CIB_PHY, handle
 TOPLEVEL(list, NULL, NL80211_CMD_GET_WIPHY, NLM_F_DUMP, CIB_NONE, handle_info,
 	 "List all wireless devices and their capabilities.");
 TOPLEVEL(phy, NULL, NL80211_CMD_GET_WIPHY, NLM_F_DUMP, CIB_NONE, handle_info, NULL);
+
+static int handle_commands(struct nl80211_state *state,
+			   struct nl_cb *cb, struct nl_msg *msg,
+			   int argc, char **argv, enum id_input id)
+{
+	int i;
+	for (i = 1; i < NL80211_CMD_MAX; i++)
+		printf("%d (0x%x): %s\n", i, i, command_name(i));
+	/* don't send netlink messages */
+	return 2;
+}
+TOPLEVEL(commands, NULL, NL80211_CMD_GET_WIPHY, 0, CIB_NONE, handle_commands,
+	 "list all known commands and their decimal & hex value");

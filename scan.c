@@ -174,6 +174,7 @@ static void print_ssid(const uint8_t type, uint8_t len, const uint8_t *data)
 	printf("\n");
 }
 
+#define BSS_MEMBERSHIP_SELECTOR_VHT_PHY 126
 #define BSS_MEMBERSHIP_SELECTOR_HT_PHY 127
 
 static void print_supprates(const uint8_t type, uint8_t len, const uint8_t *data)
@@ -185,7 +186,9 @@ static void print_supprates(const uint8_t type, uint8_t len, const uint8_t *data
 	for (i = 0; i < len; i++) {
 		int r = data[i] & 0x7f;
 
-		if (r == BSS_MEMBERSHIP_SELECTOR_HT_PHY && data[i] & 0x80)
+		if (r == BSS_MEMBERSHIP_SELECTOR_VHT_PHY && data[i] & 0x80)
+			printf("VHT");
+		else if (r == BSS_MEMBERSHIP_SELECTOR_HT_PHY && data[i] & 0x80)
 			printf("HT");
 		else
 			printf("%d.%d", r/2, 5*(r&1));
@@ -679,6 +682,23 @@ static void print_vht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 		       data + 4);
 }
 
+static void print_vht_oper(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	const char *chandwidths[] = {
+		[0] = "20 or 40 MHz",
+		[1] = "80 MHz",
+		[3] = "80+80 MHz",
+		[2] = "160 MHz",
+	};
+
+	printf("\n");
+	printf("\t\t * channel width: %d (%s)\n", data[0],
+		data[0] < ARRAY_SIZE(chandwidths) ? chandwidths[data[0]] : "unknown");
+	printf("\t\t * center freq segment 1: %d\n", data[1]);
+	printf("\t\t * center freq segment 2: %d\n", data[2]);
+	printf("\t\t * VHT basic MCS set: 0x%.2x%.2x\n", data[4], data[3]);
+}
+
 struct ie_print {
 	const char *name;
 	void (*print)(const uint8_t type, uint8_t len, const uint8_t *data);
@@ -729,6 +749,7 @@ static const struct ie_print ieprinters[] = {
 	[45] = { "HT capabilities", print_ht_capa, 26, 26, BIT(PRINT_SCAN), },
 	[61] = { "HT operation", print_ht_op, 22, 22, BIT(PRINT_SCAN), },
 	[191] = { "VHT capabilities", print_vht_capa, 12, 255, BIT(PRINT_SCAN), },
+	[192] = { "VHT operation", print_vht_oper, 5, 255, BIT(PRINT_SCAN), },
 	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
 	[50] = { "Extended supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
 	[114] = { "MESH ID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },

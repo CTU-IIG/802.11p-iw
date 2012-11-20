@@ -105,9 +105,40 @@ static void __usage_cmd(const struct cmd *cmd, char *indent, bool full)
 	if (cmd->parent && cmd->parent->name)
 		printf("%s ", cmd->parent->name);
 	printf("%s", cmd->name);
-	if (cmd->args)
-		printf(" %s", cmd->args);
-	printf("\n");
+
+	if (cmd->args) {
+		/* print line by line */
+		start = cmd->args;
+		end = strchr(start, '\0');
+		printf(" ");
+		do {
+			lend = strchr(start, '\n');
+			if (!lend)
+				lend = end;
+			if (start != cmd->args) {
+				printf("\t");
+				switch (cmd->idby) {
+				case CIB_NONE:
+					break;
+				case CIB_PHY:
+					printf("phy <phyname> ");
+					break;
+				case CIB_NETDEV:
+					printf("dev <devname> ");
+					break;
+				case CIB_WDEV:
+					printf("wdev <idx> ");
+					break;
+				}
+				if (cmd->parent && cmd->parent->name)
+					printf("%s ", cmd->parent->name);
+				printf("%s ", cmd->name);
+			}
+			printf("%.*s\n", (int)(lend - start), start);
+			start = lend + 1;
+		} while (end != lend);
+	} else
+		printf("\n");
 
 	if (!full || !cmd->help)
 		return;

@@ -30,6 +30,64 @@ static int handle_name(struct nl80211_state *state,
 COMMAND(set, name, "<new name>", NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_name,
 	"Rename this wireless device.");
 
+static int handle_freqs(struct nl_msg *msg, int argc, char **argv)
+{
+	static const struct {
+		const char *name;
+		unsigned int val;
+	} bwmap[] = {
+		{ .name = "20", .val = NL80211_CHAN_WIDTH_20, },
+		{ .name = "40", .val = NL80211_CHAN_WIDTH_40, },
+		{ .name = "80", .val = NL80211_CHAN_WIDTH_80, },
+		{ .name = "80+80", .val = NL80211_CHAN_WIDTH_80P80, },
+		{ .name = "160", .val = NL80211_CHAN_WIDTH_160, },
+	};
+	uint32_t freq;
+	int i, bwval = NL80211_CHAN_WIDTH_20_NOHT;
+	char *end;
+
+	if (argc < 1)
+		return 1;
+
+	for (i = 0; i < ARRAY_SIZE(bwmap); i++) {
+		if (strcasecmp(bwmap[i].name, argv[0]) == 0) {
+			bwval = bwmap[i].val;
+			break;
+		}
+	}
+
+	if (bwval == NL80211_CHAN_WIDTH_20_NOHT)
+		return 1;
+
+	NLA_PUT_U32(msg, NL80211_ATTR_CHANNEL_WIDTH, bwval);
+
+	if (argc == 1)
+		return 0;
+
+	/* center freq 1 */
+	if (!*argv[1])
+		return 1;
+	freq = strtoul(argv[1], &end, 10);
+	if (*end)
+		return 1;
+	NLA_PUT_U32(msg, NL80211_ATTR_CENTER_FREQ1, freq);
+
+	if (argc == 2)
+		return 0;
+
+	/* center freq 2 */
+	if (!*argv[2])
+		return 1;
+	freq = strtoul(argv[2], &end, 10);
+	if (*end)
+		return 1;
+	NLA_PUT_U32(msg, NL80211_ATTR_CENTER_FREQ2, freq);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+
 static int handle_freqchan(struct nl_msg *msg, bool chan,
 			   int argc, char **argv)
 {
@@ -46,19 +104,8 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 	unsigned int freq;
 	int i;
 
-	if (!argc || argc > 2)
+	if (!argc || argc > 4)
 		return 1;
-
-	if (argc == 2) {
-		for (i = 0; i < ARRAY_SIZE(htmap); i++) {
-			if (strcasecmp(htmap[i].name, argv[1]) == 0) {
-				htval = htmap[i].val;
-				break;
-			}
-		}
-		if (htval == NL80211_CHAN_NO_HT)
-			return 1;
-	}
 
 	if (!*argv[0])
 		return 1;
@@ -70,6 +117,20 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 		freq = ieee80211_channel_to_frequency(freq);
 
 	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
+
+	if (argc > 2) {
+		return handle_freqs(msg, argc - 1, argv + 1);
+	} else if (argc == 2) {
+		for (i = 0; i < ARRAY_SIZE(htmap); i++) {
+			if (strcasecmp(htmap[i].name, argv[1]) == 0) {
+				htval = htmap[i].val;
+				break;
+			}
+		}
+		if (htval == NL80211_CHAN_NO_HT)
+			return handle_freqs(msg, argc - 1, argv + 1);
+	}
+
 	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_CHANNEL_TYPE, htval);
 
 	return 0;
@@ -88,7 +149,8 @@ COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
 	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_freq,
 	"Set frequency/channel the hardware is using, including HT\n"
 	"configuration.");
-COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]",
+COMMAND(set, freq, "<freq> [HT20|HT40+|HT40-]\n"
+		   "<control freq> [20|40|80|80+80|160] [<center freq 1>] [<center freq 2>]",
 	NL80211_CMD_SET_WIPHY, 0, CIB_NETDEV, handle_freq, NULL);
 
 static int handle_chan(struct nl80211_state *state,

@@ -262,6 +262,26 @@ static char *channel_type_name(enum nl80211_channel_type channel_type)
 	}
 }
 
+static char *channel_width_name(enum nl80211_chan_width width)
+{
+	switch (width) {
+	case NL80211_CHAN_WIDTH_20_NOHT:
+		return "20 MHz (no HT)";
+	case NL80211_CHAN_WIDTH_20:
+		return "20 MHz";
+	case NL80211_CHAN_WIDTH_40:
+		return "40 MHz";
+	case NL80211_CHAN_WIDTH_80:
+		return "80 MHz";
+	case NL80211_CHAN_WIDTH_80P80:
+		return "80+80 MHz";
+	case NL80211_CHAN_WIDTH_160:
+		return "160 MHz";
+	default:
+		return "unknown";
+	}
+}
+
 static int print_iface_handler(struct nl_msg *msg, void *arg)
 {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
@@ -306,14 +326,27 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 		printf("%s\twiphy %d\n", indent, nla_get_u32(tb_msg[NL80211_ATTR_WIPHY]));
 	if (tb_msg[NL80211_ATTR_WIPHY_FREQ]) {
 		uint32_t freq = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_FREQ]);
-		enum nl80211_channel_type channel_type = NL80211_CHAN_NO_HT;
 
-		if (tb_msg[NL80211_ATTR_WIPHY_CHANNEL_TYPE])
+		printf("%s\tchannel %d (%d MHz)", indent,
+		       ieee80211_frequency_to_channel(freq), freq);
+
+		if (tb_msg[NL80211_ATTR_CHANNEL_WIDTH]) {
+			printf(", width: %s",
+				channel_width_name(nla_get_u32(tb_msg[NL80211_ATTR_CHANNEL_WIDTH])));
+			if (tb_msg[NL80211_ATTR_CENTER_FREQ1])
+				printf(", center1: %d MHz",
+					nla_get_u32(tb_msg[NL80211_ATTR_CENTER_FREQ1]));
+			if (tb_msg[NL80211_ATTR_CENTER_FREQ2])
+				printf(", center2: %d MHz",
+					nla_get_u32(tb_msg[NL80211_ATTR_CENTER_FREQ2]));
+		} else if (tb_msg[NL80211_ATTR_WIPHY_CHANNEL_TYPE]) {
+			enum nl80211_channel_type channel_type;
+
 			channel_type = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_CHANNEL_TYPE]);
+			printf(" %s", channel_type_name(channel_type));
+		}
 
-		printf("%s\tchannel %d (%d MHz) %s\n", indent,
-		       ieee80211_frequency_to_channel(freq), freq,
-		       channel_type_name(channel_type));
+		printf("\n");
 	}
 
 	return NL_SKIP;

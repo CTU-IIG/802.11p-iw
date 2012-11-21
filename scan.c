@@ -550,14 +550,15 @@ static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data)
 	print_ht_mcs(data + 3);
 }
 
+static const char *ht_secondary_offset[4] = {
+	"no secondary",
+	"above",
+	"[reserved!]",
+	"below",
+};
+
 static void print_ht_op(const uint8_t type, uint8_t len, const uint8_t *data)
 {
-	static const char *offset[4] = {
-		"no secondary",
-		"above",
-		"[reserved!]",
-		"below",
-	};
 	static const char *protection[4] = {
 		"no",
 		"nonmember",
@@ -572,7 +573,7 @@ static void print_ht_op(const uint8_t type, uint8_t len, const uint8_t *data)
 	printf("\n");
 	printf("\t\t * primary channel: %d\n", data[0]);
 	printf("\t\t * secondary channel offset: %s\n",
-		offset[data[1] & 0x3]);
+		ht_secondary_offset[data[1] & 0x3]);
 	printf("\t\t * STA channel width: %s\n", sta_chan_width[(data[1] & 0x4)>>2]);
 	printf("\t\t * RIFS: %d\n", (data[1] & 0x8)>>3);
 	printf("\t\t * HT protection: %s\n", protection[data[2] & 0x3]);
@@ -699,6 +700,35 @@ static void print_vht_oper(const uint8_t type, uint8_t len, const uint8_t *data)
 	printf("\t\t * VHT basic MCS set: 0x%.2x%.2x\n", data[4], data[3]);
 }
 
+static void print_obss_scan_params(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	printf("\n");
+	printf("\t\t * passive dwell: %d TUs\n", (data[1] << 8) | data[0]);
+	printf("\t\t * active dwell: %d TUs\n", (data[3] << 8) | data[2]);
+	printf("\t\t * channel width trigger scan interval: %d s\n", (data[5] << 8) | data[4]);
+	printf("\t\t * scan passive total per channel: %d TUs\n", (data[7] << 8) | data[6]);
+	printf("\t\t * scan active total per channel: %d TUs\n", (data[9] << 8) | data[8]);
+	printf("\t\t * BSS width channel transition delay factor: %d\n", (data[11] << 8) | data[10]);
+	printf("\t\t * OBSS Scan Activity Threshold: %d.%02d %%\n",
+		((data[13] << 8) | data[12]) / 100, ((data[13] << 8) | data[12]) % 100);
+}
+
+static void print_secchan_offs(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	if (data[0] < ARRAY_SIZE(ht_secondary_offset))
+		printf(" %s (%d)\n", ht_secondary_offset[data[0]], data[0]);
+	else
+		printf(" %d\n", data[0]);
+}
+
+static void print_bss_load(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	printf("\n");
+	printf("\t\t * station count: %d\n", (data[1] << 8) | data[0]);
+	printf("\t\t * channel utilisation: %d/255\n", data[2]);
+	printf("\t\t * available admission capacity: %d [*32us]\n", (data[4] << 8) | data[3]);
+}
+
 struct ie_print {
 	const char *name;
 	void (*print)(const uint8_t type, uint8_t len, const uint8_t *data);
@@ -744,10 +774,13 @@ static const struct ie_print ieprinters[] = {
 	[3] = { "DS Parameter set", print_ds, 1, 1, BIT(PRINT_SCAN), },
 	[5] = { "TIM", print_tim, 4, 255, BIT(PRINT_SCAN), },
 	[7] = { "Country", print_country, 3, 255, BIT(PRINT_SCAN), },
+	[11] = { "BSS Load", print_bss_load, 5, 5, BIT(PRINT_SCAN), },
 	[32] = { "Power constraint", print_powerconstraint, 1, 1, BIT(PRINT_SCAN), },
 	[42] = { "ERP", print_erp, 1, 255, BIT(PRINT_SCAN), },
 	[45] = { "HT capabilities", print_ht_capa, 26, 26, BIT(PRINT_SCAN), },
+	[74] = { "Overlapping BSS scan params", print_obss_scan_params, 14, 255, BIT(PRINT_SCAN), },
 	[61] = { "HT operation", print_ht_op, 22, 22, BIT(PRINT_SCAN), },
+	[62] = { "Secondary Channel Offset", print_secchan_offs, 1, 1, BIT(PRINT_SCAN), },
 	[191] = { "VHT capabilities", print_vht_capa, 12, 255, BIT(PRINT_SCAN), },
 	[192] = { "VHT operation", print_vht_oper, 5, 255, BIT(PRINT_SCAN), },
 	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },

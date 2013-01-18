@@ -29,6 +29,25 @@ enum plink_actions {
 	PLINK_ACTION_BLOCK,
 };
 
+static void print_power_mode(struct nlattr *a)
+{
+	enum nl80211_mesh_power_mode pm = nla_get_u32(a);
+
+	switch (pm) {
+	case NL80211_MESH_POWER_ACTIVE:
+		printf("ACTIVE");
+		break;
+	case NL80211_MESH_POWER_LIGHT_SLEEP:
+		printf("LIGHT SLEEP");
+		break;
+	case NL80211_MESH_POWER_DEEP_SLEEP:
+		printf("DEEP SLEEP");
+		break;
+	default:
+		printf("UNKNOWN");
+		break;
+	}
+}
 
 static int print_sta_handler(struct nl_msg *msg, void *arg)
 {
@@ -54,6 +73,9 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_TX_FAILED] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_STA_FLAGS] =
 			{ .minlen = sizeof(struct nl80211_sta_flag_update) },
+		[NL80211_STA_INFO_LOCAL_PM] = { .type = NLA_U32},
+		[NL80211_STA_INFO_PEER_PM] = { .type = NLA_U32},
+		[NL80211_STA_INFO_NONPEER_PM] = { .type = NLA_U32},
 	};
 
 	static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
@@ -177,6 +199,18 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		}
 		printf("\n\tmesh plink:\t%s", state_name);
 	}
+	if (sinfo[NL80211_STA_INFO_LOCAL_PM]) {
+		printf("\n\tmesh local PS mode:\t");
+		print_power_mode(sinfo[NL80211_STA_INFO_LOCAL_PM]);
+	}
+	if (sinfo[NL80211_STA_INFO_PEER_PM]) {
+		printf("\n\tmesh peer PS mode:\t");
+		print_power_mode(sinfo[NL80211_STA_INFO_PEER_PM]);
+	}
+	if (sinfo[NL80211_STA_INFO_NONPEER_PM]) {
+		printf("\n\tmesh non-peer PS mode:\t");
+		print_power_mode(sinfo[NL80211_STA_INFO_NONPEER_PM]);
+	}
 
 	if (sinfo[NL80211_STA_INFO_STA_FLAGS]) {
 		sta_flags = (struct nl80211_sta_flag_update *)
@@ -274,6 +308,7 @@ COMMAND(station, del, "<MAC address>",
 
 static const struct cmd *station_set_plink;
 static const struct cmd *station_set_vlan;
+static const struct cmd *station_set_mesh_power_mode;
 
 static const struct cmd *select_station_cmd(int argc, char **argv)
 {
@@ -283,6 +318,8 @@ static const struct cmd *select_station_cmd(int argc, char **argv)
 		return station_set_plink;
 	if (strcmp(argv[1], "vlan") == 0)
 		return station_set_vlan;
+	if (strcmp(argv[1], "mesh_power_mode") == 0)
+		return station_set_mesh_power_mode;
 	return NULL;
 }
 
@@ -384,6 +421,58 @@ COMMAND_ALIAS(station, set, "<MAC address> vlan <ifindex>",
 	"Set an AP VLAN for this station.",
 	select_station_cmd, station_set_vlan);
 
+static int handle_station_set_mesh_power_mode(struct nl80211_state *state,
+					      struct nl_cb *cb,
+					      struct nl_msg *msg,
+					      int argc, char **argv,
+					      enum id_input id)
+{
+	unsigned char mesh_power_mode;
+	unsigned char mac_addr[ETH_ALEN];
+
+	if (argc < 3)
+		return 1;
+
+	if (mac_addr_a2n(mac_addr, argv[0])) {
+		fprintf(stderr, "invalid mac address\n");
+		return 2;
+	}
+	argc--;
+	argv++;
+
+	if (strcmp("mesh_power_mode", argv[0]) != 0)
+		return 1;
+	argc--;
+	argv++;
+
+	if (strcmp("active", argv[0]) == 0)
+		mesh_power_mode = NL80211_MESH_POWER_ACTIVE;
+	else if (strcmp("light", argv[0]) == 0)
+		mesh_power_mode = NL80211_MESH_POWER_LIGHT_SLEEP;
+	else if (strcmp("deep", argv[0]) == 0)
+		mesh_power_mode = NL80211_MESH_POWER_DEEP_SLEEP;
+	else {
+		fprintf(stderr, "unknown mesh power mode\n");
+		return 2;
+	}
+	argc--;
+	argv++;
+
+	if (argc)
+		return 1;
+
+	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, mac_addr);
+	NLA_PUT_U32(msg, NL80211_ATTR_LOCAL_MESH_POWER_MODE, mesh_power_mode);
+
+	return 0;
+nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND_ALIAS(station, set, "<MAC address> mesh_power_mode "
+	"<active|light|deep>", NL80211_CMD_SET_STATION, 0, CIB_NETDEV,
+	handle_station_set_mesh_power_mode,
+	"Set link-specific mesh power mode for this station",
+	select_station_cmd, station_set_mesh_power_mode);
 
 static int handle_station_dump(struct nl80211_state *state,
 			       struct nl_cb *cb,

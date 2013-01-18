@@ -383,6 +383,7 @@ static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
 {
 	struct nlattr *container;
 	float rate;
+	int bintval, dtim_period;
 	char *end;
 
 	if (argc < 1)
@@ -401,6 +402,32 @@ static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
 			return 1;
 
 		NLA_PUT_U32(msg, NL80211_ATTR_MCAST_RATE, (int)(rate * 10));
+		argv++;
+		argc--;
+	}
+
+	if (argc > 1 && strcmp(argv[0], "beacon-interval") == 0) {
+		argc--;
+		argv++;
+
+		bintval = strtoul(argv[0], &end, 10);
+		if (*end != '\0')
+			return 1;
+
+		NLA_PUT_U32(msg, NL80211_ATTR_BEACON_INTERVAL, bintval);
+		argv++;
+		argc--;
+	}
+
+	if (argc > 1 && strcmp(argv[0], "dtim-period") == 0) {
+		argc--;
+		argv++;
+
+		dtim_period = strtoul(argv[0], &end, 10);
+		if (*end != '\0')
+			return 1;
+
+		NLA_PUT_U32(msg, NL80211_ATTR_DTIM_PERIOD, dtim_period);
 		argv++;
 		argc--;
 	}
@@ -431,8 +458,9 @@ static int join_mesh(struct nl80211_state *state, struct nl_cb *cb,
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(mesh, join, "<mesh ID> [mcast-rate <rate in Mbps>] [vendor_sync on|off]"
-	" [<param>=<value>]*",
+COMMAND(mesh, join, "<mesh ID> [mcast-rate <rate in Mbps>]"
+	" [beacon-interval <time in TUs>] [dtim-period <value>]"
+	" [vendor_sync on|off] [<param>=<value>]*",
 	NL80211_CMD_JOIN_MESH, 0, CIB_NETDEV, join_mesh,
 	"Join a mesh with the given mesh ID with mcast-rate and mesh parameters.");
 

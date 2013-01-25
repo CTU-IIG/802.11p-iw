@@ -145,3 +145,74 @@ TOPLEVEL(connect, "[-w] <SSID> [<freq in MHz>] [<bssid>] [key 0:abcde d:1:616263
 	"Join the network with the given SSID (and frequency, BSSID).\n"
 	"With -w, wait for the connect to finish or fail.");
 HIDDEN(connect, establish, "", NL80211_CMD_CONNECT, 0, CIB_NETDEV, iw_conn);
+
+static int iw_auth(struct nl80211_state *state, struct nl_cb *cb,
+		   struct nl_msg *msg, int argc, char **argv,
+		   enum id_input id)
+{
+	char *end;
+	unsigned char bssid[6];
+	int freq;
+	bool need_key = false;
+
+	if (argc < 4)
+		return 1;
+
+	/* SSID */
+	NLA_PUT(msg, NL80211_ATTR_SSID, strlen(argv[0]), argv[0]);
+	argv++;
+	argc--;
+
+	/* bssid */
+	if (mac_addr_a2n(bssid, argv[0]) == 0) {
+		NLA_PUT(msg, NL80211_ATTR_MAC, 6, bssid);
+		argv++;
+		argc--;
+	} else {
+		return 1;
+	}
+
+	/* FIXME */
+	if (strcmp(argv[0], "open") == 0) {
+		NLA_PUT_U32(msg, NL80211_ATTR_AUTH_TYPE,
+			    NL80211_AUTHTYPE_OPEN_SYSTEM);
+	} else if (strcmp(argv[0], "shared") == 0) {
+		NLA_PUT_U32(msg, NL80211_ATTR_AUTH_TYPE,
+			    NL80211_AUTHTYPE_SHARED_KEY);
+		need_key = true;
+	} else {
+		return 1;
+	}
+	argv++;
+	argc--;
+
+	freq = strtoul(argv[0], &end, 10);
+	if (*end == '\0') {
+		NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
+		argv++;
+		argc--;
+	} else {
+		return 1;
+	}
+
+	if (!argc && need_key)
+		return 1;
+	if (argc && !need_key)
+		return 1;
+	if (!argc)
+		return 0;
+
+	if (strcmp(*argv, "key") != 0 && strcmp(*argv, "keys") != 0)
+		return 1;
+
+	argv++;
+	argc--;
+
+	return parse_keys(msg, argv, argc);
+ nla_put_failure:
+	return -ENOSPC;
+}
+
+TOPLEVEL(auth, "<SSID> <bssid> <type:open|shared> <freq in MHz> [key 0:abcde d:1:6162636465]",
+	 NL80211_CMD_AUTHENTICATE, 0, CIB_NETDEV, iw_auth,
+	 "Authenticate with the given network.\n");

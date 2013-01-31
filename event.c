@@ -110,7 +110,7 @@ static void parse_cqm_event(struct nlattr **attrs)
 	struct nlattr *cqm[NL80211_ATTR_CQM_MAX + 1];
 	struct nlattr *cqm_attr = attrs[NL80211_ATTR_CQM];
 
-	printf("connection quality monitor event: ");
+	printf("CQM event: ");
 
 	if (!cqm_attr ||
 	    nla_parse_nested(cqm, NL80211_ATTR_CQM_MAX, cqm_attr, cqm_policy)) {
@@ -120,11 +120,27 @@ static void parse_cqm_event(struct nlattr **attrs)
 
 	if (cqm[NL80211_ATTR_CQM_RSSI_THRESHOLD_EVENT]) {
 		enum nl80211_cqm_rssi_threshold_event rssi_event;
+		bool found_one = false;
+
 		rssi_event = nla_get_u32(cqm[NL80211_ATTR_CQM_RSSI_THRESHOLD_EVENT]);
-		if (rssi_event == NL80211_CQM_RSSI_THRESHOLD_EVENT_HIGH)
+
+		switch (rssi_event) {
+		case NL80211_CQM_RSSI_THRESHOLD_EVENT_HIGH:
 			printf("RSSI went above threshold\n");
-		else
+			found_one = true;
+			break;
+		case NL80211_CQM_RSSI_THRESHOLD_EVENT_LOW:
 			printf("RSSI went below threshold\n");
+			found_one = true;
+			break;
+		case NL80211_CQM_RSSI_BEACON_LOSS_EVENT:
+			printf("Beacon loss detected\n");
+			found_one = true;
+			break;
+		}
+
+		if (!found_one)
+			printf("Unknown event type: %i\n", rssi_event);
 	} else if (cqm[NL80211_ATTR_CQM_PKT_LOSS_EVENT] &&
 		   attrs[NL80211_ATTR_MAC]) {
 		uint32_t frames;

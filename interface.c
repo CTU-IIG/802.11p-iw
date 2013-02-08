@@ -262,7 +262,7 @@ static char *channel_type_name(enum nl80211_channel_type channel_type)
 	}
 }
 
-static char *channel_width_name(enum nl80211_chan_width width)
+char *channel_width_name(enum nl80211_chan_width width)
 {
 	switch (width) {
 	case NL80211_CHAN_WIDTH_20_NOHT:

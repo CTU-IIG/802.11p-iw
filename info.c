@@ -245,6 +245,7 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 				[NL80211_IFACE_COMB_MAXNUM] = { .type = NLA_U32 },
 				[NL80211_IFACE_COMB_STA_AP_BI_MATCH] = { .type = NLA_FLAG },
 				[NL80211_IFACE_COMB_NUM_CHANNELS] = { .type = NLA_U32 },
+				[NL80211_IFACE_COMB_RADAR_DETECT_WIDTHS] = { .type = NLA_U32 },
 			};
 			struct nlattr *tb_comb[NUM_NL80211_IFACE_COMB];
 			static struct nla_policy iface_limit_policy[NUM_NL80211_IFACE_LIMIT] = {
@@ -296,11 +297,30 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			}
 			printf(",\n\t\t   ");
 
-			printf("total <= %d, #channels <= %d%s\n",
+			printf("total <= %d, #channels <= %d%s",
 				nla_get_u32(tb_comb[NL80211_IFACE_COMB_MAXNUM]),
 				nla_get_u32(tb_comb[NL80211_IFACE_COMB_NUM_CHANNELS]),
 				tb_comb[NL80211_IFACE_COMB_STA_AP_BI_MATCH] ?
 					", STA/AP BI must match" : "");
+			if (tb_comb[NL80211_IFACE_COMB_RADAR_DETECT_WIDTHS]) {
+				unsigned long widths = nla_get_u32(tb_comb[NL80211_IFACE_COMB_RADAR_DETECT_WIDTHS]);
+
+				if (widths) {
+					int width;
+					bool first = true;
+
+					printf(", radar detect widths: {");
+					for (width = 0; width < 32; width++)
+						if (widths & (1 << width)) {
+							printf("%s %s",
+							       first ? "":",",
+							       channel_width_name(width));
+							first = false;
+						}
+					printf(" }\n");
+				}
+			}
+			printf("\n");
 broken_combination:
 			;
 		}

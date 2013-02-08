@@ -145,6 +145,7 @@ void print_ampdu_spacing(__u8 spacing);
 void print_ht_capability(__u16 cap);
 void print_vht_info(__u32 capa, const __u8 *mcs);
 
+char *channel_width_name(enum nl80211_chan_width width);
 const char *iftype_name(enum nl80211_iftype iftype);
 const char *command_name(enum nl80211_commands cmd);
 int ieee80211_channel_to_frequency(int chan);

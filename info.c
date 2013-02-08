@@ -49,6 +49,20 @@ static char *cipher_name(__u32 c)
 	}
 }
 
+static char *dfs_state_name(enum nl80211_dfs_state state)
+{
+	switch (state) {
+	case NL80211_DFS_USABLE:
+		return "usable";
+	case NL80211_DFS_AVAILABLE:
+		return "available";
+	case NL80211_DFS_UNAVAILABLE:
+		return "unavailable";
+	default:
+		return "unknown";
+	}
+}
+
 static int print_phy_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
@@ -148,6 +162,18 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 			if (open)
 				printf(")");
 			printf("\n");
+
+			if (tb_freq[NL80211_FREQUENCY_ATTR_DFS_STATE]) {
+				enum nl80211_dfs_state state = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_DFS_STATE]);
+				unsigned long time;
+
+				printf("\t\t\t  DFS state: %s", dfs_state_name(state));
+				if (tb_freq[NL80211_FREQUENCY_ATTR_DFS_TIME]) {
+					time = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_DFS_TIME]);
+					printf(" (for %lu sec)", time/1000);
+				}
+				printf("\n");
+			}
 		}
 
 		printf("\t\tBitrates (non-HT):\n");

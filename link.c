@@ -187,10 +187,20 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 
 			if (rinfo[NL80211_RATE_INFO_MCS])
 				printf(" MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_MCS]));
+			if (rinfo[NL80211_RATE_INFO_VHT_MCS])
+				printf(" VHT-MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_VHT_MCS]));
 			if (rinfo[NL80211_RATE_INFO_40_MHZ_WIDTH])
-				printf(" 40Mhz");
+				printf(" 40MHz");
+			if (rinfo[NL80211_RATE_INFO_80_MHZ_WIDTH])
+				printf(" 80MHz");
+			if (rinfo[NL80211_RATE_INFO_80P80_MHZ_WIDTH])
+				printf(" 80P80MHz");
+			if (rinfo[NL80211_RATE_INFO_160_MHZ_WIDTH])
+				printf(" 160MHz");
 			if (rinfo[NL80211_RATE_INFO_SHORT_GI])
 				printf(" short GI");
+			if (rinfo[NL80211_RATE_INFO_VHT_NSS])
+				printf(" VHT-NSS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_VHT_NSS]));
 			printf("\n");
 		}
 	}

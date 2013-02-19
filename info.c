@@ -408,6 +408,7 @@ broken_combination:
 			[NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST] = { .type = NLA_FLAG },
 			[NL80211_WOWLAN_TRIG_4WAY_HANDSHAKE] = { .type = NLA_FLAG },
 			[NL80211_WOWLAN_TRIG_RFKILL_RELEASE] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_TCP_CONNECTION] = { .type = NLA_NESTED },
 		};
 		struct nl80211_wowlan_pattern_support *pat;
 		int err;
@@ -441,6 +442,8 @@ broken_combination:
 				printf("\t\t * wake up on 4-way handshake\n");
 			if (tb_wowlan[NL80211_WOWLAN_TRIG_RFKILL_RELEASE])
 				printf("\t\t * wake up on rfkill release\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_TCP_CONNECTION])
+				printf("\t\t * wake up on TCP connection\n");
 		}
 	}
 

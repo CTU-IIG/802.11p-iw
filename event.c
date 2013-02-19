@@ -199,6 +199,67 @@ static void parse_mic_failure(struct nlattr **attrs)
 	printf("\n");
 }
 
+static void parse_wowlan_wake_event(struct nlattr **attrs)
+{
+	struct nlattr *tb[NUM_NL80211_WOWLAN_TRIG];
+
+	printf("WoWLAN wakeup\n");
+	if (!attrs[NL80211_ATTR_WOWLAN_TRIGGERS]) {
+		printf("\twakeup not due to WoWLAN\n");
+		return;
+	}
+
+	nla_parse(tb, MAX_NL80211_WOWLAN_TRIG,
+		  nla_data(attrs[NL80211_ATTR_WOWLAN_TRIGGERS]),
+		  nla_len(attrs[NL80211_ATTR_WOWLAN_TRIGGERS]), NULL);
+
+	if (tb[NL80211_WOWLAN_TRIG_DISCONNECT])
+		printf("\t* was disconnected\n");
+	if (tb[NL80211_WOWLAN_TRIG_MAGIC_PKT])
+		printf("\t* magic packet received\n");
+	if (tb[NL80211_WOWLAN_TRIG_PKT_PATTERN])
+		printf("\t* pattern index: %u\n",
+		       nla_get_u32(tb[NL80211_WOWLAN_TRIG_PKT_PATTERN]));
+	if (tb[NL80211_WOWLAN_TRIG_GTK_REKEY_FAILURE])
+		printf("\t* GTK rekey failure\n");
+	if (tb[NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST])
+		printf("\t* EAP identity request\n");
+	if (tb[NL80211_WOWLAN_TRIG_4WAY_HANDSHAKE])
+		printf("\t* 4-way handshake\n");
+	if (tb[NL80211_WOWLAN_TRIG_RFKILL_RELEASE])
+		printf("\t* RF-kill released\n");
+	if (tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_80211]) {
+		uint8_t *d = nla_data(tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_80211]);
+		int l = nla_len(tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_80211]);
+		int i;
+		printf("\t* packet (might be truncated): ");
+		for (i = 0; i < l; i++) {
+			if (i > 0)
+				printf(":");
+			printf("%.2x", d[i]);
+		}
+		printf("\n");
+	}
+	if (tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_8023]) {
+		uint8_t *d = nla_data(tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_8023]);
+		int l = nla_len(tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_8023]);
+		int i;
+		printf("\t* packet (might be truncated): ");
+		for (i = 0; i < l; i++) {
+			if (i > 0)
+				printf(":");
+			printf("%.2x", d[i]);
+		}
+		printf("\n");
+	}
+	if (tb[NL80211_WOWLAN_TRIG_WAKEUP_TCP_MATCH])
+		printf("\t* TCP connection wakeup received\n");
+	if (tb[NL80211_WOWLAN_TRIG_WAKEUP_TCP_CONNLOST])
+		printf("\t* TCP connection lost\n");
+	if (tb[NL80211_WOWLAN_TRIG_WAKEUP_TCP_NOMORETOKENS])
+		printf("\t* TCP connection ran out of tokens\n");
+}
+
 static int print_event(struct nl_msg *msg, void *arg)
 {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
@@ -452,6 +513,9 @@ static int print_event(struct nl_msg *msg, void *arg)
 		break;
 	case NL80211_CMD_PMKSA_CANDIDATE:
 		printf("PMKSA candidate found\n");
+		break;
+	case NL80211_CMD_SET_WOWLAN:
+		parse_wowlan_wake_event(tb);
 		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);

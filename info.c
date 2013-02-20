@@ -400,9 +400,7 @@ broken_combination:
 			[NL80211_WOWLAN_TRIG_ANY] = { .type = NLA_FLAG },
 			[NL80211_WOWLAN_TRIG_DISCONNECT] = { .type = NLA_FLAG },
 			[NL80211_WOWLAN_TRIG_MAGIC_PKT] = { .type = NLA_FLAG },
-			[NL80211_WOWLAN_TRIG_PKT_PATTERN] = {
-				.minlen = sizeof(struct nl80211_wowlan_pattern_support),
-			},
+			[NL80211_WOWLAN_TRIG_PKT_PATTERN] = { .minlen = 12 },
 			[NL80211_WOWLAN_TRIG_GTK_REKEY_SUPPORTED] = { .type = NLA_FLAG },
 			[NL80211_WOWLAN_TRIG_GTK_REKEY_FAILURE] = { .type = NLA_FLAG },
 			[NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST] = { .type = NLA_FLAG },
@@ -429,8 +427,11 @@ broken_combination:
 				printf("\t\t * wake up on magic packet\n");
 			if (tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]) {
 				pat = nla_data(tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]);
-				printf("\t\t * wake up on pattern match, up to %u patterns of %u-%u bytes\n",
-					pat->max_patterns, pat->min_pattern_len, pat->max_pattern_len);
+				printf("\t\t * wake up on pattern match, up to %u patterns of %u-%u bytes,\n"
+					"\t\t   maximum packet offset %u bytes\n",
+					pat->max_patterns, pat->min_pattern_len, pat->max_pattern_len,
+					(nla_len(tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]) <
+					sizeof(*pat)) ? 0 : pat->max_pkt_offset);
 			}
 			if (tb_wowlan[NL80211_WOWLAN_TRIG_GTK_REKEY_SUPPORTED])
 				printf("\t\t * can do GTK rekeying\n");

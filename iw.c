@@ -34,6 +34,12 @@ static inline void nl_socket_free(struct nl_sock *h)
 {
 	nl_handle_destroy(h);
 }
+
+static inline int nl_socket_set_buffer_size(struct nl_sock *sk,
+					    int rxbuf, int txbuf)
+{
+	return nl_set_buffer_size(sk, rxbuf, txbuf);
+}
 #endif /* CONFIG_LIBNL20 && CONFIG_LIBNL30 */
 
 int iw_debug = 0;
@@ -47,6 +53,8 @@ static int nl80211_init(struct nl80211_state *state)
 		fprintf(stderr, "Failed to allocate netlink socket.\n");
 		return -ENOMEM;
 	}
+
+	nl_socket_set_buffer_size(state->nl_sock, 8192, 8192);
 
 	if (genl_connect(state->nl_sock)) {
 		fprintf(stderr, "Failed to connect to generic netlink.\n");

@@ -94,7 +94,7 @@ static int wowlan_parse_tcp_file(struct nl_msg *msg, const char *fn)
 			free(pkt);
 		} else if (strncmp(buf, "data.interval=", 14) == 0) {
 			NLA_PUT_U32(msg, NL80211_WOWLAN_TCP_DATA_INTERVAL,
-				    atoi(buf));
+				    atoi(buf + 14));
 		} else if (strncmp(buf, "wake=", 5) == 0) {
 			unsigned char *pat, *mask;
 			size_t patlen;

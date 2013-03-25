@@ -23,12 +23,6 @@ enum plink_state {
 	BLOCKED
 };
 
-enum plink_actions {
-	PLINK_ACTION_UNDEFINED,
-	PLINK_ACTION_OPEN,
-	PLINK_ACTION_BLOCK,
-};
-
 
 static int print_mpath_handler(struct nl_msg *msg, void *arg)
 {

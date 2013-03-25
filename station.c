@@ -23,12 +23,6 @@ enum plink_state {
 	BLOCKED
 };
 
-enum plink_actions {
-	PLINK_ACTION_UNDEFINED,
-	PLINK_ACTION_OPEN,
-	PLINK_ACTION_BLOCK,
-};
-
 static void print_power_mode(struct nlattr *a)
 {
 	enum nl80211_mesh_power_mode pm = nla_get_u32(a);
@@ -348,9 +342,9 @@ static int handle_station_set_plink(struct nl80211_state *state,
 	argv++;
 
 	if (strcmp("open", argv[0]) == 0)
-		plink_action = PLINK_ACTION_OPEN;
+		plink_action = NL80211_PLINK_ACTION_OPEN;
 	else if (strcmp("block", argv[0]) == 0)
-		plink_action = PLINK_ACTION_BLOCK;
+		plink_action = NL80211_PLINK_ACTION_BLOCK;
 	else {
 		fprintf(stderr, "plink action not supported\n");
 		return 2;

@@ -183,17 +183,18 @@ next:
 						printf(")");
 					printf("\n");
 
-				if (tb_freq[NL80211_FREQUENCY_ATTR_DFS_STATE]) {
-					enum nl80211_dfs_state state = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_DFS_STATE]);
-					unsigned long time;
+					if (!tb_freq[NL80211_FREQUENCY_ATTR_DISABLED] && tb_freq[NL80211_FREQUENCY_ATTR_DFS_STATE]) {
+						enum nl80211_dfs_state state = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_DFS_STATE]);
+						unsigned long time;
 
-					printf("\t\t\t  DFS state: %s", dfs_state_name(state));
-					if (tb_freq[NL80211_FREQUENCY_ATTR_DFS_TIME]) {
-						time = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_DFS_TIME]);
-						printf(" (for %lu sec)", time/1000);
+						printf("\t\t\t  DFS state: %s", dfs_state_name(state));
+						if (tb_freq[NL80211_FREQUENCY_ATTR_DFS_TIME]) {
+							time = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_DFS_TIME]);
+							printf(" (for %lu sec)", time/1000);
+						}
+						printf("\n");
 					}
-					printf("\n");
-				}
+
 				}
 			}
 

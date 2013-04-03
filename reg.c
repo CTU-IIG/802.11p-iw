@@ -59,6 +59,22 @@ char *reg_initiator_to_string(__u8 initiator)
 	}
 }
 
+static const char *dfs_domain_name(enum nl80211_dfs_regions region)
+{
+	switch (region) {
+	case NL80211_DFS_UNSET:
+		return "DFS-UNSET";
+	case NL80211_DFS_FCC:
+		return "DFS-FCC";
+	case NL80211_DFS_ETSI:
+		return "DFS-ETSI";
+	case NL80211_DFS_JP:
+		return "DFS-JP";
+	default:
+		return "DFS-invalid";
+	}
+}
+
 static int handle_reg_set(struct nl80211_state *state,
 			  struct nl_cb *cb,
 			  struct nl_msg *msg,
@@ -110,6 +126,7 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 	char *alpha2;
 	struct nlattr *nl_rule;
 	int rem_rule;
+	enum nl80211_dfs_regions dfs_domain;
 	static struct nla_policy reg_rule_policy[NL80211_FREQUENCY_ATTR_MAX + 1] = {
 		[NL80211_ATTR_REG_RULE_FLAGS]		= { .type = NLA_U32 },
 		[NL80211_ATTR_FREQ_RANGE_START]		= { .type = NLA_U32 },
@@ -132,8 +149,13 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 		return NL_SKIP;
 	}
 
+	if (tb_msg[NL80211_ATTR_DFS_REGION])
+		dfs_domain = nla_get_u8(tb_msg[NL80211_ATTR_DFS_REGION]);
+	else
+		dfs_domain = NL80211_DFS_UNSET;
+
 	alpha2 = nla_data(tb_msg[NL80211_ATTR_REG_ALPHA2]);
-	printf("country %c%c:\n", alpha2[0], alpha2[1]);
+	printf("country %c%c: %s\n", alpha2[0], alpha2[1], dfs_domain_name(dfs_domain));
 
 	nla_for_each_nested(nl_rule, tb_msg[NL80211_ATTR_REG_RULES], rem_rule) {
 		struct nlattr *tb_rule[NL80211_FREQUENCY_ATTR_MAX + 1];

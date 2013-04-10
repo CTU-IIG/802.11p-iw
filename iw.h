@@ -170,6 +170,7 @@ enum print_ie_type {
 void print_ies(unsigned char *ie, int ielen, bool unknown,
 	       enum print_ie_type ptype);
 
+void parse_tx_bitrate(struct nlattr *bitrate_attr, char *buf, int buflen);
 
 DECLARE_SECTION(set);
 DECLARE_SECTION(get);

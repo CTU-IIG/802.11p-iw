@@ -43,12 +43,59 @@ static void print_power_mode(struct nlattr *a)
 	}
 }
 
+void parse_tx_bitrate(struct nlattr *bitrate_attr, char *buf, int buflen)
+{
+	int rate = 0;
+	char *pos = buf;
+	struct nlattr *rinfo[NL80211_RATE_INFO_MAX + 1];
+	static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
+		[NL80211_RATE_INFO_BITRATE] = { .type = NLA_U16 },
+		[NL80211_RATE_INFO_BITRATE32] = { .type = NLA_U32 },
+		[NL80211_RATE_INFO_MCS] = { .type = NLA_U8 },
+		[NL80211_RATE_INFO_40_MHZ_WIDTH] = { .type = NLA_FLAG },
+		[NL80211_RATE_INFO_SHORT_GI] = { .type = NLA_FLAG },
+	};
+
+	if (nla_parse_nested(rinfo, NL80211_RATE_INFO_MAX,
+			     bitrate_attr, rate_policy)) {
+		snprintf(buf, buflen, "failed to parse nested rate attributes!");
+		return;
+	}
+
+	if (rinfo[NL80211_RATE_INFO_BITRATE32])
+		rate = nla_get_u32(rinfo[NL80211_RATE_INFO_BITRATE32]);
+	else if (rinfo[NL80211_RATE_INFO_BITRATE])
+		rate = nla_get_u16(rinfo[NL80211_RATE_INFO_BITRATE]);
+	if (rate > 0)
+		pos += snprintf(pos, buflen - (pos - buf),
+				"%d.%d MBit/s", rate / 10, rate % 10);
+
+	if (rinfo[NL80211_RATE_INFO_MCS])
+		pos += snprintf(pos, buflen - (pos - buf),
+				" MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_MCS]));
+	if (rinfo[NL80211_RATE_INFO_VHT_MCS])
+		pos += snprintf(pos, buflen - (pos - buf),
+				" VHT-MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_VHT_MCS]));
+	if (rinfo[NL80211_RATE_INFO_40_MHZ_WIDTH])
+		pos += snprintf(pos, buflen - (pos - buf), " 40MHz");
+	if (rinfo[NL80211_RATE_INFO_80_MHZ_WIDTH])
+		pos += snprintf(pos, buflen - (pos - buf), " 80MHz");
+	if (rinfo[NL80211_RATE_INFO_80P80_MHZ_WIDTH])
+		pos += snprintf(pos, buflen - (pos - buf), " 80P80MHz");
+	if (rinfo[NL80211_RATE_INFO_160_MHZ_WIDTH])
+		pos += snprintf(pos, buflen - (pos - buf), " 160MHz");
+	if (rinfo[NL80211_RATE_INFO_SHORT_GI])
+		pos += snprintf(pos, buflen - (pos - buf), " short GI");
+	if (rinfo[NL80211_RATE_INFO_VHT_NSS])
+		pos += snprintf(pos, buflen - (pos - buf),
+				" VHT-NSS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_VHT_NSS]));
+}
+
 static int print_sta_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *sinfo[NL80211_STA_INFO_MAX + 1];
-	struct nlattr *rinfo[NL80211_RATE_INFO_MAX + 1];
 	char mac_addr[20], state_name[10], dev[20];
 	struct nl80211_sta_flag_update *sta_flags;
 	static struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
@@ -70,14 +117,6 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_LOCAL_PM] = { .type = NLA_U32},
 		[NL80211_STA_INFO_PEER_PM] = { .type = NLA_U32},
 		[NL80211_STA_INFO_NONPEER_PM] = { .type = NLA_U32},
-	};
-
-	static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
-		[NL80211_RATE_INFO_BITRATE] = { .type = NLA_U16 },
-		[NL80211_RATE_INFO_BITRATE32] = { .type = NLA_U32 },
-		[NL80211_RATE_INFO_MCS] = { .type = NLA_U8 },
-		[NL80211_RATE_INFO_40_MHZ_WIDTH] = { .type = NLA_FLAG },
-		[NL80211_RATE_INFO_SHORT_GI] = { .type = NLA_FLAG },
 	};
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -136,26 +175,10 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 			(unsigned long long)nla_get_u64(sinfo[NL80211_STA_INFO_T_OFFSET]));
 
 	if (sinfo[NL80211_STA_INFO_TX_BITRATE]) {
-		if (nla_parse_nested(rinfo, NL80211_RATE_INFO_MAX,
-				     sinfo[NL80211_STA_INFO_TX_BITRATE], rate_policy)) {
-			fprintf(stderr, "failed to parse nested rate attributes!\n");
-		} else {
-			int rate = 0;
-			printf("\n\ttx bitrate:\t");
-			if (rinfo[NL80211_RATE_INFO_BITRATE32])
-				rate = nla_get_u32(rinfo[NL80211_RATE_INFO_BITRATE32]);
-			else if (rinfo[NL80211_RATE_INFO_BITRATE])
-				rate = nla_get_u16(rinfo[NL80211_RATE_INFO_BITRATE]);
-			if (rate > 0)
-				printf("%d.%d MBit/s", rate / 10, rate % 10);
+		char buf[100];
 
-			if (rinfo[NL80211_RATE_INFO_MCS])
-				printf(" MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_MCS]));
-			if (rinfo[NL80211_RATE_INFO_40_MHZ_WIDTH])
-				printf(" 40Mhz");
-			if (rinfo[NL80211_RATE_INFO_SHORT_GI])
-				printf(" short GI");
-		}
+		parse_tx_bitrate(sinfo[NL80211_STA_INFO_TX_BITRATE], buf, sizeof(buf));
+		printf("\n\ttx bitrate:\t%s", buf);
 	}
 
 	if (sinfo[NL80211_STA_INFO_LLID])

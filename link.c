@@ -115,7 +115,6 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *sinfo[NL80211_STA_INFO_MAX + 1];
-	struct nlattr *rinfo[NL80211_RATE_INFO_MAX + 1];
 	struct nlattr *binfo[NL80211_STA_BSS_PARAM_MAX + 1];
 	static struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
 		[NL80211_STA_INFO_INACTIVE_TIME] = { .type = NLA_U32 },
@@ -128,14 +127,6 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_LLID] = { .type = NLA_U16 },
 		[NL80211_STA_INFO_PLID] = { .type = NLA_U16 },
 		[NL80211_STA_INFO_PLINK_STATE] = { .type = NLA_U8 },
-	};
-
-	static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
-		[NL80211_RATE_INFO_BITRATE] = { .type = NLA_U16 },
-		[NL80211_RATE_INFO_BITRATE32] = { .type = NLA_U32 },
-		[NL80211_RATE_INFO_MCS] = { .type = NLA_U8 },
-		[NL80211_RATE_INFO_40_MHZ_WIDTH] = { .type = NLA_FLAG },
-		[NL80211_RATE_INFO_SHORT_GI] = { .type = NLA_FLAG },
 	};
 	static struct nla_policy bss_policy[NL80211_STA_BSS_PARAM_MAX + 1] = {
 		[NL80211_STA_BSS_PARAM_CTS_PROT] = { .type = NLA_FLAG },
@@ -172,37 +163,10 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 			(int8_t)nla_get_u8(sinfo[NL80211_STA_INFO_SIGNAL]));
 
 	if (sinfo[NL80211_STA_INFO_TX_BITRATE]) {
-		if (nla_parse_nested(rinfo, NL80211_RATE_INFO_MAX,
-				     sinfo[NL80211_STA_INFO_TX_BITRATE], rate_policy)) {
-			fprintf(stderr, "failed to parse nested rate attributes!\n");
-		} else {
-			int rate = 0;
-			printf("\ttx bitrate: ");
-			if (rinfo[NL80211_RATE_INFO_BITRATE32])
-				rate = nla_get_u32(rinfo[NL80211_RATE_INFO_BITRATE32]);
-			else if (rinfo[NL80211_RATE_INFO_BITRATE])
-				rate = nla_get_u16(rinfo[NL80211_RATE_INFO_BITRATE]);
-			if (rate > 0)
-				printf("%d.%d MBit/s", rate / 10, rate % 10);
+		char buf[100];
 
-			if (rinfo[NL80211_RATE_INFO_MCS])
-				printf(" MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_MCS]));
-			if (rinfo[NL80211_RATE_INFO_VHT_MCS])
-				printf(" VHT-MCS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_VHT_MCS]));
-			if (rinfo[NL80211_RATE_INFO_40_MHZ_WIDTH])
-				printf(" 40MHz");
-			if (rinfo[NL80211_RATE_INFO_80_MHZ_WIDTH])
-				printf(" 80MHz");
-			if (rinfo[NL80211_RATE_INFO_80P80_MHZ_WIDTH])
-				printf(" 80P80MHz");
-			if (rinfo[NL80211_RATE_INFO_160_MHZ_WIDTH])
-				printf(" 160MHz");
-			if (rinfo[NL80211_RATE_INFO_SHORT_GI])
-				printf(" short GI");
-			if (rinfo[NL80211_RATE_INFO_VHT_NSS])
-				printf(" VHT-NSS %d", nla_get_u8(rinfo[NL80211_RATE_INFO_VHT_NSS]));
-			printf("\n");
-		}
+		parse_tx_bitrate(sinfo[NL80211_STA_INFO_TX_BITRATE], buf, sizeof(buf));
+		printf("\ttx bitrate: %s\n", buf);
 	}
 
 	if (sinfo[NL80211_STA_INFO_BSS_PARAM]) {

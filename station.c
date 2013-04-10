@@ -274,7 +274,7 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		}
 
 		if (sta_flags->mask & BIT(NL80211_STA_FLAG_TDLS_PEER)) {
-			printf("\n\tTDLS peer:\t\t");
+			printf("\n\tTDLS peer:\t");
 			if (sta_flags->set & BIT(NL80211_STA_FLAG_TDLS_PEER))
 				printf("yes");
 			else

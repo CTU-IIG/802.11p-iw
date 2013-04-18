@@ -1339,8 +1339,11 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		return NL_SKIP;
 
 	mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
-	if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
-	printf("BSS %s (on %s)", mac_addr, dev);
+	printf("BSS %s", mac_addr);
+	if (tb[NL80211_ATTR_IFINDEX]) {
+		if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
+		printf("(on %s)", dev);
+	}
 
 	if (bss[NL80211_BSS_STATUS]) {
 		switch (nla_get_u32(bss[NL80211_BSS_STATUS])) {

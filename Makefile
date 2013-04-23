@@ -25,6 +25,7 @@ OBJS += $(OBJS-y) $(OBJS-Y)
 
 ALL = iw
 
+ifeq ($(NO_PKG_CONFIG),)
 NL3xFOUND := $(shell $(PKG_CONFIG) --atleast-version=3.2 libnl-3.0 && echo Y)
 ifneq ($(NL3xFOUND),Y)
 NL31FOUND := $(shell $(PKG_CONFIG) --exact-version=3.1 libnl-3.1 && echo Y)
@@ -77,6 +78,7 @@ endif
 
 LIBS += $(shell $(PKG_CONFIG) --libs $(NLLIBNAME))
 CFLAGS += $(shell $(PKG_CONFIG) --cflags $(NLLIBNAME))
+endif # NO_PKG_CONFIG
 
 ifeq ($(V),1)
 Q=

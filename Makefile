@@ -23,6 +23,8 @@ OBJS += sections.o
 
 OBJS-$(HWSIM) += hwsim.o
 
+OBJS += $(OBJS-y) $(OBJS-Y)
+
 ALL = iw
 
 NL3xFOUND := $(shell $(PKG_CONFIG) --atleast-version=3.2 libnl-3.0 && echo Y)
@@ -88,7 +90,7 @@ endif
 
 all: $(ALL)
 
-VERSION_OBJS := $(filter-out version.o, $(OBJS) $(OBJS-y))
+VERSION_OBJS := $(filter-out version.o, $(OBJS))
 
 version.c: version.sh $(patsubst %.o,%.c,$(VERSION_OBJS)) nl80211.h iw.h Makefile \
 		$(wildcard .git/index .git/refs/tags)
@@ -99,9 +101,9 @@ version.c: version.sh $(patsubst %.o,%.c,$(VERSION_OBJS)) nl80211.h iw.h Makefil
 	@$(NQ) ' CC  ' $@
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
-iw:	$(OBJS) $(OBJS-y)
+iw:	$(OBJS)
 	@$(NQ) ' CC  ' iw
-	$(Q)$(CC) $(LDFLAGS) $(OBJS) $(OBJS-y) $(LIBS) -o iw
+	$(Q)$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o iw
 
 check:
 	$(Q)$(MAKE) all CC="REAL_CC=$(CC) CHECK=\"sparse -Wall\" cgcc"

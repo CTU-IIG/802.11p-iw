@@ -1,5 +1,3 @@
--include .config
-
 MAKEFLAGS += --no-print-directory
 
 PREFIX ?= /usr

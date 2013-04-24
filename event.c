@@ -517,6 +517,16 @@ static int print_event(struct nl_msg *msg, void *arg)
 	case NL80211_CMD_SET_WOWLAN:
 		parse_wowlan_wake_event(tb);
 		break;
+	case NL80211_CMD_PROBE_CLIENT:
+		if (tb[NL80211_ATTR_MAC])
+			mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		else
+			strcpy(macbuf, "??");
+		printf("probe client %s (cookie %llx): %s\n",
+		       macbuf,
+		       (unsigned long long)nla_get_u64(tb[NL80211_ATTR_COOKIE]),
+		       tb[NL80211_ATTR_ACK] ? "acked" : "no ack");
+		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);
 		break;

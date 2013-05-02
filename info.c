@@ -531,19 +531,28 @@ broken_combination:
 	return NL_SKIP;
 }
 
+static bool nl80211_has_split_wiphy = false;
+
 static int handle_info(struct nl80211_state *state,
 		       struct nl_cb *cb,
 		       struct nl_msg *msg,
 		       int argc, char **argv,
 		       enum id_input id)
 {
+	char *feat_args[] = { "features", "-q" };
+	int err;
+
+	err = handle_cmd(state, CIB_NONE, 2, feat_args);
+	if (!err && nl80211_has_split_wiphy) {
+		nla_put_flag(msg, NL80211_ATTR_SPLIT_WIPHY_DUMP);
+		nlmsg_hdr(msg)->nlmsg_flags |= NLM_F_DUMP;
+	}
+
 	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_phy_handler, NULL);
-	/* kernels not supporting it will ignore this */
-	nla_put_flag(msg, NL80211_ATTR_SPLIT_WIPHY_DUMP);
 
 	return 0;
 }
-__COMMAND(NULL, info, "info", NULL, NL80211_CMD_GET_WIPHY, NLM_F_DUMP, 0, CIB_PHY, handle_info,
+__COMMAND(NULL, info, "info", NULL, NL80211_CMD_GET_WIPHY, 0, 0, CIB_PHY, handle_info,
 	 "Show capabilities for the specified wireless device.", NULL);
 TOPLEVEL(list, NULL, NL80211_CMD_GET_WIPHY, NLM_F_DUMP, CIB_NONE, handle_info,
 	 "List all wireless devices and their capabilities.");
@@ -566,6 +575,8 @@ static int print_feature_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+	bool print = (unsigned long)arg;
+#define maybe_printf(...) do { if (print) printf(__VA_ARGS__); } while (0)
 
 	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
 		  genlmsg_attrlen(gnlh, 0), NULL);
@@ -573,9 +584,11 @@ static int print_feature_handler(struct nl_msg *msg, void *arg)
 	if (tb_msg[NL80211_ATTR_PROTOCOL_FEATURES]) {
 		uint32_t feat = nla_get_u32(tb_msg[NL80211_ATTR_PROTOCOL_FEATURES]);
 
-		printf("nl80211 features: 0x%x\n", feat);
-		if (feat & NL80211_PROTOCOL_FEATURE_SPLIT_WIPHY_DUMP)
-			printf("\t* split wiphy dump\n");
+		maybe_printf("nl80211 features: 0x%x\n", feat);
+		if (feat & NL80211_PROTOCOL_FEATURE_SPLIT_WIPHY_DUMP) {
+			maybe_printf("\t* split wiphy dump\n");
+			nl80211_has_split_wiphy = true;
+		}
 	}
 
 	return NL_SKIP;
@@ -585,9 +598,10 @@ static int handle_features(struct nl80211_state *state,
 			   struct nl_cb *cb, struct nl_msg *msg,
 			   int argc, char **argv, enum id_input id)
 {
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_feature_handler, NULL);
+	unsigned long print = argc == 0 || strcmp(argv[0], "-q");
+	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_feature_handler, (void *)print);
 	return 0;
 }
 
-TOPLEVEL(features, NULL, NL80211_CMD_GET_PROTOCOL_FEATURES, 0, CIB_NONE,
+TOPLEVEL(features, "", NL80211_CMD_GET_PROTOCOL_FEATURES, 0, CIB_NONE,
 	 handle_features, "");

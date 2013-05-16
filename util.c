@@ -240,6 +240,14 @@ static const char *commands[NL80211_CMD_MAX + 1] = {
 	[NL80211_CMD_START_P2P_DEVICE] = "start_p2p_device",
 	[NL80211_CMD_STOP_P2P_DEVICE] = "stop_p2p_device",
 	[NL80211_CMD_CONN_FAILED] = "conn_failed",
+	[NL80211_CMD_SET_MCAST_RATE] = "set_mcast_rate",
+	[NL80211_CMD_SET_MAC_ACL] = "set_mac_acl",
+	[NL80211_CMD_RADAR_DETECT] = "radar_detect",
+	[NL80211_CMD_GET_PROTOCOL_FEATURES] = "get_protocol_features",
+	[NL80211_CMD_UPDATE_FT_IES] = "update_ft_ies",
+	[NL80211_CMD_FT_EVENT] = "ft_event",
+	[NL80211_CMD_CRIT_PROTOCOL_START] = "crit_protocol_start",
+	[NL80211_CMD_CRIT_PROTOCOL_STOP] = "crit_protocol_stop",
 };
 
 static char cmdbuf[100];

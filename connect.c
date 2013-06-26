@@ -94,14 +94,14 @@ static int iw_connect(struct nl80211_state *state, struct nl_cb *cb,
 		argv++;
 	}
 
+	err = __prepare_listen_events(state);
+	if (err)
+		return err;
+
 	conn_argc = 3 + argc;
 	conn_argv = calloc(conn_argc, sizeof(*conn_argv));
 	if (!conn_argv)
 		return -ENOMEM;
-
-	err = __prepare_listen_events(state);
-	if (err)
-		return err;
 
 	conn_argv[0] = dev;
 	conn_argv[1] = "connect";

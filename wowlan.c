@@ -261,11 +261,11 @@ static int handle_wowlan_enable(struct nl80211_state *state, struct nl_cb *cb,
 			}
 
 			pattern = nla_nest_start(patterns, ++patnum);
-			NLA_PUT(patterns, NL80211_WOWLAN_PKTPAT_MASK,
+			NLA_PUT(patterns, NL80211_PKTPAT_MASK,
 				DIV_ROUND_UP(patlen, 8), mask);
-			NLA_PUT(patterns, NL80211_WOWLAN_PKTPAT_PATTERN,
-				patlen, pat);
-			NLA_PUT_U32(patterns, NL80211_WOWLAN_PKTPAT_OFFSET, pkt_offset);
+			NLA_PUT(patterns, NL80211_PKTPAT_PATTERN, patlen, pat);
+			NLA_PUT_U32(patterns, NL80211_PKTPAT_OFFSET,
+				    pkt_offset);
 			nla_nest_end(patterns, pattern);
 			free(mask);
 			free(pat);
@@ -356,29 +356,29 @@ static int print_wowlan_handler(struct nl_msg *msg, void *arg)
 		nla_for_each_nested(pattern,
 				    trig[NL80211_WOWLAN_TRIG_PKT_PATTERN],
 				    rem_pattern) {
-			struct nlattr *patattr[NUM_NL80211_WOWLAN_PKTPAT];
+			struct nlattr *patattr[NUM_NL80211_PKTPAT];
 			int i, patlen, masklen, pkt_offset;
 			uint8_t *mask, *pat;
-			nla_parse(patattr, MAX_NL80211_WOWLAN_PKTPAT,
-				  nla_data(pattern), nla_len(pattern),
-				  NULL);
-			if (!patattr[NL80211_WOWLAN_PKTPAT_MASK] ||
-			    !patattr[NL80211_WOWLAN_PKTPAT_PATTERN] ||
-			    !patattr[NL80211_WOWLAN_PKTPAT_OFFSET]) {
+			nla_parse(patattr, MAX_NL80211_PKTPAT,
+				  nla_data(pattern), nla_len(pattern), NULL);
+			if (!patattr[NL80211_PKTPAT_MASK] ||
+			    !patattr[NL80211_PKTPAT_PATTERN] ||
+			    !patattr[NL80211_PKTPAT_OFFSET]) {
 				printf(" * (invalid pattern specification)\n");
 				continue;
 			}
-			masklen = nla_len(patattr[NL80211_WOWLAN_PKTPAT_MASK]);
-			patlen = nla_len(patattr[NL80211_WOWLAN_PKTPAT_PATTERN]);
-			pkt_offset = nla_get_u32(patattr[NL80211_WOWLAN_PKTPAT_OFFSET]);
+			masklen = nla_len(patattr[NL80211_PKTPAT_MASK]);
+			patlen = nla_len(patattr[NL80211_PKTPAT_PATTERN]);
+			pkt_offset =
+				nla_get_u32(patattr[NL80211_PKTPAT_OFFSET]);
 			if (DIV_ROUND_UP(patlen, 8) != masklen) {
 				printf(" * (invalid pattern specification)\n");
 				continue;
 			}
 			printf(" * wake up on packet offset: %d", pkt_offset);
 			printf(" pattern: ");
-			pat = nla_data(patattr[NL80211_WOWLAN_PKTPAT_PATTERN]);
-			mask = nla_data(patattr[NL80211_WOWLAN_PKTPAT_MASK]);
+			pat = nla_data(patattr[NL80211_PKTPAT_PATTERN]);
+			mask = nla_data(patattr[NL80211_PKTPAT_MASK]);
 			for (i = 0; i < patlen; i++) {
 				if (mask[i / 8] & (1 << (i % 8)))
 					printf("%.2x", pat[i]);

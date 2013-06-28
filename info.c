@@ -432,7 +432,7 @@ broken_combination:
 			[NL80211_WOWLAN_TRIG_RFKILL_RELEASE] = { .type = NLA_FLAG },
 			[NL80211_WOWLAN_TRIG_TCP_CONNECTION] = { .type = NLA_NESTED },
 		};
-		struct nl80211_wowlan_pattern_support *pat;
+		struct nl80211_pattern_support *pat;
 		int err;
 
 		err = nla_parse_nested(tb_wowlan, MAX_NL80211_WOWLAN_TRIG,

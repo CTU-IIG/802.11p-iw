@@ -157,6 +157,11 @@ static void _print_u32_timeout(struct nlattr *a)
 	printf("%u milliseconds", nla_get_u32(a));
 }
 
+static void _print_u32_in_seconds(struct nlattr *a)
+{
+	printf("%d seconds", nla_get_u32(a));
+}
+
 static void _print_u32_in_TUs(struct nlattr *a)
 {
 	printf("%d TUs", nla_get_u32(a));
@@ -258,6 +263,8 @@ const static struct mesh_param_descr _mesh_param_descrs[] =
 	_my_nla_put_u32, _parse_u32_power_mode, _print_u32_power_mode},
 	{"mesh_awake_window", NL80211_MESHCONF_AWAKE_WINDOW,
 	_my_nla_put_u16, _parse_u16, _print_u16_in_TUs},
+	{"mesh_plink_timeout", NL80211_MESHCONF_PLINK_TIMEOUT,
+	_my_nla_put_u32, _parse_u32, _print_u32_in_seconds},
 };
 
 static void print_all_mesh_param_descr(void)

@@ -16,7 +16,8 @@
 			"fcsfail:  show frames with FCS errors\n"\
 			"control:  show control frames\n"\
 			"otherbss: show frames from other BSSes\n"\
-			"cook:     use cooked mode"
+			"cook:     use cooked mode\n"\
+			"active:   use active mode (ACK incoming unicast packets)"
 
 SECTION(interface);
 
@@ -27,6 +28,7 @@ static char *mntr_flags[NL80211_MNTR_FLAG_MAX + 1] = {
 	"control",
 	"otherbss",
 	"cook",
+	"active",
 };
 
 static int parse_mntr_flags(int *_argc, char ***_argv,

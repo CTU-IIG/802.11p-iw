@@ -165,7 +165,7 @@ static int print_link_sta(struct nl_msg *msg, void *arg)
 	if (sinfo[NL80211_STA_INFO_TX_BITRATE]) {
 		char buf[100];
 
-		parse_tx_bitrate(sinfo[NL80211_STA_INFO_TX_BITRATE], buf, sizeof(buf));
+		parse_bitrate(sinfo[NL80211_STA_INFO_TX_BITRATE], buf, sizeof(buf));
 		printf("\ttx bitrate: %s\n", buf);
 	}
 

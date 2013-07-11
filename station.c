@@ -43,7 +43,7 @@ static void print_power_mode(struct nlattr *a)
 	}
 }
 
-void parse_tx_bitrate(struct nlattr *bitrate_attr, char *buf, int buflen)
+void parse_bitrate(struct nlattr *bitrate_attr, char *buf, int buflen)
 {
 	int rate = 0;
 	char *pos = buf;
@@ -107,6 +107,7 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_SIGNAL] = { .type = NLA_U8 },
 		[NL80211_STA_INFO_T_OFFSET] = { .type = NLA_U64 },
 		[NL80211_STA_INFO_TX_BITRATE] = { .type = NLA_NESTED },
+		[NL80211_STA_INFO_RX_BITRATE] = { .type = NLA_NESTED },
 		[NL80211_STA_INFO_LLID] = { .type = NLA_U16 },
 		[NL80211_STA_INFO_PLID] = { .type = NLA_U16 },
 		[NL80211_STA_INFO_PLINK_STATE] = { .type = NLA_U8 },
@@ -177,8 +178,15 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	if (sinfo[NL80211_STA_INFO_TX_BITRATE]) {
 		char buf[100];
 
-		parse_tx_bitrate(sinfo[NL80211_STA_INFO_TX_BITRATE], buf, sizeof(buf));
+		parse_bitrate(sinfo[NL80211_STA_INFO_TX_BITRATE], buf, sizeof(buf));
 		printf("\n\ttx bitrate:\t%s", buf);
+	}
+
+	if (sinfo[NL80211_STA_INFO_RX_BITRATE]) {
+		char buf[100];
+
+		parse_bitrate(sinfo[NL80211_STA_INFO_RX_BITRATE], buf, sizeof(buf));
+		printf("\n\trx bitrate:\t%s", buf);
 	}
 
 	if (sinfo[NL80211_STA_INFO_LLID])

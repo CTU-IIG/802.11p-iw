@@ -175,7 +175,7 @@ COMMAND(coalesce, enable, "<config-file>",
 	"  patterns=<[offset1+]<pattern1>,<[offset2+]<pattern2>,...>\n"
 	"  ...\n"
 	"delay: maximum coalescing delay in msec.\n"
-	"condition: 0/1 i.e. 'not match'/'match' the patterns\n"
+	"condition: 1/0 i.e. 'not match'/'match' the patterns\n"
 	"patterns: each pattern is given as a bytestring with '-' in\n"
 	"places where any byte may be present, e.g. 00:11:22:-:44 will\n"
 	"match 00:11:22:33:44 and 00:11:22:33:ff:44 etc. Offset and\n"
@@ -224,9 +224,9 @@ static int print_coalesce_handler(struct nl_msg *msg, void *arg)
 
 		printf("Rule - max coalescing delay: %dmsec condition:", delay);
 		if (condition)
-			printf("match\n");
-		else
 			printf("not match\n");
+		else
+			printf("match\n");
 
 		if (ruleattr[NL80211_ATTR_COALESCE_RULE_PKT_PATTERN]) {
 			nla_for_each_nested(pattern,

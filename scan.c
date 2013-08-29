@@ -425,6 +425,9 @@ static void print_auth(const uint8_t *data)
 		case 6:
 			printf("PSK/SHA-256");
 			break;
+		case 7:
+			printf("TDLS/TPK");
+			break;
 		default:
 			printf("%.02x-%.02x-%.02x:%d",
 				data[0], data[1] ,data[2], data[3]);
@@ -516,6 +519,7 @@ static void print_rsn_ie(const char *defcipher, const char *defauth,
 			printf(" NoPairwise");
 		switch ((capa & 0x000c) >> 2) {
 		case 0:
+			printf(" 1-PTKSA-RC");
 			break;
 		case 1:
 			printf(" 2-PTKSA-RC");
@@ -529,6 +533,7 @@ static void print_rsn_ie(const char *defcipher, const char *defauth,
 		}
 		switch ((capa & 0x0030) >> 4) {
 		case 0:
+			printf(" 1-GTKSA-RC");
 			break;
 		case 1:
 			printf(" 2-GTKSA-RC");

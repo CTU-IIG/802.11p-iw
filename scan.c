@@ -705,6 +705,57 @@ static void print_11u_advert(const uint8_t type, uint8_t len, const uint8_t *dat
 	}
 }
 
+static void print_11u_rcon(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	/* See Section 7.3.2.96 in the 802.11u spec. */
+	int idx = 0;
+	int ln0 = data[1] & 0xf;
+	int ln1 = ((data[1] & 0xf0) >> 4);
+	int ln2 = 0;
+	printf("\n");
+
+	if (ln1)
+		ln2 = len - 2 - ln0 - ln1;
+
+	printf("\t\tANQP OIs: %i\n", data[0]);
+
+	if (ln0 > 0) {
+		printf("\t\tOI 1: ");
+		if (2 + ln0 > len) {
+			printf("Invalid IE length.\n");
+		} else {
+			for (idx = 0; idx < ln0; idx++) {
+				printf("%02hx", data[2 + idx]);
+			}
+			printf("\n");
+		}
+	}
+
+	if (ln1 > 0) {
+		printf("\t\tOI 2: ");
+		if (2 + ln0 + ln1 > len) {
+			printf("Invalid IE length.\n");
+		} else {
+			for (idx = 0; idx < ln1; idx++) {
+				printf("%02hx", data[2 + ln0 + idx]);
+			}
+			printf("\n");
+		}
+	}
+
+	if (ln2 > 0) {
+		printf("\t\tOI 3: ");
+		if (2 + ln0 + ln1 + ln2 > len) {
+			printf("Invalid IE length.\n");
+		} else {
+			for (idx = 0; idx < ln2; idx++) {
+				printf("%02hx", data[2 + ln0 + ln1 + idx]);
+			}
+			printf("\n");
+		}
+	}
+}
+
 static const char *ht_secondary_offset[4] = {
 	"no secondary",
 	"above",
@@ -984,6 +1035,7 @@ static const struct ie_print ieprinters[] = {
 	[127] = { "Extended capabilities", print_capabilities, 0, 255, BIT(PRINT_SCAN), },
 	[107] = { "802.11u Interworking", print_interworking, 0, 255, BIT(PRINT_SCAN), },
 	[108] = { "802.11u Advertisement", print_11u_advert, 0, 255, BIT(PRINT_SCAN), },
+	[111] = { "802.11u Roaming Consortium", print_11u_rcon, 0, 255, BIT(PRINT_SCAN), },
 };
 
 static void print_wifi_wpa(const uint8_t type, uint8_t len, const uint8_t *data)

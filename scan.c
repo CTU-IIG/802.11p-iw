@@ -673,6 +673,38 @@ static void print_interworking(const uint8_t type, uint8_t len, const uint8_t *d
 		       data[1], data[2], data[3], data[4], data[5], data[6]);
 }
 
+static void print_11u_advert(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	/* See Section 7.3.2.93 in the 802.11u spec. */
+	/* TODO: This code below does not decode private protocol IDs */
+	int idx = 0;
+	printf("\n");
+	while (idx < (len - 1)) {
+		uint8_t qri = data[idx];
+		uint8_t proto_id = data[idx + 1];
+		printf("\t\tQuery Response Info: 0x%hx\n", (unsigned short)(qri));
+		printf("\t\t\tQuery Response Length Limit: %i\n",
+		       (qri & 0x7f));
+		if (qri & (1<<7))
+			printf("\t\t\tPAME-BI\n");
+		switch(proto_id) {
+		case 0:
+			printf("\t\t\tANQP\n"); break;
+		case 1:
+			printf("\t\t\tMIH Information Service\n"); break;
+		case 2:
+			printf("\t\t\tMIH Command and Event Services Capability Discovery\n"); break;
+		case 3:
+			printf("\t\t\tEmergency Alert System (EAS)\n"); break;
+		case 221:
+			printf("\t\t\tVendor Specific\n"); break;
+		default:
+			printf("\t\t\tReserved: %i\n", proto_id); break;
+		}
+		idx += 2;
+	}
+}
+
 static const char *ht_secondary_offset[4] = {
 	"no secondary",
 	"above",
@@ -951,6 +983,7 @@ static const struct ie_print ieprinters[] = {
 	[114] = { "MESH ID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
 	[127] = { "Extended capabilities", print_capabilities, 0, 255, BIT(PRINT_SCAN), },
 	[107] = { "802.11u Interworking", print_interworking, 0, 255, BIT(PRINT_SCAN), },
+	[108] = { "802.11u Advertisement", print_11u_advert, 0, 255, BIT(PRINT_SCAN), },
 };
 
 static void print_wifi_wpa(const uint8_t type, uint8_t len, const uint8_t *data)

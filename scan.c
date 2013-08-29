@@ -1383,8 +1383,19 @@ static inline void print_p2p(const uint8_t type, uint8_t len, const uint8_t *dat
 	}
 }
 
+static inline void print_hs20_ind(const uint8_t type, uint8_t len, const uint8_t *data)
+{
+	/* I can't find the spec for this...just going off what wireshark uses. */
+	printf("\n");
+	if (len > 0)
+		printf("\t\tDGAF: %i\n", (int)(data[0] & 0x1));
+	else
+		printf("\t\tUnexpected length: %i\n", len);
+}
+
 static const struct ie_print wfa_printers[] = {
 	[9] = { "P2P", print_p2p, 2, 255, BIT(PRINT_SCAN), },
+	[16] = { "HotSpot 2.0 Indication", print_hs20_ind, 1, 255, BIT(PRINT_SCAN), },
 };
 
 static void print_vendor(unsigned char len, unsigned char *data,

@@ -3,7 +3,7 @@
 VERSION="3.11"
 OUT="$1"
 
-if head=`git rev-parse --verify HEAD 2>/dev/null`; then
+if [ -d .git ] && head=`git rev-parse --verify HEAD 2>/dev/null`; then
 	git update-index --refresh --unmerged > /dev/null
 	descr=$(git describe)
 

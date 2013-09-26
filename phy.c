@@ -113,8 +113,11 @@ static int handle_freqchan(struct nl_msg *msg, bool chan,
 	if (*end)
 		return 1;
 
-	if (chan)
-		freq = ieee80211_channel_to_frequency(freq);
+	if (chan) {
+		enum nl80211_band band;
+		band = freq <= 14 ? NL80211_BAND_2GHZ : NL80211_BAND_5GHZ;
+		freq = ieee80211_channel_to_frequency(freq, band);
+	}
 
 	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
 

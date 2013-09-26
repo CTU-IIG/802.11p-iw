@@ -148,7 +148,7 @@ void print_vht_info(__u32 capa, const __u8 *mcs);
 char *channel_width_name(enum nl80211_chan_width width);
 const char *iftype_name(enum nl80211_iftype iftype);
 const char *command_name(enum nl80211_commands cmd);
-int ieee80211_channel_to_frequency(int chan);
+int ieee80211_channel_to_frequency(int chan, enum nl80211_band band);
 int ieee80211_frequency_to_channel(int freq);
 
 void print_ssid_escaped(const uint8_t len, const uint8_t *data);

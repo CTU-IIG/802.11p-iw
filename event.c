@@ -11,7 +11,7 @@ static int no_seq_check(struct nl_msg *msg, void *arg)
 
 struct ieee80211_beacon_channel {
 	__u16 center_freq;
-	bool passive_scan;
+	bool no_ir;
 	bool no_ibss;
 };
 
@@ -21,8 +21,8 @@ static int parse_beacon_hint_chan(struct nlattr *tb,
 	struct nlattr *tb_freq[NL80211_FREQUENCY_ATTR_MAX + 1];
 	static struct nla_policy beacon_freq_policy[NL80211_FREQUENCY_ATTR_MAX + 1] = {
 		[NL80211_FREQUENCY_ATTR_FREQ] = { .type = NLA_U32 },
-		[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN] = { .type = NLA_FLAG },
-		[NL80211_FREQUENCY_ATTR_NO_IBSS] = { .type = NLA_FLAG },
+		[NL80211_FREQUENCY_ATTR_NO_IR] = { .type = NLA_FLAG },
+		[__NL80211_FREQUENCY_ATTR_NO_IBSS] = { .type = NLA_FLAG },
 	};
 
 	if (nla_parse_nested(tb_freq,
@@ -33,9 +33,9 @@ static int parse_beacon_hint_chan(struct nlattr *tb,
 
 	chan->center_freq = nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_FREQ]);
 
-	if (tb_freq[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN])
-		chan->passive_scan = true;
-	if (tb_freq[NL80211_FREQUENCY_ATTR_NO_IBSS])
+	if (tb_freq[NL80211_FREQUENCY_ATTR_NO_IR])
+		chan->no_ir = true;
+	if (tb_freq[__NL80211_FREQUENCY_ATTR_NO_IBSS])
 		chan->no_ibss = true;
 
 	return 0;
@@ -394,10 +394,14 @@ static int print_event(struct nl_msg *msg, void *arg)
 		       chan_before_beacon.center_freq,
 		       ieee80211_frequency_to_channel(chan_before_beacon.center_freq));
 
-		if (chan_before_beacon.passive_scan && !chan_after_beacon.passive_scan)
-			printf("\to active scanning enabled\n");
-		if (chan_before_beacon.no_ibss && !chan_after_beacon.no_ibss)
-			printf("\to beaconing enabled\n");
+		if (chan_before_beacon.no_ir && !chan_after_beacon.no_ir) {
+			if (chan_before_beacon.no_ibss && !chan_after_beacon.no_ibss)
+				printf("\to Initiating radiation enabled\n");
+			else
+				printf("\to active scan enabled\n");
+		} else if (chan_before_beacon.no_ibss && !chan_after_beacon.no_ibss) {
+			printf("\to ibss enabled\n");
+		}
 
 		break;
 	case NL80211_CMD_NEW_STATION:

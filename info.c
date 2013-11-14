@@ -74,8 +74,8 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 	static struct nla_policy freq_policy[NL80211_FREQUENCY_ATTR_MAX + 1] = {
 		[NL80211_FREQUENCY_ATTR_FREQ] = { .type = NLA_U32 },
 		[NL80211_FREQUENCY_ATTR_DISABLED] = { .type = NLA_FLAG },
-		[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN] = { .type = NLA_FLAG },
-		[NL80211_FREQUENCY_ATTR_NO_IBSS] = { .type = NLA_FLAG },
+		[NL80211_FREQUENCY_ATTR_NO_IR] = { .type = NLA_FLAG },
+		[__NL80211_FREQUENCY_ATTR_NO_IBSS] = { .type = NLA_FLAG },
 		[NL80211_FREQUENCY_ATTR_RADAR] = { .type = NLA_FLAG },
 		[NL80211_FREQUENCY_ATTR_MAX_TX_POWER] = { .type = NLA_U32 },
 	};
@@ -172,10 +172,16 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 						print_flag("disabled", &open);
 						goto next;
 					}
-					if (tb_freq[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN])
-						print_flag("passive scanning", &open);
-					if (tb_freq[NL80211_FREQUENCY_ATTR_NO_IBSS])
-						print_flag("no IBSS", &open);
+
+					/* If both flags are set assume an new kernel */
+					if (tb_freq[NL80211_FREQUENCY_ATTR_NO_IR] && tb_freq[__NL80211_FREQUENCY_ATTR_NO_IBSS]) {
+						print_flag("no IR", &open);
+					} else if (tb_freq[NL80211_FREQUENCY_ATTR_PASSIVE_SCAN]) {
+						print_flag("passive scan", &open);
+					} else if (tb_freq[__NL80211_FREQUENCY_ATTR_NO_IBSS]){
+						print_flag("no ibss", &open);
+					}
+
 					if (tb_freq[NL80211_FREQUENCY_ATTR_RADAR])
 						print_flag("radar detection", &open);
 next:

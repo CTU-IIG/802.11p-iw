@@ -193,8 +193,14 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 		PARSE_FLAG(NL80211_RRF_NO_OUTDOOR, "NO-OUTDOOR");
 		PARSE_FLAG(NL80211_RRF_DFS, "DFS");
 		PARSE_FLAG(NL80211_RRF_PTP_ONLY, "PTP-ONLY");
-		PARSE_FLAG(NL80211_RRF_PASSIVE_SCAN, "PASSIVE-SCAN");
-		PARSE_FLAG(NL80211_RRF_NO_IBSS, "NO-IBSS");
+
+		/* Kernels that support NO_IR always turn on both flags */
+		if ((flags & NL80211_RRF_NO_IR) && (flags & __NL80211_RRF_NO_IBSS)) {
+			printf(", NO-IR");
+		} else {
+			PARSE_FLAG(NL80211_RRF_PASSIVE_SCAN, "PASSIVE-SCAN");
+			PARSE_FLAG(__NL80211_RRF_NO_IBSS, "NO-IBSS");
+		}
 
 		printf("\n");
 	}

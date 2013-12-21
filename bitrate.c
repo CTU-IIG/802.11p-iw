@@ -101,12 +101,14 @@ static int handle_bitrates(struct nl80211_state *state,
 	char **vht_argv = NULL;
 	int vht_argc_5 = 0; int vht_argc_24 = 0;
 	int *vht_argc = NULL;
+	int sgi_24 = 0, sgi_5 = 0, lgi_24 = 0, lgi_5 = 0;
 
 	enum {
 		S_NONE,
 		S_LEGACY,
 		S_HT,
 		S_VHT,
+		S_GI,
 	} parser_state = S_NONE;
 
 	for (i = 0; i < argc; i++) {
@@ -157,8 +159,19 @@ static int handle_bitrates(struct nl80211_state *state,
 			vht_argv = vht_argv_5;
 			vht_argc = &vht_argc_5;
 			have_vht_mcs_5 = true;
-		}
-		else switch (parser_state) {
+		} else if (strcmp(argv[i], "sgi-2.4") == 0) {
+			sgi_24 = 1;
+			parser_state = S_GI;
+		} else if (strcmp(argv[i], "sgi-5") == 0) {
+			sgi_5 = 1;
+			parser_state = S_GI;
+		} else if (strcmp(argv[i], "lgi-2.4") == 0) {
+			lgi_24 = 1;
+			parser_state = S_GI;
+		} else if (strcmp(argv[i], "lgi-5") == 0) {
+			lgi_5 = 1;
+			parser_state = S_GI;
+		} else switch (parser_state) {
 		case S_LEGACY:
 			tmpd = strtod(argv[i], &end);
 			if (*end != '\0')
@@ -180,6 +193,8 @@ static int handle_bitrates(struct nl80211_state *state,
 				return 1;
 			vht_argv[(*vht_argc)++] = argv[i];
 			break;
+		case S_GI:
+			break;
 		default:
 			return 1;
 		}
@@ -193,11 +208,17 @@ static int handle_bitrates(struct nl80211_state *state,
 		if(!setup_vht(&txrate_vht_5, vht_argc_5, vht_argv_5))
 			return -EINVAL;
 
+	if (sgi_5 && lgi_5)
+		return 1;
+
+	if (sgi_24 && lgi_24)
+		return 1;
+
 	nl_rates = nla_nest_start(msg, NL80211_ATTR_TX_RATES);
 	if (!nl_rates)
 		goto nla_put_failure;
 
-	if (have_legacy_24 || have_ht_mcs_24 || have_vht_mcs_24) {
+	if (have_legacy_24 || have_ht_mcs_24 || have_vht_mcs_24 || sgi_24 || lgi_24) {
 		nl_band = nla_nest_start(msg, NL80211_BAND_2GHZ);
 		if (!nl_band)
 			goto nla_put_failure;
@@ -207,10 +228,14 @@ static int handle_bitrates(struct nl80211_state *state,
 			nla_put(msg, NL80211_TXRATE_HT, n_ht_mcs_24, ht_mcs_24);
 		if (have_vht_mcs_24)
 			nla_put(msg, NL80211_TXRATE_VHT, sizeof(txrate_vht_24), &txrate_vht_24);
+		if (sgi_24)
+			nla_put_u8(msg, NL80211_TXRATE_GI, NL80211_TXRATE_FORCE_SGI);
+		if (lgi_24)
+			nla_put_u8(msg, NL80211_TXRATE_GI, NL80211_TXRATE_FORCE_LGI);
 		nla_nest_end(msg, nl_band);
 	}
 
-	if (have_legacy_5 || have_ht_mcs_5 || have_vht_mcs_5) {
+	if (have_legacy_5 || have_ht_mcs_5 || have_vht_mcs_5 || sgi_5 || lgi_5) {
 		nl_band = nla_nest_start(msg, NL80211_BAND_5GHZ);
 		if (!nl_band)
 			goto nla_put_failure;
@@ -220,6 +245,10 @@ static int handle_bitrates(struct nl80211_state *state,
 			nla_put(msg, NL80211_TXRATE_HT, n_ht_mcs_5, ht_mcs_5);
 		if (have_vht_mcs_5)
 			nla_put(msg, NL80211_TXRATE_VHT, sizeof(txrate_vht_5), &txrate_vht_5);
+		if (sgi_5)
+			nla_put_u8(msg, NL80211_TXRATE_GI, NL80211_TXRATE_FORCE_SGI);
+		if (lgi_5)
+			nla_put_u8(msg, NL80211_TXRATE_GI, NL80211_TXRATE_FORCE_LGI);
 		nla_nest_end(msg, nl_band);
 	}
 
@@ -231,9 +260,9 @@ static int handle_bitrates(struct nl80211_state *state,
 }
 
 #define DESCR_LEGACY "[legacy-<2.4|5> <legacy rate in Mbps>*]"
-#define DESCR DESCR_LEGACY " [ht-mcs-<2.4|5> <MCS index>*] [vht-mcs-<2.4|5> <NSS:MCSx,MCSy... | NSS:MCSx-MCSy>*]"
+#define DESCR DESCR_LEGACY " [ht-mcs-<2.4|5> <MCS index>*] [vht-mcs-<2.4|5> <NSS:MCSx,MCSy... | NSS:MCSx-MCSy>*] [sgi-2.4|lgi-2.4] [sgi-5|lgi-5]"
 
-COMMAND(set, bitrates, "[legacy-<2.4|5> <legacy rate in Mbps>*] [ht-mcs-<2.4|5> <MCS index>*] [vht-mcs-<2.4|5> <NSS:MCSx,MCSy... | NSS:MCSx-MCSy>*]",
+COMMAND(set, bitrates, "[legacy-<2.4|5> <legacy rate in Mbps>*] [ht-mcs-<2.4|5> <MCS index>*] [vht-mcs-<2.4|5> <NSS:MCSx,MCSy... | NSS:MCSx-MCSy>*] [sgi-2.4|lgi-2.4] [sgi-5|lgi-5]",
 	NL80211_CMD_SET_TX_BITRATE_MASK, 0, CIB_NETDEV, handle_bitrates,
 	"Sets up the specified rate masks.\n"
 	"Not passing any arguments would clear the existing mask (if any).");

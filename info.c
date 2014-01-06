@@ -534,6 +534,9 @@ broken_combination:
 			printf("\tDevice supports AP scan.\n");
 	}
 
+	if (tb_msg[NL80211_ATTR_TDLS_SUPPORT])
+		printf("\tDevice supports T-DLS.\n");
+
 	if (tb_msg[NL80211_ATTR_COALESCE_RULE]) {
 		struct nl80211_coalesce_rule_support *rule;
 		struct nl80211_pattern_support *pat;

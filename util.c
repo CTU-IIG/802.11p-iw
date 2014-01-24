@@ -248,6 +248,10 @@ static const char *commands[NL80211_CMD_MAX + 1] = {
 	[NL80211_CMD_FT_EVENT] = "ft_event",
 	[NL80211_CMD_CRIT_PROTOCOL_START] = "crit_protocol_start",
 	[NL80211_CMD_CRIT_PROTOCOL_STOP] = "crit_protocol_stop",
+	[NL80211_CMD_GET_COALESCE] = "get_coalesce",
+	[NL80211_CMD_SET_COALESCE] = "set_coalesce",
+	[NL80211_CMD_CHANNEL_SWITCH] = "channel_switch",
+	[NL80211_CMD_VENDOR] = "vendor",
 };
 
 static char cmdbuf[100];

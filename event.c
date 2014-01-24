@@ -531,6 +531,11 @@ static int print_event(struct nl_msg *msg, void *arg)
 		       (unsigned long long)nla_get_u64(tb[NL80211_ATTR_COOKIE]),
 		       tb[NL80211_ATTR_ACK] ? "acked" : "no ack");
 		break;
+	case NL80211_CMD_VENDOR:
+		printf("vendor event %.6x:%d\n",
+			nla_get_u32(tb[NL80211_ATTR_VENDOR_ID]),
+			nla_get_u32(tb[NL80211_ATTR_VENDOR_SUBCMD]));
+		break;
 	default:
 		printf("unknown event %d\n", gnlh->cmd);
 		break;
@@ -595,6 +600,13 @@ int __prepare_listen_events(struct nl80211_state *state)
 
 	/* MLME multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "mlme");
+	if (mcid >= 0) {
+		ret = nl_socket_add_membership(state->nl_sock, mcid);
+		if (ret)
+			return ret;
+	}
+
+	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "vendor");
 	if (mcid >= 0) {
 		ret = nl_socket_add_membership(state->nl_sock, mcid);
 		if (ret)

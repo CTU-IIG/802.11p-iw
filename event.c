@@ -537,7 +537,8 @@ static int print_event(struct nl_msg *msg, void *arg)
 			nla_get_u32(tb[NL80211_ATTR_VENDOR_SUBCMD]));
 		break;
 	default:
-		printf("unknown event %d\n", gnlh->cmd);
+		printf("unknown event %d (%s)\n",
+		       gnlh->cmd, command_name(gnlh->cmd));
 		break;
 	}
 

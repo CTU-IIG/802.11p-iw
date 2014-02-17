@@ -671,8 +671,8 @@ void print_vht_info(__u32 capa, const __u8 *mcs)
 	PRINT_VHT_CAPA(22, "+HTC-VHT");
 	/* max A-MPDU */
 	/* VHT link adaptation */
-	PRINT_VHT_CAPA(29, "RX antenna pattern consistency");
-	PRINT_VHT_CAPA(30, "TX antenna pattern consistency");
+	PRINT_VHT_CAPA(28, "RX antenna pattern consistency");
+	PRINT_VHT_CAPA(29, "TX antenna pattern consistency");
 
 	printf("\t\tVHT RX MCS set:\n");
 	tmp = mcs[0] | (mcs[1] << 8);

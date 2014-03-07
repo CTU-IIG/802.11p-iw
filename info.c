@@ -246,6 +246,22 @@ next:
 			printf("\tRTS threshold: %d\n", rts);
 	}
 
+	if (tb_msg[NL80211_ATTR_WIPHY_RETRY_SHORT] ||
+	    tb_msg[NL80211_ATTR_WIPHY_RETRY_LONG]) {
+		unsigned char retry_short = 0, retry_long = 0;
+
+		if (tb_msg[NL80211_ATTR_WIPHY_RETRY_SHORT])
+			retry_short = nla_get_u8(tb_msg[NL80211_ATTR_WIPHY_RETRY_SHORT]);
+		if (tb_msg[NL80211_ATTR_WIPHY_RETRY_LONG])
+			retry_long = nla_get_u8(tb_msg[NL80211_ATTR_WIPHY_RETRY_LONG]);
+		if (retry_short == retry_long) {
+			printf("\tRetry short long limit: %d\n", retry_short);
+		} else {
+			printf("\tRetry short limit: %d\n", retry_short);
+			printf("\tRetry long limit: %d\n", retry_long);
+		}
+	}
+
 	if (tb_msg[NL80211_ATTR_WIPHY_COVERAGE_CLASS]) {
 		unsigned char coverage;
 

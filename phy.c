@@ -232,6 +232,70 @@ COMMAND(set, rts, "<rts threshold|off>",
 	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_rts,
 	"Set rts threshold.");
 
+static int handle_retry(struct nl80211_state *state,
+			struct nl_cb *cb, struct nl_msg *msg,
+			int argc, char **argv, enum id_input id)
+{
+	unsigned int retry_short = 0, retry_long = 0;
+	bool have_retry_s = false, have_retry_l = false;
+	int i;
+	enum {
+		S_NONE,
+		S_SHORT,
+		S_LONG,
+	} parser_state = S_NONE;
+
+	if (!argc || (argc != 2 && argc != 4))
+		return 1;
+
+	for (i = 0; i < argc; i++) {
+		char *end;
+		unsigned int tmpul;
+
+		if (strcmp(argv[i], "short") == 0) {
+			if (have_retry_s)
+				return 1;
+			parser_state = S_SHORT;
+			have_retry_s = true;
+		} else if (strcmp(argv[i], "long") == 0) {
+			if (have_retry_l)
+				return 1;
+			parser_state = S_LONG;
+			have_retry_l = true;
+		} else {
+			tmpul = strtoul(argv[i], &end, 10);
+			if (*end != '\0')
+				return 1;
+			if (!tmpul || tmpul > 255)
+				return -EINVAL;
+			switch (parser_state) {
+			case S_SHORT:
+				retry_short = tmpul;
+				break;
+			case S_LONG:
+				retry_long = tmpul;
+				break;
+			default:
+				return 1;
+			}
+		}
+	}
+
+	if (!have_retry_s && !have_retry_l)
+		return 1;
+	if (have_retry_s)
+		NLA_PUT_U8(msg, NL80211_ATTR_WIPHY_RETRY_SHORT, retry_short);
+	if (have_retry_l)
+		NLA_PUT_U8(msg, NL80211_ATTR_WIPHY_RETRY_LONG, retry_long);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+COMMAND(set, retry, "[short <limit>] [long <limit>]",
+	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_retry,
+	"Set retry limit.");
+
 static int handle_netns(struct nl80211_state *state,
 			struct nl_cb *cb,
 			struct nl_msg *msg,

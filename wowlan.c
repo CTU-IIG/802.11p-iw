@@ -357,25 +357,26 @@ static int print_wowlan_handler(struct nl_msg *msg, void *arg)
 				    trig[NL80211_WOWLAN_TRIG_PKT_PATTERN],
 				    rem_pattern) {
 			struct nlattr *patattr[NUM_NL80211_PKTPAT];
-			int i, patlen, masklen, pkt_offset;
+			int i, patlen, masklen;
 			uint8_t *mask, *pat;
 			nla_parse(patattr, MAX_NL80211_PKTPAT,
 				  nla_data(pattern), nla_len(pattern), NULL);
 			if (!patattr[NL80211_PKTPAT_MASK] ||
-			    !patattr[NL80211_PKTPAT_PATTERN] ||
-			    !patattr[NL80211_PKTPAT_OFFSET]) {
+			    !patattr[NL80211_PKTPAT_PATTERN]) {
 				printf(" * (invalid pattern specification)\n");
 				continue;
 			}
 			masklen = nla_len(patattr[NL80211_PKTPAT_MASK]);
 			patlen = nla_len(patattr[NL80211_PKTPAT_PATTERN]);
-			pkt_offset =
-				nla_get_u32(patattr[NL80211_PKTPAT_OFFSET]);
 			if (DIV_ROUND_UP(patlen, 8) != masklen) {
 				printf(" * (invalid pattern specification)\n");
 				continue;
 			}
-			printf(" * wake up on packet offset: %d", pkt_offset);
+			if (patattr[NL80211_PKTPAT_OFFSET]) {
+				int pkt_offset =
+					nla_get_u32(patattr[NL80211_PKTPAT_OFFSET]);
+				printf(" * wake up on packet offset: %d", pkt_offset);
+			}
 			printf(" pattern: ");
 			pat = nla_data(patattr[NL80211_PKTPAT_PATTERN]);
 			mask = nla_data(patattr[NL80211_PKTPAT_MASK]);

@@ -199,6 +199,9 @@ next:
 							printf(" (for %lu sec)", time/1000);
 						}
 						printf("\n");
+						if (tb_freq[NL80211_FREQUENCY_ATTR_DFS_CAC_TIME])
+							printf("\t\t\t  DFS CAC time: %u ms\n",
+							       nla_get_u32(tb_freq[NL80211_FREQUENCY_ATTR_DFS_CAC_TIME]));
 					}
 
 				}

@@ -134,6 +134,7 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 		[NL80211_ATTR_FREQ_RANGE_MAX_BW]	= { .type = NLA_U32 },
 		[NL80211_ATTR_POWER_RULE_MAX_ANT_GAIN]	= { .type = NLA_U32 },
 		[NL80211_ATTR_POWER_RULE_MAX_EIRP]	= { .type = NLA_U32 },
+		[NL80211_ATTR_DFS_CAC_TIME]		= { .type = NLA_U32 },
 	};
 
 	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
@@ -180,6 +181,11 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 			printf("N/A");
 
 		printf(", %d)", MBM_TO_DBM(max_eirp_mbm));
+
+		if ((flags & NL80211_RRF_DFS) && tb_rule[NL80211_ATTR_DFS_CAC_TIME])
+			printf(", (%u ms)", nla_get_u32(tb_rule[NL80211_ATTR_DFS_CAC_TIME]));
+		else
+			printf(", (N/A)");
 
 		if (!flags) {
 			printf("\n");

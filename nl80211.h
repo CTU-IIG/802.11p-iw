@@ -541,6 +541,9 @@
  * @NL80211_CMD_LEAVE_MESH: Leave the mesh network -- no special arguments, the
  *	network is determined by the network interface.
  *
+ * @NL80211_CMD_JOIN_OCB:
+ * @NL80211_CMD_LEAVE_OCB:
+ *
  * @NL80211_CMD_UNPROT_DEAUTHENTICATE: Unprotected deauthentication frame
  *	notification. This event is used to indicate that an unprotected
  *	deauthentication frame was dropped when MFP is in use.
@@ -829,6 +832,9 @@ enum nl80211_commands {
 
 	NL80211_CMD_JOIN_MESH,
 	NL80211_CMD_LEAVE_MESH,
+
+	NL80211_CMD_JOIN_OCB,
+	NL80211_CMD_LEAVE_OCB,
 
 	NL80211_CMD_UNPROT_DEAUTHENTICATE,
 	NL80211_CMD_UNPROT_DISASSOCIATE,
@@ -1579,6 +1585,10 @@ enum nl80211_commands {
  * @NL80211_ATTR_TDLS_PEER_CAPABILITY: flags for TDLS peer capabilities, u32.
  *	As specified in the &enum nl80211_tdls_peer_capability.
  *
+ * @NL80211_ATTR_IFACE_SOCKET_OWNER: flag attribute, if set during interface
+ *	creation then the new interface will be owned by the netlink socket
+ *	that created it and will be destroyed when the socket is closed
+ *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
@@ -1914,6 +1924,8 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_TDLS_PEER_CAPABILITY,
 
+	NL80211_ATTR_IFACE_SOCKET_OWNER,
+
 	/* add attributes here, update the policy in nl80211.c */
 
 	__NL80211_ATTR_AFTER_LAST,
@@ -1988,6 +2000,8 @@ enum nl80211_attrs {
  *	and therefore can't be created in the normal ways, use the
  *	%NL80211_CMD_START_P2P_DEVICE and %NL80211_CMD_STOP_P2P_DEVICE
  *	commands to create and destroy one
+ * @NL80211_IF_TYPE_OCB: outside context of a bss
+ *	this mode corresponds to the MIB variable dot11OCBActivated=true
  * @NL80211_IFTYPE_MAX: highest interface type number currently defined
  * @NUM_NL80211_IFTYPES: number of defined interface types
  *
@@ -2007,6 +2021,7 @@ enum nl80211_iftype {
 	NL80211_IFTYPE_P2P_CLIENT,
 	NL80211_IFTYPE_P2P_GO,
 	NL80211_IFTYPE_P2P_DEVICE,
+	NL80211_IFTYPE_OCB,
 
 	/* keep last */
 	NUM_NL80211_IFTYPES,
@@ -2336,9 +2351,36 @@ enum nl80211_band_attr {
  *	using this channel as the primary or any of the secondary channels
  *	isn't possible
  * @NL80211_FREQUENCY_ATTR_DFS_CAC_TIME: DFS CAC time in milliseconds.
+ * @NL80211_FREQUENCY_ATTR_INDOOR_ONLY: Only indoor use is permitted on this
+ *	channel. A channel that has the INDOOR_ONLY attribute can only be
+ *	used when there is a clear assessment that the device is operating in
+ *	an indoor surroundings, i.e., it is connected to AC power (and not
+ *	through portable DC inverters) or is under the control of a master
+ *	that is acting as an AP and is connected to AC power.
+ * @NL80211_FREQUENCY_ATTR_GO_CONCURRENT: GO operation is allowed on this
+ *	channel if it's connected concurrently to a BSS on the same channel on
+ *	the 2 GHz band or to a channel in the same UNII band (on the 5 GHz
+ *	band), and IEEE80211_CHAN_RADAR is not set. Instantiating a GO on a
+ *	channel that has the GO_CONCURRENT attribute set can be done when there
+ *	is a clear assessment that the device is operating under the guidance of
+ *	an authorized master, i.e., setting up a GO while the device is also
+ *	connected to an AP with DFS and radar detection on the UNII band (it is
+ *	up to user-space, i.e., wpa_supplicant to perform the required
+ *	verifications)
+ * @NL80211_FREQUENCY_ATTR_NO_20MHZ: 20 MHz operation is not allowed
+ *	on this channel in current regulatory domain.
+ * @NL80211_FREQUENCY_ATTR_NO_10MHZ: 10 MHz operation is not allowed
+ *	on this channel in current regulatory domain.
+ * @NL80211_FREQUENCY_ATTR_OCB_ONLY: no other than OCB networks are
+ *	permitted on this channel in current regulatory domain.
  * @NL80211_FREQUENCY_ATTR_MAX: highest frequency attribute number
  *	currently defined
  * @__NL80211_FREQUENCY_ATTR_AFTER_LAST: internal use
+ *
+ * See https://apps.fcc.gov/eas/comments/GetPublishedDocument.html?id=327&tn=528122
+ * for more information on the FCC description of the relaxations allowed
+ * by NL80211_FREQUENCY_ATTR_INDOOR_ONLY and
+ * NL80211_FREQUENCY_ATTR_GO_CONCURRENT.
  */
 enum nl80211_frequency_attr {
 	__NL80211_FREQUENCY_ATTR_INVALID,
@@ -2355,6 +2397,11 @@ enum nl80211_frequency_attr {
 	NL80211_FREQUENCY_ATTR_NO_80MHZ,
 	NL80211_FREQUENCY_ATTR_NO_160MHZ,
 	NL80211_FREQUENCY_ATTR_DFS_CAC_TIME,
+	NL80211_FREQUENCY_ATTR_INDOOR_ONLY,
+	NL80211_FREQUENCY_ATTR_GO_CONCURRENT,
+	NL80211_FREQUENCY_ATTR_NO_20MHZ,
+	NL80211_FREQUENCY_ATTR_NO_10MHZ,
+	NL80211_FREQUENCY_ATTR_OCB_ONLY,
 
 	/* keep last */
 	__NL80211_FREQUENCY_ATTR_AFTER_LAST,
@@ -2523,6 +2570,7 @@ enum nl80211_sched_scan_match_attr {
  * @NL80211_RRF_AUTO_BW: maximum available bandwidth should be calculated
  *	base on contiguous rules and wider channels will be allowed to cross
  *	multiple contiguous/overlapping frequency ranges.
+ * @NL80211_RRF_OCB_ONLY: no other than OCB is allowed
  */
 enum nl80211_reg_rule_flags {
 	NL80211_RRF_NO_OFDM		= 1<<0,
@@ -2535,6 +2583,7 @@ enum nl80211_reg_rule_flags {
 	NL80211_RRF_NO_IR		= 1<<7,
 	__NL80211_RRF_NO_IBSS		= 1<<8,
 	NL80211_RRF_AUTO_BW		= 1<<11,
+	NL80211_RRF_OCB_ONLY            = 1<<12,
 };
 
 #define NL80211_RRF_PASSIVE_SCAN	NL80211_RRF_NO_IR
@@ -2573,10 +2622,13 @@ enum nl80211_dfs_regions {
  *	present has been registered with the wireless core that
  *	has listed NL80211_FEATURE_CELL_BASE_REG_HINTS as a
  *	supported feature.
+ * @NL80211_USER_REG_HINT_INDOOR: a user sent an hint indicating that the
+ *	platform is operating in an indoor environment.
  */
 enum nl80211_user_reg_hint_type {
 	NL80211_USER_REG_HINT_USER	= 0,
 	NL80211_USER_REG_HINT_CELL_BASE = 1,
+	NL80211_USER_REG_HINT_INDOOR    = 2,
 };
 
 /**
@@ -3856,8 +3908,6 @@ enum nl80211_ap_sme_features {
  * @NL80211_FEATURE_CELL_BASE_REG_HINTS: This driver has been tested
  *	to work properly to suppport receiving regulatory hints from
  *	cellular base stations.
- * @NL80211_FEATURE_P2P_DEVICE_NEEDS_CHANNEL: (no longer available, only
- *	here to reserve the value for API/ABI compatibility)
  * @NL80211_FEATURE_SAE: This driver supports simultaneous authentication of
  *	equals (SAE) with user space SME (NL80211_CMD_AUTHENTICATE) in station
  *	mode
@@ -3893,13 +3943,16 @@ enum nl80211_ap_sme_features {
  *	interface. An active monitor interface behaves like a normal monitor
  *	interface, but gets added to the driver. It ensures that incoming
  *	unicast packets directed at the configured interface address get ACKed.
+ * @NL80211_FEATURE_AP_MODE_CHAN_WIDTH_CHANGE: This driver supports dynamic
+ *	channel bandwidth change (e.g., HT 20 <-> 40 MHz channel) during the
+ *	lifetime of a BSS.
  */
 enum nl80211_feature_flags {
 	NL80211_FEATURE_SK_TX_STATUS			= 1 << 0,
 	NL80211_FEATURE_HT_IBSS				= 1 << 1,
 	NL80211_FEATURE_INACTIVITY_TIMER		= 1 << 2,
 	NL80211_FEATURE_CELL_BASE_REG_HINTS		= 1 << 3,
-	NL80211_FEATURE_P2P_DEVICE_NEEDS_CHANNEL	= 1 << 4,
+	/* bit 4 is reserved - don't use */
 	NL80211_FEATURE_SAE				= 1 << 5,
 	NL80211_FEATURE_LOW_PRIORITY_SCAN		= 1 << 6,
 	NL80211_FEATURE_SCAN_FLUSH			= 1 << 7,
@@ -3913,6 +3966,7 @@ enum nl80211_feature_flags {
 	NL80211_FEATURE_FULL_AP_CLIENT_STATE		= 1 << 15,
 	NL80211_FEATURE_USERSPACE_MPM			= 1 << 16,
 	NL80211_FEATURE_ACTIVE_MONITOR			= 1 << 17,
+	NL80211_FEATURE_AP_MODE_CHAN_WIDTH_CHANGE	= 1 << 18,
 };
 
 /**

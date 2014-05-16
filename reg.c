@@ -199,6 +199,7 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 		PARSE_FLAG(NL80211_RRF_NO_OUTDOOR, "NO-OUTDOOR");
 		PARSE_FLAG(NL80211_RRF_DFS, "DFS");
 		PARSE_FLAG(NL80211_RRF_PTP_ONLY, "PTP-ONLY");
+		PARSE_FLAG(NL80211_RRF_OCB_ONLY, "OCB-ONLY");
 
 		/* Kernels that support NO_IR always turn on both flags */
 		if ((flags & NL80211_RRF_NO_IR) && (flags & __NL80211_RRF_NO_IBSS)) {

@@ -77,6 +77,9 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 		[NL80211_FREQUENCY_ATTR_NO_IR] = { .type = NLA_FLAG },
 		[__NL80211_FREQUENCY_ATTR_NO_IBSS] = { .type = NLA_FLAG },
 		[NL80211_FREQUENCY_ATTR_RADAR] = { .type = NLA_FLAG },
+		[NL80211_FREQUENCY_ATTR_NO_20MHZ] = { .type = NLA_FLAG },
+		[NL80211_FREQUENCY_ATTR_NO_10MHZ] = { .type = NLA_FLAG },
+		[NL80211_FREQUENCY_ATTR_OCB_ONLY] = { .type = NLA_FLAG },
 		[NL80211_FREQUENCY_ATTR_MAX_TX_POWER] = { .type = NLA_U32 },
 	};
 
@@ -184,6 +187,13 @@ static int print_phy_handler(struct nl_msg *msg, void *arg)
 
 					if (tb_freq[NL80211_FREQUENCY_ATTR_RADAR])
 						print_flag("radar detection", &open);
+
+					if (tb_freq[NL80211_FREQUENCY_ATTR_OCB_ONLY])
+						print_flag("OCB only", &open);
+					if (tb_freq[NL80211_FREQUENCY_ATTR_NO_20MHZ])
+						print_flag("no 20 MHz BW", &open);
+					if (tb_freq[NL80211_FREQUENCY_ATTR_NO_10MHZ])
+						print_flag("no 10 MHz BW", &open);
 next:
 					if (open)
 						printf(")");

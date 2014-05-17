@@ -226,6 +226,17 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		printf("\n\trx bitrate:\t%s", buf);
 	}
 
+	if (sinfo[NL80211_STA_INFO_EXPECTED_THROUGHPUT]) {
+		uint32_t thr;
+
+		thr = nla_get_u32(sinfo[NL80211_STA_INFO_EXPECTED_THROUGHPUT]);
+		/* convert in Mbps but scale by 1000 to save kbps units */
+		thr = thr * 1000 / 1024;
+
+		printf("\n\texpected throughput:\t%u.%uMbps",
+		       thr / 1000, thr % 1000);
+	}
+
 	if (sinfo[NL80211_STA_INFO_LLID])
 		printf("\n\tmesh llid:\t%d",
 			nla_get_u16(sinfo[NL80211_STA_INFO_LLID]));

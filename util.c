@@ -702,3 +702,16 @@ void print_vht_info(__u32 capa, const __u8 *mcs)
 	tmp = mcs[6] | (mcs[7] << 8);
 	printf("\t\tVHT TX highest supported: %d Mbps\n", tmp & 0x1fff);
 }
+
+void iw_hexdump(const char *prefix, const __u8 *buf, size_t size)
+{
+	int i;
+
+	printf("%s: ", prefix);
+	for (i = 0; i < size; i++) {
+		if (i && i % 16 == 0)
+			printf("\n%s: ", prefix);
+		printf("%02x ", buf[i]);
+	}
+	printf("\n\n");
+}

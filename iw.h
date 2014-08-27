@@ -171,6 +171,7 @@ void print_ies(unsigned char *ie, int ielen, bool unknown,
 	       enum print_ie_type ptype);
 
 void parse_bitrate(struct nlattr *bitrate_attr, char *buf, int buflen);
+void iw_hexdump(const char *prefix, const __u8 *data, size_t len);
 
 DECLARE_SECTION(set);
 DECLARE_SECTION(get);

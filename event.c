@@ -535,6 +535,10 @@ static int print_event(struct nl_msg *msg, void *arg)
 		printf("vendor event %.6x:%d\n",
 			nla_get_u32(tb[NL80211_ATTR_VENDOR_ID]),
 			nla_get_u32(tb[NL80211_ATTR_VENDOR_SUBCMD]));
+		if (args->frame && tb[NL80211_ATTR_VENDOR_DATA])
+			iw_hexdump("vendor event",
+				   nla_data(tb[NL80211_ATTR_VENDOR_DATA]),
+				   nla_len(tb[NL80211_ATTR_VENDOR_DATA]));
 		break;
 	default:
 		printf("unknown event %d (%s)\n",

@@ -551,6 +551,8 @@ broken_combination:
 			printf("\tDevice supports scan flush.\n");
 		if (features & NL80211_FEATURE_AP_SCAN)
 			printf("\tDevice supports AP scan.\n");
+		if (features & NL80211_FEATURE_ACKTO_ESTIMATION)
+			printf("\tDevice supports ACK timeout estimation.\n");
 	}
 
 	if (tb_msg[NL80211_ATTR_TDLS_SUPPORT])

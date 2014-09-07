@@ -362,39 +362,46 @@ static int handle_distance(struct nl80211_state *state,
 			int argc, char **argv,
 			enum id_input id)
 {
-	char *end;
-	unsigned int distance, coverage;
-
 	if (argc != 1)
 		return 1;
 
 	if (!*argv[0])
 		return 1;
 
-	distance = strtoul(argv[0], &end, 10);
+	if (strcmp("auto", argv[0]) == 0) {
+		NLA_PUT_FLAG(msg, NL80211_ATTR_WIPHY_DYN_ACK);
+	} else {
+		char *end;
+		unsigned int distance, coverage;
 
-	if (*end)
-		return 1;
+		distance = strtoul(argv[0], &end, 10);
 
-	/*
-	 * Divide double the distance by the speed of light in m/usec (300) to
-	 * get round-trip time in microseconds and then divide the result by
-	 * three to get coverage class as specified in IEEE 802.11-2007 table
-	 * 7-27. Values are rounded upwards.
-	 */
-	coverage = (distance + 449) / 450;
-	if (coverage > 255)
-		return 1;
+		if (*end)
+			return 1;
 
-	NLA_PUT_U8(msg, NL80211_ATTR_WIPHY_COVERAGE_CLASS, coverage);
+		/*
+		 * Divide double the distance by the speed of light
+		 * in m/usec (300) to get round-trip time in microseconds
+		 * and then divide the result by three to get coverage class
+		 * as specified in IEEE 802.11-2007 table 7-27.
+		 * Values are rounded upwards.
+		 */
+		coverage = (distance + 449) / 450;
+		if (coverage > 255)
+			return 1;
+
+		NLA_PUT_U8(msg, NL80211_ATTR_WIPHY_COVERAGE_CLASS, coverage);
+	}
 
 	return 0;
  nla_put_failure:
 	return -ENOBUFS;
 }
-COMMAND(set, distance, "<distance>",
+COMMAND(set, distance, "<auto|distance>",
 	NL80211_CMD_SET_WIPHY, 0, CIB_PHY, handle_distance,
-	"Set appropriate coverage class for given link distance in meters.\n"
+	"Enable ACK timeout estimation algorithm (dynack) or set appropriate\n"
+	"coverage class for given link distance in meters.\n"
+	"To disable dynack set valid value for coverage class.\n"
 	"Valid values: 0 - 114750");
 
 static int handle_txpower(struct nl80211_state *state,

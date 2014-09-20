@@ -38,8 +38,10 @@ static int handle_coalesce_enable(struct nl80211_state *state, struct nl_cb *cb,
 		return 1;
 
 	nl_rules = nla_nest_start(msg, NL80211_ATTR_COALESCE_RULE);
-	if (!nl_rules)
+	if (!nl_rules) {
+		fclose(f);
 		return -ENOBUFS;
+	}
 
 	while (!feof(f)) {
 		char *eol;

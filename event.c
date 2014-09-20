@@ -80,7 +80,6 @@ static void print_frame(struct print_event_args *args, struct nlattr *attr)
 		tmp = (frame[29] << 8) + frame[28];
 		printf(" status: %d: %s", tmp, get_status_str(tmp));
 		break;
-		break;
 	case 0xa0: /* disassoc */
 	case 0xc0: /* deauth */
 		/* reason */

@@ -545,14 +545,44 @@ broken_combination:
 			printf("\tDevice accepts cell base station regulatory hints.\n");
 		if (features & NL80211_FEATURE_P2P_DEVICE_NEEDS_CHANNEL)
 			printf("\tP2P Device uses a channel (of the concurrent ones)\n");
+		if (features & NL80211_FEATURE_SAE)
+			printf("\tDevice supports SAE with AUTHENTICATE command\n");
 		if (features & NL80211_FEATURE_LOW_PRIORITY_SCAN)
 			printf("\tDevice supports low priority scan.\n");
 		if (features & NL80211_FEATURE_SCAN_FLUSH)
 			printf("\tDevice supports scan flush.\n");
 		if (features & NL80211_FEATURE_AP_SCAN)
 			printf("\tDevice supports AP scan.\n");
+		if (features & NL80211_FEATURE_VIF_TXPOWER)
+			printf("\tDevice supports per-vif TX power setting\n");
+		if (features & NL80211_FEATURE_NEED_OBSS_SCAN)
+			printf("\tUserspace should do OBSS scan and generate 20/40 coex reports\n");
+		if (features & NL80211_FEATURE_P2P_GO_CTWIN)
+			printf("\tP2P GO supports CT window setting\n");
+		if (features & NL80211_FEATURE_P2P_GO_OPPPS)
+			printf("\tP2P GO supports opportunistic powersave setting\n");
+		if (features & NL80211_FEATURE_FULL_AP_CLIENT_STATE)
+			printf("\tDriver supports full state transitions for AP/GO clients\n");
+		if (features & NL80211_FEATURE_USERSPACE_MPM)
+			printf("\tDriver supports a userspace MPM\n");
+		if (features & NL80211_FEATURE_ACTIVE_MONITOR)
+			printf("\tDevice supports active monitor (which will ACK incoming frames)\n");
+		if (features & NL80211_FEATURE_AP_MODE_CHAN_WIDTH_CHANGE)
+			printf("\tDriver/device bandwidth changes during BSS lifetime (AP/GO mode)\n");
+		if (features & NL80211_FEATURE_DS_PARAM_SET_IE_IN_PROBES)
+			printf("\tDevice adds DS IE to probe requests\n");
+		if (features & NL80211_FEATURE_WFA_TPC_IE_IN_PROBES)
+			printf("\tDevice adds WFA TPC Report IE to probe requests\n");
+		if (features & NL80211_FEATURE_QUIET)
+			printf("\tDevice supports quiet requests from AP\n");
+		if (features & NL80211_FEATURE_TX_POWER_INSERTION)
+			printf("\tDevice can update TPC Report IE\n");
 		if (features & NL80211_FEATURE_ACKTO_ESTIMATION)
 			printf("\tDevice supports ACK timeout estimation.\n");
+		if (features & NL80211_FEATURE_STATIC_SMPS)
+			printf("\tDevice supports static SMPS\n");
+		if (features & NL80211_FEATURE_DYNAMIC_SMPS)
+			printf("\tDevice supports dynamic SMPS\n");
 	}
 
 	if (tb_msg[NL80211_ATTR_TDLS_SUPPORT])

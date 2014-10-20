@@ -61,19 +61,12 @@ static int join_ocb(struct nl80211_state *state, struct nl_cb *cb,
 		}
 	}
 
-	// FFIXME is necessary?
-	if (argc && strcmp(argv[0], "fixed-freq") == 0) {
-		NLA_PUT_FLAG(msg, NL80211_ATTR_FREQ_FIXED);
-		argv++;
-		argc--;
-	}
-
 	return 0;
 
 nla_put_failure:
 	return -ENOSPC;
 }
-COMMAND(ocb, join, "<freq in MHz> <5MHZ|10MHZ> [fixed-freq]",
+COMMAND(ocb, join, "<freq in MHz> <5MHZ|10MHZ>",
 	NL80211_CMD_JOIN_OCB, 0, CIB_NETDEV, join_ocb,
 	"Join an OCB mode.");
 

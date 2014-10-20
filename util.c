@@ -133,6 +133,7 @@ static const char *ifmodes[NL80211_IFTYPE_MAX + 1] = {
 	"P2P-client",
 	"P2P-GO",
 	"P2P-device",
+	"outside context of a BSS",
 };
 
 static char modebuf[100];
@@ -218,6 +219,8 @@ static const char *commands[NL80211_CMD_MAX + 1] = {
 	[NL80211_CMD_FRAME_WAIT_CANCEL] = "frame_wait_cancel",
 	[NL80211_CMD_JOIN_MESH] = "join_mesh",
 	[NL80211_CMD_LEAVE_MESH] = "leave_mesh",
+	[NL80211_CMD_JOIN_OCB] = "join_ocb",
+	[NL80211_CMD_LEAVE_OCB] = "leave_ocb",
 	[NL80211_CMD_UNPROT_DEAUTHENTICATE] = "unprot_deauthenticate",
 	[NL80211_CMD_UNPROT_DISASSOCIATE] = "unprot_disassociate",
 	[NL80211_CMD_NEW_PEER_CANDIDATE] = "new_peer_candidate",

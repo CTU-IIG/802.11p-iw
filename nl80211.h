@@ -227,7 +227,11 @@
  *	the interface identified by %NL80211_ATTR_IFINDEX.
  * @NL80211_CMD_DEL_STATION: Remove a station identified by %NL80211_ATTR_MAC
  *	or, if no MAC address given, all stations, on the interface identified
- *	by %NL80211_ATTR_IFINDEX.
+ *	by %NL80211_ATTR_IFINDEX. %NL80211_ATTR_MGMT_SUBTYPE and
+ *	%NL80211_ATTR_REASON_CODE can optionally be used to specify which type
+ *	of disconnection indication should be sent to the station
+ *	(Deauthentication or Disassociation frame and reason code for that
+ *	frame).
  *
  * @NL80211_CMD_GET_MPATH: Get mesh path attributes for mesh path to
  * 	destination %NL80211_ATTR_MAC on the interface identified by
@@ -4048,6 +4052,13 @@ enum nl80211_ap_sme_features {
  *	multiplexing powersave, ie. can turn off all but one chain
  *	and then wake the rest up as required after, for example,
  *	rts/cts handshake.
+ * @NL80211_FEATURE_SUPPORTS_WMM_ADMISSION: the device supports setting up WMM
+ *	TSPEC sessions (TID aka TSID 0-7) with the %NL80211_CMD_ADD_TX_TS
+ *	command. Standard IEEE 802.11 TSPEC setup is not yet supported, it
+ *	needs to be able to handle Block-Ack agreements and other things.
+ * @NL80211_FEATURE_MAC_ON_CREATE: Device supports configuring
+ *	the vif's MAC address upon creation.
+ *	See 'macaddr' field in the vif_params (cfg80211.h).
  */
 enum nl80211_feature_flags {
 	NL80211_FEATURE_SK_TX_STATUS			= 1 << 0,
@@ -4076,6 +4087,8 @@ enum nl80211_feature_flags {
 	NL80211_FEATURE_ACKTO_ESTIMATION		= 1 << 23,
 	NL80211_FEATURE_STATIC_SMPS			= 1 << 24,
 	NL80211_FEATURE_DYNAMIC_SMPS			= 1 << 25,
+	NL80211_FEATURE_SUPPORTS_WMM_ADMISSION		= 1 << 26,
+	NL80211_FEATURE_MAC_ON_CREATE			= 1 << 27,
 };
 
 /**

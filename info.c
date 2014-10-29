@@ -583,6 +583,8 @@ broken_combination:
 			printf("\tDevice supports static SMPS\n");
 		if (features & NL80211_FEATURE_DYNAMIC_SMPS)
 			printf("\tDevice supports dynamic SMPS\n");
+		if (features & NL80211_FEATURE_SUPPORTS_WMM_ADMISSION)
+			printf("\tDevice supports WMM-AC admission (TSPECs)\n");
 		if (features & NL80211_FEATURE_MAC_ON_CREATE)
 			printf("\tDevice supports configuring vdev MAC-addr on create.\n");
 	}

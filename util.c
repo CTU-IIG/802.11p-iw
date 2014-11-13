@@ -252,6 +252,13 @@ static const char *commands[NL80211_CMD_MAX + 1] = {
 	[NL80211_CMD_SET_COALESCE] = "set_coalesce",
 	[NL80211_CMD_CHANNEL_SWITCH] = "channel_switch",
 	[NL80211_CMD_VENDOR] = "vendor",
+	[NL80211_CMD_SET_QOS_MAP] = "set_qos_map",
+	[NL80211_CMD_ADD_TX_TS] = "add_tx_ts",
+	[NL80211_CMD_DEL_TX_TS] = "del_tx_ts",
+	[NL80211_CMD_GET_MPP] = "get_mpp",
+	[NL80211_CMD_JOIN_OCB] = "join_ocb",
+	[NL80211_CMD_LEAVE_OCB] = "leave_ocb",
+	[NL80211_CMD_CH_SWITCH_STARTED_NOTIFY] = "ch_switch_started_notify",
 };
 
 static char cmdbuf[100];

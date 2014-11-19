@@ -70,6 +70,35 @@ union ieee80211_country_ie_triplet {
 	} __attribute__ ((packed)) ext;
 } __attribute__ ((packed));
 
+static int parse_random_mac_addr(struct nl_msg *msg, char *arg)
+{
+	char *a_addr, *a_mask, *sep;
+	unsigned char addr[ETH_ALEN], mask[ETH_ALEN];
+	char *addrs = arg + 9;
+
+	if (*addrs != '=')
+		return 0;
+
+	addrs++;
+	sep = strchr(addrs, '/');
+	a_addr = addrs;
+
+	if (!sep)
+		return 1;
+
+	*sep = 0;
+	a_mask = sep + 1;
+	if (mac_addr_a2n(addr, a_addr) || mac_addr_a2n(mask, a_mask))
+		return 1;
+
+	NLA_PUT(msg, NL80211_ATTR_MAC, ETH_ALEN, addr);
+	NLA_PUT(msg, NL80211_ATTR_MAC_MASK, ETH_ALEN, mask);
+
+	return 0;
+ nla_put_failure:
+	return -ENOBUFS;
+}
+
 static int handle_scan(struct nl80211_state *state,
 		       struct nl_cb *cb,
 		       struct nl_msg *msg,
@@ -92,7 +121,7 @@ static int handle_scan(struct nl80211_state *state,
 	bool passive = false, have_ssids = false, have_freqs = false;
 	size_t ies_len = 0, meshid_len = 0;
 	unsigned char *ies = NULL, *meshid = NULL, *tmpies;
-	int flags = 0;
+	unsigned int flags = 0;
 
 	ssids = nlmsg_alloc();
 	if (!ssids)
@@ -115,16 +144,20 @@ static int handle_scan(struct nl80211_state *state,
 				parse = IES;
 				break;
 			} else if (strcmp(argv[i], "lowpri") == 0) {
-				parse = NONE;
 				flags |= NL80211_SCAN_FLAG_LOW_PRIORITY;
 				break;
 			} else if (strcmp(argv[i], "flush") == 0) {
-				parse = NONE;
 				flags |= NL80211_SCAN_FLAG_FLUSH;
 				break;
 			} else if (strcmp(argv[i], "ap-force") == 0) {
-				parse = NONE;
 				flags |= NL80211_SCAN_FLAG_AP;
+				break;
+			} else if (strncmp(argv[i], "randomise", 9) == 0 ||
+				   strncmp(argv[i], "randomize", 9) == 0) {
+				flags |= NL80211_SCAN_FLAG_RANDOM_ADDR;
+				err = parse_random_mac_addr(msg, argv[i]);
+				if (err)
+					goto nla_put_failure;
 				break;
 			} else if (strcmp(argv[i], "ssid") == 0) {
 				parse = SSID;
@@ -1763,7 +1796,7 @@ static int handle_scan_combined(struct nl80211_state *state,
 	dump_argv[0] = argv[0];
 	return handle_cmd(state, id, dump_argc, dump_argv);
 }
-TOPLEVEL(scan, "[-u] [freq <freq>*] [ies <hex as 00:11:..>] [meshid <meshid>] [lowpri,flush,ap-force] [ssid <ssid>*|passive]", 0, 0,
+TOPLEVEL(scan, "[-u] [freq <freq>*] [ies <hex as 00:11:..>] [meshid <meshid>] [lowpri,flush,ap-force] [randomise[=<addr>/<mask>]] [ssid <ssid>*|passive]", 0, 0,
 	 CIB_NETDEV, handle_scan_combined,
 	 "Scan on the given frequencies and probe for the given SSIDs\n"
 	 "(or wildcard if not given) unless passive scanning is requested.\n"
@@ -1773,7 +1806,7 @@ COMMAND(scan, dump, "[-u]",
 	NL80211_CMD_GET_SCAN, NLM_F_DUMP, CIB_NETDEV, handle_scan_dump,
 	"Dump the current scan results. If -u is specified, print unknown\n"
 	"data in scan results.");
-COMMAND(scan, trigger, "[freq <freq>*] [ies <hex as 00:11:..>] [meshid <meshid>] [lowpri,flush,ap-force] [ssid <ssid>*|passive]",
+COMMAND(scan, trigger, "[freq <freq>*] [ies <hex as 00:11:..>] [meshid <meshid>] [lowpri,flush,ap-force] [randomise[=<addr>/<mask>]] [ssid <ssid>*|passive]",
 	NL80211_CMD_TRIGGER_SCAN, 0, CIB_NETDEV, handle_scan,
 	 "Trigger a scan on the given frequencies with probing for the given\n"
 	 "SSIDs (or wildcard if not given) unless passive scanning is requested.");

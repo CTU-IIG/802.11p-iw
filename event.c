@@ -200,7 +200,8 @@ static void parse_mic_failure(struct nlattr **attrs)
 
 static void parse_wowlan_wake_event(struct nlattr **attrs)
 {
-	struct nlattr *tb[NUM_NL80211_WOWLAN_TRIG];
+	struct nlattr *tb[NUM_NL80211_WOWLAN_TRIG],
+		*tb_match[NUM_NL80211_ATTR];
 
 	printf("WoWLAN wakeup\n");
 	if (!attrs[NL80211_ATTR_WOWLAN_TRIGGERS]) {
@@ -227,6 +228,31 @@ static void parse_wowlan_wake_event(struct nlattr **attrs)
 		printf("\t* 4-way handshake\n");
 	if (tb[NL80211_WOWLAN_TRIG_RFKILL_RELEASE])
 		printf("\t* RF-kill released\n");
+	if (tb[NL80211_WOWLAN_TRIG_NET_DETECT_RESULTS]) {
+		struct nlattr *match, *freq;
+		int rem_nst, rem_nst2;
+
+		printf("\t* network detected\n");
+		nla_for_each_nested(match,
+				    tb[NL80211_WOWLAN_TRIG_NET_DETECT_RESULTS],
+				    rem_nst) {
+			nla_parse(tb_match, NUM_NL80211_ATTR, nla_data(match),
+				  nla_len(match),
+				  NULL);
+			printf("\t\tSSID: \"");
+			print_ssid_escaped(nla_len(tb_match[NL80211_ATTR_SSID]),
+					   nla_data(tb_match[NL80211_ATTR_SSID]));
+			printf("\"");
+			if (tb_match[NL80211_ATTR_SCAN_FREQUENCIES]) {
+				printf(" freq(s):");
+				nla_for_each_nested(freq,
+						    tb_match[NL80211_ATTR_SCAN_FREQUENCIES],
+						    rem_nst2)
+					printf(" %d", nla_get_u32(freq));
+			}
+			printf("\n");
+		}
+	}
 	if (tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_80211]) {
 		uint8_t *d = nla_data(tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_80211]);
 		int l = nla_len(tb[NL80211_WOWLAN_TRIG_WAKEUP_PKT_80211]);

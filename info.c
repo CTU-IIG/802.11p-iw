@@ -590,6 +590,8 @@ broken_combination:
 			printf("\tDevice supports WMM-AC admission (TSPECs)\n");
 		if (features & NL80211_FEATURE_MAC_ON_CREATE)
 			printf("\tDevice supports configuring vdev MAC-addr on create.\n");
+		if (features & NL80211_FEATURE_TDLS_CHANNEL_SWITCH)
+			printf("\tDevice supports TDLS channel switching\n");
 	}
 
 	if (tb_msg[NL80211_ATTR_TDLS_SUPPORT])

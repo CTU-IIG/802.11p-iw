@@ -127,7 +127,7 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 	struct nlattr *nl_rule;
 	int rem_rule;
 	enum nl80211_dfs_regions dfs_domain;
-	static struct nla_policy reg_rule_policy[NL80211_FREQUENCY_ATTR_MAX + 1] = {
+	static struct nla_policy reg_rule_policy[NL80211_REG_RULE_ATTR_MAX + 1] = {
 		[NL80211_ATTR_REG_RULE_FLAGS]		= { .type = NLA_U32 },
 		[NL80211_ATTR_FREQ_RANGE_START]		= { .type = NLA_U32 },
 		[NL80211_ATTR_FREQ_RANGE_END]		= { .type = NLA_U32 },
@@ -159,10 +159,10 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 	printf("country %c%c: %s\n", alpha2[0], alpha2[1], dfs_domain_name(dfs_domain));
 
 	nla_for_each_nested(nl_rule, tb_msg[NL80211_ATTR_REG_RULES], rem_rule) {
-		struct nlattr *tb_rule[NL80211_FREQUENCY_ATTR_MAX + 1];
+		struct nlattr *tb_rule[NL80211_REG_RULE_ATTR_MAX + 1];
 		__u32 flags, start_freq_khz, end_freq_khz, max_bw_khz, max_ant_gain_mbi, max_eirp_mbm;
 
-		nla_parse(tb_rule, NL80211_FREQUENCY_ATTR_MAX, nla_data(nl_rule), nla_len(nl_rule), reg_rule_policy);
+		nla_parse(tb_rule, NL80211_REG_RULE_ATTR_MAX, nla_data(nl_rule), nla_len(nl_rule), reg_rule_policy);
 
 		flags = nla_get_u32(tb_rule[NL80211_ATTR_REG_RULE_FLAGS]);
 		start_freq_khz = nla_get_u32(tb_rule[NL80211_ATTR_FREQ_RANGE_START]);

@@ -601,7 +601,7 @@ void print_ht_mcs(const __u8 *mcs)
 	unsigned int tx_max_num_spatial_streams, max_rx_supp_data_rate;
 	bool tx_mcs_set_defined, tx_mcs_set_equal, tx_unequal_modulation;
 
-	max_rx_supp_data_rate = (mcs[10] & ((mcs[11] & 0x3) << 8));
+	max_rx_supp_data_rate = (mcs[10] | ((mcs[11] & 0x3) << 8));
 	tx_mcs_set_defined = !!(mcs[12] & (1 << 0));
 	tx_mcs_set_equal = !(mcs[12] & (1 << 1));
 	tx_max_num_spatial_streams = ((mcs[12] >> 2) & 3) + 1;

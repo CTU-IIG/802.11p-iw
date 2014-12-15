@@ -114,7 +114,6 @@ COMMAND(reg, set, "<ISO/IEC 3166-1 alpha2>",
 	"Notify the kernel about the current regulatory domain.");
 
 static int print_reg_handler(struct nl_msg *msg, void *arg)
-
 {
 #define PARSE_FLAG(nl_flag, string_value)  do { \
 		if ((flags & nl_flag)) { \
@@ -149,6 +148,13 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 		printf("No reg rules\n");
 		return NL_SKIP;
 	}
+
+	if (tb_msg[NL80211_ATTR_WIPHY])
+		printf("phy#%d%s\n", nla_get_u32(tb_msg[NL80211_ATTR_WIPHY]),
+		       tb_msg[NL80211_ATTR_WIPHY_SELF_MANAGED_REG] ?
+		       " (self-managed)" : "");
+	else
+		printf("global\n");
 
 	if (tb_msg[NL80211_ATTR_DFS_REGION])
 		dfs_domain = nla_get_u8(tb_msg[NL80211_ATTR_DFS_REGION]);
@@ -216,8 +222,20 @@ static int print_reg_handler(struct nl_msg *msg, void *arg)
 
 		printf("\n");
 	}
-	return NL_OK;
+
+	printf("\n");
+	return NL_SKIP;
 #undef PARSE_FLAG
+}
+
+static int handle_reg_dump(struct nl80211_state *state,
+			   struct nl_cb *cb,
+			   struct nl_msg *msg,
+			   int argc, char **argv,
+			   enum id_input id)
+{
+	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_reg_handler, NULL);
+	return 0;
 }
 
 static int handle_reg_get(struct nl80211_state *state,
@@ -226,8 +244,22 @@ static int handle_reg_get(struct nl80211_state *state,
 			  int argc, char **argv,
 			  enum id_input id)
 {
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_reg_handler, NULL);
-	return 0;
+	char *dump_args[] = { "reg", "dump" };
+	int err;
+
+	err = handle_cmd(state, CIB_NONE, 2, dump_args);
+	/* dump might fail since it's not supported on older kernels */
+	if (err == -EOPNOTSUPP) {
+		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_reg_handler,
+			  NULL);
+		return 0;
+	}
+
+	return err;
 }
 COMMAND(reg, get, NULL, NL80211_CMD_GET_REG, 0, CIB_NONE, handle_reg_get,
 	"Print out the kernel's current regulatory domain information.");
+COMMAND(reg, get, NULL, NL80211_CMD_GET_REG, 0, CIB_PHY, handle_reg_get,
+	"Print out the devices' current regulatory domain information.");
+HIDDEN(reg, dump, NULL, NL80211_CMD_GET_REG, NLM_F_DUMP, CIB_NONE,
+       handle_reg_dump);

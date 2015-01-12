@@ -133,6 +133,7 @@ static const char *ifmodes[NL80211_IFTYPE_MAX + 1] = {
 	"P2P-client",
 	"P2P-GO",
 	"P2P-device",
+	"outside context of a BSS",
 };
 
 static char modebuf[100];

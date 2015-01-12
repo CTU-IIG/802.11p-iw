@@ -104,6 +104,9 @@ static int get_if_type(int *argc, char ***argv, enum nl80211_iftype *type,
 	    strcmp(tpstr, "ibss") == 0) {
 		*type = NL80211_IFTYPE_ADHOC;
 		return 0;
+	} else if (strcmp(tpstr, "ocb") == 0) {
+		*type = NL80211_IFTYPE_OCB;
+		return 0;
 	} else if (strcmp(tpstr, "monitor") == 0) {
 		*type = NL80211_IFTYPE_MONITOR;
 		return 0;
